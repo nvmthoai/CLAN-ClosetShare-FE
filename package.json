@@ -1,8 +1,19 @@
 {
-  "name": "closet-share",
+  "name": "closetshare",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "ClosetShare - Your Virtual Wardrobe. Social fashion platform for sharing outfits and virtual wardrobe management.",
+  "keywords": [
+    "fashion",
+    "wardrobe",
+    "style",
+    "clothing",
+    "social",
+    "outfit",
+    "closet"
+  ],
+  "homepage": "https://closetshare.vercel.app",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
