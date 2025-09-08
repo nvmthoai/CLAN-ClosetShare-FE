@@ -1,0 +1,31 @@
+.react-tel-input .country-list,
+.country-list,
+.react-tel-input .flag-dropdown.open .country-list {
+  position: absolute !important;
+  top: -200px !important; /* Hiển thị dropdown lên trên */
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 99999 !important;
+  background: white !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15) !important; /* Shadow hướng lên */
+  max-height: 180px !important;
+  overflow-y: auto !important;
+  margin-top: 0 !important;
+}
+
+.react-tel-input {
+  position: relative !important;
+  overflow: visible !important;
+  z-index: 10 !important;
+}
+
+.react-tel-input .country-list .country {
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+}
+
+.react-tel-input .country-list .country:hover {
+  background-color: #f3f4f6 !important;
+}
