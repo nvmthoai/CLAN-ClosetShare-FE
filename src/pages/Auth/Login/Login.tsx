@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { authApi } from "@/apis/auth.api";
 import { toast } from "react-toastify";
 import type { LoginRequest } from "@/models/Auth";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 function Login() {
@@ -13,6 +13,8 @@ function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: Location })?.from?.pathname || "/";
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
@@ -22,8 +24,8 @@ function Login() {
         localStorage.setItem("access_token", data.access_token!);
         if (data.refresh_token) localStorage.setItem("refresh_token", data.refresh_token);
       }
-      toast.success("Đăng nhập thành công");
-      navigate("/");
+  toast.success("Đăng nhập thành công");
+  navigate(from, { replace: true });
     },
     onError: (err) => {
       const anyErr = err as unknown as { response?: { data?: { message?: string } } };

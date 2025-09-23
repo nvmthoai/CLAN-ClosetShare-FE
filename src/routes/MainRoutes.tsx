@@ -2,6 +2,7 @@ import { ToastContainer } from "react-toastify";
 import ScrollToTop from "../components/ui/autoScroll";
 import { Route, Routes } from "react-router-dom";
 import LandingPage from "@/pages/LandingPage/LandingPage";
+import ProtectedRoute from "./ProtectedRoute";
 import Login from "@/pages/Auth/Login/Login";
 import Register from "@/pages/Auth/Register/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
@@ -24,7 +25,14 @@ export default function MainRoutes() {
       />
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <LandingPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
