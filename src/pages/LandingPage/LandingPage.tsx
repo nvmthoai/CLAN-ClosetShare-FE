@@ -73,7 +73,7 @@ function LandingPage() {
                   Sign In
                 </a>
                 <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Get Started
+                  <a href="/register">Get Started</a>
                 </Button>
               </div>
             </div>
@@ -101,7 +101,7 @@ function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-6 py-20">
+      <section className="relative px-6 py-20" id="hero">
         <div className="mx-auto max-w-6xl grid gap-12 grid-cols-1 md:grid-cols-2 items-center">
           <div className="text-center md:text-left">
             <Badge className="mb-6 bg-purple-100 text-purple-800 hover:bg-purple-200 inline-flex items-center">
@@ -124,12 +124,16 @@ function LandingPage() {
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-start">
-              <Button size="lg" className="btn-primary">
-                Join Now – It's Free
-              </Button>
-              <Button size="lg" variant="outline" className="btn-secondary">
-                For Brands: Get Started
-              </Button>
+              <a href="#pricing">
+                <Button size="lg" className="btn-primary">
+                  Join Now – It's Free
+                </Button>
+              </a>
+              <a href="#features">
+                <Button size="lg" variant="outline" className="btn-secondary">
+                  For Brands: Get Started
+                </Button>
+              </a>
             </div>
           </div>
 
@@ -151,7 +155,7 @@ function LandingPage() {
       </section>
 
       {/* Why ClosetShare Section */}
-      <section className="px-6 py-16 bg-white">
+      <section className="px-6 py-16 bg-white" id="features">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
             Why ClosetShare?
@@ -210,7 +214,7 @@ function LandingPage() {
       </section>
 
       {/* Key Features Section */}
-      <section className="px-6 py-16 bg-gray-50">
+      <section className="px-6 py-16 bg-gray-50" id="how-it-works">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
             Key Features
@@ -393,7 +397,7 @@ function LandingPage() {
       </section>
 
       {/* Plans Section */}
-      <section className="px-6 py-16 bg-gray-50">
+      <section className="px-6 py-16 bg-gray-50" id="pricing">
         <div className="mx-auto max-w-4xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
             Plans for Individuals & Brands
