@@ -6,6 +6,10 @@ export type GetProductsParams = {
   search?: string;
   type?: string;
   shopId?: string;
+  sort?: string; // e.g. newest | price_asc | price_desc
+  sizes?: string; // comma separated sizes
+  priceMin?: number | null;
+  priceMax?: number | null;
 };
 
 export const productApi = {
