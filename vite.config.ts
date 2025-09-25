@@ -12,10 +12,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://103.163.24.150:3000',
+      "/api": {
+        target: "http://103.163.24.150:3000",
         changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\//, '/'),
+        rewrite: (p) => p.replace(/^\/api\//, "/"),
       },
     },
   },

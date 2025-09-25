@@ -15,17 +15,18 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: Location })?.from?.pathname || "/";
+  const from =
+    (location.state as { from?: Location })?.from?.pathname || "/shop";
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (res) => {
-      const { access_token, refresh_token } = extractTokens(res)
+      const { access_token, refresh_token } = extractTokens(res);
       if (access_token) {
-        localStorage.setItem('access_token', access_token)
+        localStorage.setItem("access_token", access_token);
       }
       if (refresh_token) {
-        localStorage.setItem('refresh_token', refresh_token)
+        localStorage.setItem("refresh_token", refresh_token);
       }
       toast.success("Đăng nhập thành công");
       navigate(from, { replace: true });
