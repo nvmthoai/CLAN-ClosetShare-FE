@@ -45,13 +45,14 @@ fetcher.interceptors.response.use(
             return fetcher(originalRequest);
           }
         }
-      } catch {
-        // fall through to logout
+      } catch (refreshError) {
+        console.log("Refresh token failed:", refreshError);
       }
+      console.log("401 error: clearing tokens");
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("user_role");
-      window.location.href = "/login";
+
       return Promise.reject(error);
     }
     return Promise.reject(error);

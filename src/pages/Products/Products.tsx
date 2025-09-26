@@ -34,10 +34,10 @@ export default function Products() {
     limit,
     search: debouncedSearch || undefined,
     // Example additional params mapping, adapt to backend later:
-  sort,
-  sizes: sizes.length ? sizes.join(",") : undefined,
-  priceMin: priceMin ?? undefined,
-  priceMax: priceMax ?? undefined,
+    sort,
+    sizes: sizes.length ? sizes.join(",") : undefined,
+    priceMin: priceMin ?? undefined,
+    priceMax: priceMax ?? undefined,
   };
 
   const { data, isLoading, isError, refetch } = useQuery({

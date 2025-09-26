@@ -1,7 +1,9 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { userApi } from "@/apis/user.api";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,12 +12,23 @@ interface LayoutProps {
 
 export default function Layout({ children, sidebar }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const hasToken = Boolean(localStorage.getItem("access_token"));
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => userApi.getMe(),
+    select: (res) =>
+      res.data as { name?: string; email?: string; avatarUrl?: string },
+    staleTime: 60_000,
+    enabled: hasToken, // Only fetch if we have a token
+    retry: false, // Don't retry on failure to prevent multiple 401s
+  });
 
   const navItems = [
-    { to: "/", label: "Home" },
+    { to: "/home", label: "Home" },
     { to: "/shop", label: "Shop" },
     { to: "/create", label: "Create" },
-    { to: "/profile", label: "Profile" },
   ];
 
   return (
@@ -49,24 +62,24 @@ export default function Layout({ children, sidebar }: LayoutProps) {
             </Link>
           </div>
 
-            <nav className="hidden md:flex gap-6 text-sm">
-              {navItems.map((n) => (
-                <NavLink
-                  key={n.to}
-                  to={n.to}
-                  className={({ isActive }) =>
-                    cn(
-                      "relative font-medium text-gray-600 hover:text-purple-600 transition",
-                      isActive &&
-                        "text-purple-600 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:bg-gradient-to-r after:from-purple-600 after:to-pink-600"
-                    )
-                  }
-                >
-                  {n.label}
-                </NavLink>
-              ))}
-            </nav>
-          <div className="ml-auto flex items-center gap-4">
+          <nav className="hidden md:flex gap-6 text-sm">
+            {navItems.map((n) => (
+              <NavLink
+                key={n.to}
+                to={n.to}
+                className={({ isActive }) =>
+                  cn(
+                    "relative font-medium text-gray-600 hover:text-purple-600 transition",
+                    isActive &&
+                      "text-purple-600 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:bg-gradient-to-r after:from-purple-600 after:to-pink-600"
+                  )
+                }
+              >
+                {n.label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="ml-auto flex items-center gap-4 relative">
             <div className="hidden md:flex items-center gap-2">
               <input
                 placeholder="Search items"
@@ -79,7 +92,56 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 9+
               </span>
             </button>
-            <button className="text-sm p-2 rounded-full hover:bg-purple-50">🛍️</button>
+            <div className="relative">
+              <button
+                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-purple-50"
+                onClick={() => setMenuOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+              >
+                <img
+                  src={
+                    me?.avatarUrl ||
+                    (me?.name || me?.email
+                      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          me?.name || me?.email || "U"
+                        )}`
+                      : "https://ui-avatars.com/api/?name=U")
+                  }
+                  alt={me?.name || "User"}
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+                <span className="hidden sm:block text-sm font-medium max-w-[140px] truncate">
+                  {me?.name || me?.email || "User"}
+                </span>
+                <span className="text-xs">▾</span>
+              </button>
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-44 rounded-md border bg-white shadow-lg z-50"
+                >
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate("/profile");
+                    }}
+                  >
+                    View profile
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate("/profile/edit");
+                    }}
+                  >
+                    Update info
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {mobileOpen && (

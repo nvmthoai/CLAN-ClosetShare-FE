@@ -8,6 +8,12 @@ import Register from "@/pages/Auth/Register/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword/ResetPassword";
 import Products from "@/pages/Products/Products";
+import Profile from "@/pages/Profile/Profile";
+import EditProfile from "@/pages/Profile/EditProfile";
+import Home from "@/pages/Home/Home";
+import Feed from "@/pages/Feed/Feed";
+import Search from "@/pages/Search/Search";
+import Activity from "@/pages/Activity/Activity";
 
 export default function MainRoutes() {
   return (
@@ -25,12 +31,21 @@ export default function MainRoutes() {
         theme="colored"
       />
       <ScrollToTop />
+
       <Routes>
         <Route
           path="/"
           element={
             <ProtectedRoute>
-              <LandingPage />
+              <Feed />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
             </ProtectedRoute>
           }
         />
@@ -42,6 +57,39 @@ export default function MainRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/edit"
+          element={
+            <ProtectedRoute>
+              <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <Search />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/activity"
+          element={
+            <ProtectedRoute>
+              <Activity />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

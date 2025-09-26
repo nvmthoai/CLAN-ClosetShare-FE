@@ -6,7 +6,9 @@ interface ProductCardProps {
   product: Product;
 }
 
-export const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({
+  product,
+}: ProductCardProps) {
   const firstImg = product.images?.[0] || product.variants?.[0]?.imgs?.[0];
   const price = product.variants?.[0]?.pricings?.[0]?.price;
   return (

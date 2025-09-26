@@ -21,14 +21,29 @@ function Login() {
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
     onSuccess: (res) => {
+      console.log("Login success response:", res);
+      console.log(
+        "Response data structure:",
+        JSON.stringify(res.data, null, 2)
+      );
       const { access_token, refresh_token } = extractTokens(res);
+      console.log("Extracted tokens:", {
+        hasAccessToken: !!access_token,
+        hasRefreshToken: !!refresh_token,
+        accessTokenLength: access_token?.length,
+        actualAccessToken: access_token,
+        actualRefreshToken: refresh_token,
+      });
       if (access_token) {
         localStorage.setItem("access_token", access_token);
+        console.log("Access token saved to localStorage");
       }
       if (refresh_token) {
         localStorage.setItem("refresh_token", refresh_token);
+        console.log("Refresh token saved to localStorage");
       }
       toast.success("Đăng nhập thành công");
+      console.log("Navigating to:", from);
       navigate(from, { replace: true });
     },
     onError: (err) => {
