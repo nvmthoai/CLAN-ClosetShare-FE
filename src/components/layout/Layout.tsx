@@ -4,6 +4,16 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
+import {
+  Home,
+  Search,
+  PlusSquare,
+  Heart,
+  Menu,
+  X,
+  ShoppingBag,
+  Camera,
+} from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
@@ -26,9 +36,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   });
 
   const navItems = [
-    { to: "/home", label: "Home" },
-    { to: "/shop", label: "Shop" },
-    { to: "/create", label: "Create" },
+    { to: "/home", icon: Home, label: "Home" },
+    { to: "/search", icon: Search, label: "Search" },
+    { to: "/shop", icon: ShoppingBag, label: "Shop" },
+    { to: "/create", icon: PlusSquare, label: "Create" },
+    { to: "/activity", icon: Heart, label: "Activity" },
   ];
 
   return (
@@ -47,14 +59,18 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               aria-label="Toggle navigation"
               onClick={() => setMobileOpen((o) => !o)}
             >
-              {mobileOpen ? "✕" : "☰"}
+              {mobileOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </button>
             <Link
-              to="/"
+              to="/home"
               className="flex items-center gap-2 font-bold text-lg tracking-tight"
             >
               <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-sm shadow">
-                👗
+                <Camera className="w-4 h-4" />
               </span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
                 ClosetShare
@@ -69,12 +85,13 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 to={n.to}
                 className={({ isActive }) =>
                   cn(
-                    "relative font-medium text-gray-600 hover:text-purple-600 transition",
+                    "relative font-medium text-gray-600 hover:text-purple-600 transition flex items-center gap-2",
                     isActive &&
                       "text-purple-600 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-full after:bg-gradient-to-r after:from-purple-600 after:to-pink-600"
                   )
                 }
               >
+                <n.icon className="w-4 h-4" />
                 {n.label}
               </NavLink>
             ))}
@@ -153,11 +170,12 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 onClick={() => setMobileOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "block text-sm font-medium px-2 py-1 rounded hover:bg-purple-50",
+                    "flex items-center gap-3 text-sm font-medium px-2 py-1 rounded hover:bg-purple-50",
                     isActive && "text-purple-600"
                   )
                 }
               >
+                <n.icon className="w-4 h-4" />
                 {n.label}
               </NavLink>
             ))}

@@ -5,9 +5,11 @@ import type { Story } from "@/models/Social";
 interface StoriesProps {
   stories: Story[];
   onViewStory: (storyId: string) => void;
+  /** Optional class to customize the outer container */
+  containerClassName?: string;
 }
 
-export function Stories({ stories, onViewStory }: StoriesProps) {
+export function Stories({ stories, onViewStory, containerClassName }: StoriesProps) {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
   const handleStoryClick = (story: Story) => {
@@ -18,7 +20,7 @@ export function Stories({ stories, onViewStory }: StoriesProps) {
   return (
     <>
       {/* Stories Bar */}
-      <div className="bg-white border rounded-lg p-4 mb-6 max-w-md mx-auto">
+      <div className={cn("bg-white border rounded-lg p-4 mb-6", containerClassName)}>
         <div className="flex gap-4 overflow-x-auto scrollbar-hide">
           {/* Your story (add story) */}
           <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -44,7 +46,10 @@ export function Stories({ stories, onViewStory }: StoriesProps) {
                 )}
               >
                 <img
-                  src={story.user.avatar || `https://ui-avatars.com/api/?name=${story.user.username}`}
+                  src={
+                    story.user.avatar ||
+                    `https://ui-avatars.com/api/?name=${story.user.username}`
+                  }
                   alt={story.user.username}
                   className="w-full h-full rounded-full object-cover bg-white p-0.5"
                 />
@@ -72,16 +77,17 @@ export function Stories({ stories, onViewStory }: StoriesProps) {
             <div className="absolute top-8 left-4 right-4 z-10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img
-                  src={selectedStory.user.avatar || `https://ui-avatars.com/api/?name=${selectedStory.user.username}`}
+                  src={
+                    selectedStory.user.avatar ||
+                    `https://ui-avatars.com/api/?name=${selectedStory.user.username}`
+                  }
                   alt={selectedStory.user.username}
                   className="w-8 h-8 rounded-full object-cover"
                 />
                 <span className="text-white font-semibold text-sm">
                   {selectedStory.user.username}
                 </span>
-                <span className="text-white text-opacity-60 text-xs">
-                  2h
-                </span>
+                <span className="text-white text-opacity-60 text-xs">2h</span>
               </div>
               <button
                 onClick={() => setSelectedStory(null)}

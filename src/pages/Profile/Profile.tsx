@@ -71,7 +71,9 @@ export default function Profile() {
 
         {/* Recently viewed section */}
         <div className="px-6 py-6 border-b">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">Recently viewed</h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">
+            Recently viewed
+          </h2>
           <div className="flex gap-3">
             {recentlyViewed.map((_, i) => (
               <div
@@ -80,7 +82,7 @@ export default function Profile() {
               >
                 <div className="w-6 h-6 text-gray-400">
                   <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 </div>
               </div>
@@ -91,7 +93,9 @@ export default function Profile() {
         {/* My Virtual Closet section */}
         <div className="px-6 py-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-700">My Virtual Closet</h2>
+            <h2 className="text-sm font-semibold text-gray-700">
+              My Virtual Closet
+            </h2>
             <div className="relative">
               <select
                 value={viewType}

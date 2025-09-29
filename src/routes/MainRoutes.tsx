@@ -10,7 +10,8 @@ import ResetPassword from "@/pages/Auth/ResetPassword/ResetPassword";
 import Products from "@/pages/Products/Products";
 import Profile from "@/pages/Profile/Profile";
 import EditProfile from "@/pages/Profile/EditProfile";
-import Home from "@/pages/Home/Home";
+import Layout from "@/components/layout/Layout";
+
 import Feed from "@/pages/Feed/Feed";
 import Search from "@/pages/Search/Search";
 import Activity from "@/pages/Activity/Activity";
@@ -33,22 +34,17 @@ export default function MainRoutes() {
       <ScrollToTop />
 
       <Routes>
+        <Route path="/" element={<LandingPage />} />
+
         <Route
-          path="/"
+          path="/home"
           element={
             <ProtectedRoute>
               <Feed />
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/shop"
           element={
@@ -89,7 +85,21 @@ export default function MainRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path="/landing" element={<LandingPage />} />
+        <Route
+          path="/create"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold mb-4">Create Post</h1>
+                  <p className="text-gray-600">
+                    Upload your fashion content here...
+                  </p>
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

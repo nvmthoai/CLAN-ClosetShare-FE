@@ -60,8 +60,8 @@ export default function SidebarFilters({
               className={cn(
                 "border rounded px-1.5 py-1 font-medium tracking-wide",
                 sizes.includes(s)
-                  ? "bg-purple-600 text-white border-purple-600 shadow-sm"
-                  : "hover:bg-purple-50"
+                  ? "bg-primary text-white border-primary shadow-sm"
+                  : "hover:bg-primary/10"
               )}
             >
               {s}
@@ -79,7 +79,7 @@ export default function SidebarFilters({
             <input
               type="number"
               placeholder="Min"
-              className="w-20 rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-20 rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
               value={priceMin ?? ""}
               onChange={(e) => handlePriceChange("min", e.target.value)}
             />
@@ -87,7 +87,7 @@ export default function SidebarFilters({
             <input
               type="number"
               placeholder="Max"
-              className="w-20 rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="w-20 rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
               value={priceMax ?? ""}
               onChange={(e) => handlePriceChange("max", e.target.value)}
             />
@@ -140,7 +140,7 @@ export default function SidebarFilters({
           <button
             type="button"
             onClick={onClearAll}
-            className="text-[11px] text-purple-600 hover:underline"
+            className="text-[11px] text-primary hover:underline"
           >
             Clear
           </button>
@@ -155,7 +155,7 @@ export default function SidebarFilters({
           >
             <button
               onClick={() => setOpen(expanded ? null : sec.id)}
-              className="w-full flex items-center justify-between px-3 py-2 text-left text-[13px] font-medium hover:bg-gray-50"
+              className="w-full flex items-center justify-between px-3 py-2 text-left text-[13px] font-medium hover:bg-primary/5"
             >
               <span>{sec.title}</span>
               <span className="text-xs text-gray-500">
