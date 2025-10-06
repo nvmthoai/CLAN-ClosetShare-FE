@@ -8,6 +8,7 @@ import Register from "@/pages/Auth/Register/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword/ResetPassword";
 import Products from "@/pages/Products/Products";
+import ProductDetail from "@/pages/Products/ProductDetail";
 import Profile from "@/pages/Profile/Profile";
 import EditProfile from "@/pages/Profile/EditProfile";
 import Layout from "@/components/layout/Layout";
@@ -15,6 +16,10 @@ import Layout from "@/components/layout/Layout";
 import Feed from "@/pages/Feed/Feed";
 import Search from "@/pages/Search/Search";
 import Activity from "@/pages/Activity/Activity";
+import Subscriptions from "@/pages/Subscription/Subscriptions";
+import PaymentCallback from "@/pages/Payment/PaymentCallback";
+import PaymentSuccess from "@/pages/Payment/PaymentSuccess";
+import PaymentFailure from "@/pages/Payment/PaymentFailure";
 
 export default function MainRoutes() {
   return (
@@ -54,6 +59,14 @@ export default function MainRoutes() {
           }
         />
         <Route
+          path="/products/:id"
+          element={
+            <ProtectedRoute>
+              <ProductDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/profile"
           element={
             <ProtectedRoute>
@@ -82,6 +95,38 @@ export default function MainRoutes() {
           element={
             <ProtectedRoute>
               <Activity />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscriptions"
+          element={
+            <ProtectedRoute>
+              <Subscriptions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/callback"
+          element={
+            <ProtectedRoute>
+              <PaymentCallback />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/success"
+          element={
+            <ProtectedRoute>
+              <PaymentSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/failure"
+          element={
+            <ProtectedRoute>
+              <PaymentFailure />
             </ProtectedRoute>
           }
         />

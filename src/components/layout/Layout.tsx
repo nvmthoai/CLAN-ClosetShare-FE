@@ -2,8 +2,10 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
+import { shopApi } from "@/apis/shop.api";
+import { toast } from "react-toastify";
 import {
   Home,
   Search,
@@ -13,6 +15,7 @@ import {
   X,
   ShoppingBag,
   Camera,
+  BadgeDollarSign,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -23,6 +26,17 @@ interface LayoutProps {
 export default function Layout({ children, sidebar }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showCreateShop, setShowCreateShop] = useState(false);
+  const [shopId, setShopId] = useState<string | null>(() =>
+    typeof window !== "undefined" ? localStorage.getItem("shop_id") : null
+  );
+  const [shopForm, setShopForm] = useState({
+    name: "",
+    description: "",
+    address: "",
+    phone_number: "",
+    email: "",
+  });
   const navigate = useNavigate();
   const hasToken = Boolean(localStorage.getItem("access_token"));
   const { data: me } = useQuery({
@@ -35,10 +49,46 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     retry: false, // Don't retry on failure to prevent multiple 401s
   });
 
+  const createShopMutation = useMutation({
+    mutationFn: () => shopApi.create(shopForm),
+    onSuccess: (res) => {
+      const id = (res.data as any)?.id;
+      if (id) {
+        localStorage.setItem("shop_id", id);
+        setShopId(id);
+      }
+      toast.success("Tạo shop thành công (đang chờ xác minh)");
+      setShowCreateShop(false);
+      setShopForm({
+        name: "",
+        description: "",
+        address: "",
+        phone_number: "",
+        email: "",
+      });
+    },
+    onError: (err: any) => {
+      if (err?.response?.status === 401) {
+        toast.warning("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+        logout();
+        return;
+      }
+      toast.error("Tạo shop thất bại");
+    },
+  });
+
+  const logout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user_role");
+    navigate("/login");
+  };
+
   const navItems = [
     { to: "/home", icon: Home, label: "Home" },
     { to: "/search", icon: Search, label: "Search" },
     { to: "/shop", icon: ShoppingBag, label: "Shop" },
+    { to: "/subscriptions", icon: BadgeDollarSign, label: "Plans" },
     { to: "/create", icon: PlusSquare, label: "Create" },
     { to: "/activity", icon: Heart, label: "Activity" },
   ];
@@ -156,6 +206,37 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                   >
                     Update info
                   </button>
+                  {!shopId && (
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setShowCreateShop(true);
+                      }}
+                    >
+                      Create shop
+                    </button>
+                  )}
+                  {shopId && (
+                    <button
+                      className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate("/shop");
+                      }}
+                    >
+                      View shop
+                    </button>
+                  )}
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
                 </div>
               )}
             </div>
@@ -196,6 +277,101 @@ export default function Layout({ children, sidebar }: LayoutProps) {
       <footer className="border-t py-6 mt-auto text-center text-xs text-gray-500">
         © {new Date().getFullYear()} ClosetShare. All rights reserved.
       </footer>
+
+      {showCreateShop && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg border p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Tạo Shop</h2>
+              <button
+                className="text-gray-500 hover:text-gray-700"
+                onClick={() => setShowCreateShop(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3 text-sm">
+              <div>
+                <label className="block mb-1 font-medium">Tên *</label>
+                <input
+                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  value={shopForm.name}
+                  onChange={(e) =>
+                    setShopForm((f) => ({ ...f, name: e.target.value }))
+                  }
+                  placeholder="Ví dụ: Cửa hàng Vintage"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Mô tả</label>
+                <textarea
+                  className="w-full border rounded-md px-3 py-2 h-20 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  value={shopForm.description}
+                  onChange={(e) =>
+                    setShopForm((f) => ({ ...f, description: e.target.value }))
+                  }
+                  placeholder="Mô tả ngắn về shop"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block mb-1 font-medium">Địa chỉ</label>
+                  <input
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    value={shopForm.address}
+                    onChange={(e) =>
+                      setShopForm((f) => ({ ...f, address: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-medium">SĐT</label>
+                  <input
+                    className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    value={shopForm.phone_number}
+                    onChange={(e) =>
+                      setShopForm((f) => ({
+                        ...f,
+                        phone_number: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Email</label>
+                <input
+                  className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  value={shopForm.email}
+                  onChange={(e) =>
+                    setShopForm((f) => ({ ...f, email: e.target.value }))
+                  }
+                  type="email"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                className="px-4 py-2 text-sm rounded-md border hover:bg-gray-50"
+                onClick={() => setShowCreateShop(false)}
+                disabled={createShopMutation.isPending}
+              >
+                Hủy
+              </button>
+              <button
+                className="px-4 py-2 text-sm rounded-md bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-60"
+                disabled={!shopForm.name || createShopMutation.isPending}
+                onClick={() => createShopMutation.mutate()}
+              >
+                {createShopMutation.isPending ? "Đang lưu..." : "Tạo"}
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-500">
+              Sau khi tạo, shop cần được xác minh trước khi hiển thị công khai.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -23,7 +23,11 @@ export default function Products() {
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
   const [search, setSearch] = useState("");
-  const [sizes, setSizes] = useState<string[]>([]);
+  // dynamic filter by API: selected filter prop ids
+  const [selectedPropIds, setSelectedPropIds] = useState<string[]>([]);
+  const [selectedMeta, setSelectedMeta] = useState<
+    Array<{ id: string; name: string; filterName: string }>
+  >([]);
   const [priceMin, setPriceMin] = useState<number | null>(null);
   const [priceMax, setPriceMax] = useState<number | null>(null);
   const [sort, setSort] = useState<string>("newest");
@@ -35,9 +39,18 @@ export default function Products() {
     search: debouncedSearch || undefined,
     // Example additional params mapping, adapt to backend later:
     sort,
-    sizes: sizes.length ? sizes.join(",") : undefined,
     priceMin: priceMin ?? undefined,
     priceMax: priceMax ?? undefined,
+    // snake_case fallbacks
+    price_min: priceMin ?? undefined,
+    price_max: priceMax ?? undefined,
+    // send both camelCase and snake_case so whichever backend expects works
+    filterPropIds: selectedPropIds.length
+      ? selectedPropIds.join(",")
+      : undefined,
+    filter_prop_ids: selectedPropIds.length
+      ? selectedPropIds.join(",")
+      : undefined,
   };
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -50,10 +63,14 @@ export default function Products() {
   const items = data?.data || [];
 
   const showFiltersBar =
-    sizes.length > 0 || priceMin != null || priceMax != null || search;
+    selectedPropIds.length > 0 ||
+    priceMin != null ||
+    priceMax != null ||
+    search;
 
   const clearAll = () => {
-    setSizes([]);
+    setSelectedPropIds([]);
+    setSelectedMeta([]);
     setPriceMin(null);
     setPriceMax(null);
     setSearch("");
@@ -65,8 +82,11 @@ export default function Products() {
     <Layout
       sidebar={
         <SidebarFilters
-          sizes={sizes}
-          onChangeSizes={setSizes}
+          selectedPropIds={selectedPropIds}
+          onChangeSelectedProps={(ids, meta) => {
+            setSelectedPropIds(ids);
+            setSelectedMeta(meta);
+          }}
           priceMin={priceMin}
           priceMax={priceMax}
           onChangePrice={(min, max) => {
@@ -114,14 +134,20 @@ export default function Products() {
                 Search: {search}
               </span>
             )}
-            {sizes.map((s) => (
+            {selectedMeta.map((m) => (
               <button
-                key={s}
+                key={m.id}
                 type="button"
-                onClick={() => setSizes((prev) => prev.filter((v) => v !== s))}
+                onClick={() => {
+                  setSelectedPropIds((prev) =>
+                    prev.filter((id) => id !== m.id)
+                  );
+                  setSelectedMeta((prev) => prev.filter((p) => p.id !== m.id));
+                }}
                 className="group px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-[11px] font-medium flex items-center gap-1"
+                title={`${m.filterName}: ${m.name}`}
               >
-                {s}
+                {m.filterName}: {m.name}
                 <span className="text-gray-400 group-hover:text-gray-600">
                   ✕
                 </span>

@@ -9,9 +9,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Camera, Menu, X, Apple, Grid2x2 } from "lucide-react";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { subscriptionApi } from "@/apis/subscription.api";
+import type { Subscription } from "@/models/Subscription";
 
 function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { data: plansData } = useQuery({
+    queryKey: ["subscriptions"],
+    queryFn: () => subscriptionApi.getAll(),
+    select: (res) =>
+      (Array.isArray(res.data)
+        ? res.data
+        : (res.data as any).data) as Subscription[],
+    staleTime: 60_000,
+  });
 
   return (
     <div className="min-h-screen pt-20 bg-gradient-to-br from-purple-50 via-white to-pink-50">
@@ -470,61 +482,100 @@ function LandingPage() {
             Plans for Individuals & Brands
           </h2>
 
-          <div className="grid gap-8 md:grid-cols-2">
-            <Card className="border-primary/20 hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-primary">
-                  Personal Plans
-                </CardTitle>
-                <CardDescription className="text-lg">
-                  Enhanced features for fashion enthusiasts
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>More closet slots</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Advanced AI styling</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Ad-free experience</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-secondary/20 hover:shadow-lg transition-shadow">
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl text-secondary">
-                  Brand Plans
-                </CardTitle>
-                <CardDescription className="text-lg">
-                  Professional tools for fashion brands
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>Priority placement in feeds</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>Sponsored campaigns</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>Advanced analytics</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>Moderation priority</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {plansData && plansData.length > 0 ? (
+            <div className="grid gap-8 md:grid-cols-2">
+              {plansData.slice(0, 2).map((p, idx) => (
+                <Card
+                  key={p.id}
+                  className={`${
+                    idx === 0 ? "border-primary/20" : "border-secondary/20"
+                  } hover:shadow-lg transition-shadow`}
+                >
+                  <CardHeader className="text-center">
+                    <CardTitle
+                      className={`text-2xl ${
+                        idx === 0 ? "text-primary" : "text-secondary"
+                      }`}
+                    >
+                      {p.name}
+                    </CardTitle>
+                    <CardDescription className="text-lg">
+                      {p.description || "Subscription plan"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-center">
+                    <div className="text-3xl font-extrabold">
+                      {new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      }).format(p.price)}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {p.duration_days} ngày
+                    </div>
+                    <a href="/subscriptions">
+                      <Button className="w-full">Mua ngay</Button>
+                    </a>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-8 md:grid-cols-2">
+              <Card className="border-primary/20 hover:shadow-lg transition-shadow">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-primary">
+                    Personal Plans
+                  </CardTitle>
+                  <CardDescription className="text-lg">
+                    Enhanced features for fashion enthusiasts
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-primary">✓</span>
+                    <span>More closet slots</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-primary">✓</span>
+                    <span>Advanced AI styling</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-primary">✓</span>
+                    <span>Ad-free experience</span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-secondary/20 hover:shadow-lg transition-shadow">
+                <CardHeader className="text-center">
+                  <CardTitle className="text-2xl text-secondary">
+                    Brand Plans
+                  </CardTitle>
+                  <CardDescription className="text-lg">
+                    Professional tools for fashion brands
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-secondary">✓</span>
+                    <span>Priority placement in feeds</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-secondary">✓</span>
+                    <span>Sponsored campaigns</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-secondary">✓</span>
+                    <span>Advanced analytics</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-secondary">✓</span>
+                    <span>Moderation priority</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </section>
 

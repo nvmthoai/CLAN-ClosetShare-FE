@@ -1,6 +1,7 @@
 import { formatCurrency } from "@/lib/utils";
 import type { Product } from "@/models/Product";
 import { memo } from "react";
+import { Link } from "react-router-dom";
 
 interface ProductCardProps {
   product: Product;
@@ -12,7 +13,10 @@ export const ProductCard = memo(function ProductCard({
   const firstImg = product.images?.[0] || product.variants?.[0]?.imgs?.[0];
   const price = product.variants?.[0]?.pricings?.[0]?.price;
   return (
-    <div className="group space-y-2 text-sm rounded-md hover:shadow-md transition bg-white/70 backdrop-blur border border-gray-100 p-2">
+    <Link
+      to={`/products/${product.id}`}
+      className="group space-y-2 text-sm rounded-md hover:shadow-md transition bg-white/70 backdrop-blur border border-gray-100 p-2 block"
+    >
       <div className="aspect-[1/1] overflow-hidden rounded bg-gray-100 relative">
         {firstImg ? (
           <img
@@ -46,6 +50,6 @@ export const ProductCard = memo(function ProductCard({
           Similar Items
         </button>
       </div>
-    </div>
+    </Link>
   );
 });

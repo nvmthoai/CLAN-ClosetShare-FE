@@ -1,17 +1,16 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
-
-interface Section {
-  id: string;
-  title: string;
-  content: React.ReactNode;
-}
-
-const sizeOptions = ["XXS", "XS", "S", "M", "L", "XL", "XXL"];
+import { filterApi } from "@/apis/filter.api";
+import type { Filter, FilterProp } from "@/models/Filter";
 
 interface SidebarFiltersProps {
-  sizes: string[];
-  onChangeSizes: (sizes: string[]) => void;
+  selectedPropIds: string[];
+  // return both ids and useful meta to display chips outside
+  onChangeSelectedProps: (
+    ids: string[],
+    meta: Array<{ id: string; name: string; filterName: string }>
+  ) => void;
   priceMin?: number | null;
   priceMax?: number | null;
   onChangePrice?: (min: number | null, max: number | null) => void;
@@ -20,22 +19,65 @@ interface SidebarFiltersProps {
 }
 
 export default function SidebarFilters({
-  sizes,
-  onChangeSizes,
+  selectedPropIds,
+  onChangeSelectedProps,
   priceMin,
   priceMax,
   onChangePrice,
   className,
   onClearAll,
 }: SidebarFiltersProps) {
-  const [open, setOpen] = useState<string | null>("size");
+  const [open, setOpen] = useState<string | null>(null);
 
-  const toggleSize = (s: string) => {
-    if (sizes.includes(s)) {
-      onChangeSizes(sizes.filter((v) => v !== s));
-    } else {
-      onChangeSizes([...sizes, s]);
+  const { data, isLoading } = useQuery({
+    queryKey: ["filters"],
+    queryFn: () => filterApi.getAll(),
+    select: (res) => res.data,
+    refetchOnWindowFocus: false,
+  });
+
+  const filters = (data?.filters as Filter[] | undefined) || [];
+  useEffect(() => {
+    if (!open && filters.length) {
+      setOpen(filters[0].id);
     }
+  }, [filters, open]);
+  // meta mapping for selected ids -> label/filter name, recompute when filters change
+  const allProps = useMemo(() => {
+    const map = new Map<
+      string,
+      { id: string; name: string; filterName: string }
+    >();
+    filters.forEach((f) => {
+      f.props?.forEach((p) =>
+        map.set(p.id, { id: p.id, name: p.name, filterName: f.name })
+      );
+    });
+    return map;
+  }, [filters]);
+
+  const selectedMeta = useMemo(() => {
+    return selectedPropIds
+      .map((id) => allProps.get(id))
+      .filter(Boolean) as Array<{
+      id: string;
+      name: string;
+      filterName: string;
+    }>;
+  }, [selectedPropIds, allProps]);
+
+  const toggleProp = (prop: FilterProp, filterName: string) => {
+    const exists = selectedPropIds.includes(prop.id);
+    const nextIds = exists
+      ? selectedPropIds.filter((i) => i !== prop.id)
+      : [...selectedPropIds, prop.id];
+    const metaMap = new Map(selectedMeta.map((m) => [m.id, m] as const));
+    if (exists) {
+      metaMap.delete(prop.id);
+    } else {
+      metaMap.set(prop.id, { id: prop.id, name: prop.name, filterName });
+    }
+    onChangeSelectedProps(nextIds, Array.from(metaMap.values()));
   };
 
   const handlePriceChange = (type: "min" | "max", value: string) => {
@@ -46,30 +88,11 @@ export default function SidebarFilters({
     onChangePrice?.(newMin, newMax);
   };
 
-  const sections: Section[] = [
-    {
-      id: "size",
-      title: "Size",
-      content: (
-        <div className="grid grid-cols-3 gap-y-2 text-xs pt-2">
-          {sizeOptions.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => toggleSize(s)}
-              className={cn(
-                "border rounded px-1.5 py-1 font-medium tracking-wide",
-                sizes.includes(s)
-                  ? "bg-primary text-white border-primary shadow-sm"
-                  : "hover:bg-primary/10"
-              )}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      ),
-    },
+  const sections: Array<{
+    id: string;
+    title: string;
+    content: React.ReactNode;
+  }> = [
     {
       id: "price",
       title: "Price",
@@ -98,45 +121,51 @@ export default function SidebarFilters({
         </div>
       ),
     },
-    {
-      id: "brand",
-      title: "Brand",
-      content: <div className="text-xs text-gray-400 py-2">(Coming soon)</div>,
-    },
-    {
-      id: "designer",
-      title: "Designer",
-      content: <div className="text-xs text-gray-400 py-2">(Coming soon)</div>,
-    },
-    {
-      id: "style",
-      title: "Style",
-      content: <div className="text-xs text-gray-400 py-2">(Coming soon)</div>,
-    },
-    {
-      id: "location",
-      title: "Location",
-      content: <div className="text-xs text-gray-400 py-2">(Coming soon)</div>,
-    },
-    {
-      id: "reviews",
-      title: "Reviews",
-      content: <div className="text-xs text-gray-400 py-2">(Coming soon)</div>,
-    },
-    {
-      id: "condition",
-      title: "Condition",
-      content: <div className="text-xs text-gray-400 py-2">(Coming soon)</div>,
-    },
   ];
+
+  // Prepend dynamic filter sections from API
+  if (!isLoading && filters.length) {
+    filters.forEach((f) => {
+      sections.unshift({
+        id: f.id,
+        title: f.name,
+        content: (
+          <div className="grid grid-cols-3 gap-2 text-xs pt-2">
+            {f.props?.map((p) => {
+              const active = selectedPropIds.includes(p.id);
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => toggleProp(p, f.name)}
+                  className={cn(
+                    "border rounded px-1.5 py-1 font-medium tracking-wide",
+                    active
+                      ? "bg-primary text-white border-primary shadow-sm"
+                      : "hover:bg-primary/10"
+                  )}
+                  title={p.description || p.name}
+                >
+                  {p.name}
+                </button>
+              );
+            })}
+          </div>
+        ),
+      });
+    });
+  }
 
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between pb-1">
         <h2 className="text-sm font-semibold tracking-wide text-gray-700">
-          Filters
+          Filters{" "}
+          {isLoading && <span className="text-[10px] ml-1">Loading…</span>}
         </h2>
-        {(sizes.length > 0 || priceMin != null || priceMax != null) && (
+        {(selectedPropIds.length > 0 ||
+          priceMin != null ||
+          priceMax != null) && (
           <button
             type="button"
             onClick={onClearAll}

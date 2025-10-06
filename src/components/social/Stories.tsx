@@ -9,7 +9,11 @@ interface StoriesProps {
   containerClassName?: string;
 }
 
-export function Stories({ stories, onViewStory, containerClassName }: StoriesProps) {
+export function Stories({
+  stories,
+  onViewStory,
+  containerClassName,
+}: StoriesProps) {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
   const handleStoryClick = (story: Story) => {
@@ -20,7 +24,12 @@ export function Stories({ stories, onViewStory, containerClassName }: StoriesPro
   return (
     <>
       {/* Stories Bar */}
-      <div className={cn("bg-white border rounded-lg p-4 mb-6", containerClassName)}>
+      <div
+        className={cn(
+          "bg-white border rounded-lg p-4 mb-6",
+          containerClassName
+        )}
+      >
         <div className="flex gap-4 overflow-x-auto scrollbar-hide">
           {/* Your story (add story) */}
           <div className="flex flex-col items-center gap-1 flex-shrink-0">
