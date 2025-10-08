@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { subscriptionApi } from "@/apis/subscription.api";
+import { userApi } from "@/apis/user.api";
 import type { CurrentSubscription } from "@/models/CurrentSubscription";
 import type { Subscription } from "@/models/Subscription";
 import { Button } from "@/components/ui/button";
@@ -17,22 +18,61 @@ export default function Subscriptions() {
   });
 
   const { data: currentSubRes, refetch: refetchCurrent } = useQuery({
-    queryKey: ["current-subscription"],
-    queryFn: () => subscriptionApi.getCurrent(),
+    queryKey: ["me-for-subscription"],
+    queryFn: () => userApi.getMe(),
     select: (res) => {
-      if (!res.data) return null;
-      if ((res.data as any).data)
-        return (res.data as any).data as CurrentSubscription | null;
-      return res.data as CurrentSubscription | null;
+      const u = res.data as any;
+      // Expect fields: subscription_plan_id, subscription_plan_start_date, subscription_plan_end_date
+      if (!u || !u.subscription_plan_id) return null;
+      const planName = u.subscription_plan_name || u.subscription_plan_id;
+      const status = deriveSubscriptionStatus(u);
+      const cs: CurrentSubscription = {
+        subscription_plan_id: u.subscription_plan_id,
+        plan_name: planName,
+        status,
+        started_at: u.subscription_plan_start_date,
+        expires_at: u.subscription_plan_end_date,
+      };
+      return cs;
     },
   });
 
+  function deriveSubscriptionStatus(u: any): string {
+    const now = Date.now();
+    const start = u.subscription_plan_start_date
+      ? Date.parse(u.subscription_plan_start_date)
+      : null;
+    const end = u.subscription_plan_end_date
+      ? Date.parse(u.subscription_plan_end_date)
+      : null;
+    if (end && end < now) return "expired";
+    if (start && start > now) return "pending";
+    if (u.subscription_plan_id) return "active";
+    return "none";
+  }
+
   const { mutate: buy, isPending } = useMutation({
-    mutationFn: (id: string) => subscriptionApi.createOrder(id),
-    onSuccess: () => {
-      toast.success("Đặt gói thành công! (Đang kích hoạt)");
-      refetch();
-      refetchCurrent();
+    mutationFn: (id: string) => subscriptionApi.createOrder(id, "PAYOS"),
+    onSuccess: (res: any) => {
+      const payload = res?.data || res;
+      // Save raw response globally for quick manual inspection
+      // @ts-ignore
+      window.__lastSubscriptionOrder = payload;
+
+      const paymentUrl = extractPayOsUrl(payload);
+      if (paymentUrl) {
+        toast.success("Chuyển sang PayOS...");
+        // slight delay so toast shows
+        setTimeout(() => {
+          window.location.href = paymentUrl;
+        }, 500);
+      } else {
+        toast.info(
+          "Không nhận được link PayOS từ server — kiểm tra payment_method hoặc response."
+        );
+        refetch();
+        refetchCurrent();
+      }
     },
     onError: (e: any) => {
       if (e?.response?.status === 401) {
@@ -42,6 +82,57 @@ export default function Subscriptions() {
       }
     },
   });
+
+  function extractPayOsUrl(obj: any): string | undefined {
+    if (!obj || typeof obj !== "object") return undefined;
+    // Direct common fields
+    const direct =
+      obj.payment_url ||
+      obj.paymentUrl ||
+      obj.checkoutUrl ||
+      obj.checkout_url ||
+      obj.redirectUrl ||
+      obj.redirect_url;
+    if (isPayOsLink(direct)) return direct;
+    // Nested known container
+    const pu = obj.paymentunit;
+    if (pu) {
+      const nested =
+        pu.payment_url ||
+        pu.paymentUrl ||
+        pu.checkoutUrl ||
+        pu.checkout_url ||
+        pu.redirectUrl ||
+        pu.redirect_url;
+      if (isPayOsLink(nested)) return nested;
+    }
+    // Fallback: deep scan any string value
+    try {
+      const stack: any[] = [obj];
+      const seen = new Set<any>();
+      while (stack.length) {
+        const cur = stack.pop();
+        if (!cur || typeof cur !== "object" || seen.has(cur)) continue;
+        seen.add(cur);
+        for (const k of Object.keys(cur)) {
+          const v = (cur as any)[k];
+          if (typeof v === "string" && isPayOsLink(v)) return v;
+          if (typeof v === "object") stack.push(v);
+        }
+      }
+    } catch (e) {
+      // ignore scan errors
+    }
+    return undefined;
+  }
+
+  function isPayOsLink(value: any): value is string {
+    return (
+      typeof value === "string" &&
+      value.startsWith("http") &&
+      /payos/i.test(value)
+    );
+  }
 
   const plans = data || [];
 
