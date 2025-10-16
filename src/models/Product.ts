@@ -40,3 +40,30 @@ export type ProductListResponse = {
   limit: number;
   totalPages: number;
 };
+
+// CRUD Operations Types
+export type CreateProductPayload = {
+  name: string;
+  description?: string;
+  type?: string;
+  shop_id: string;
+  images?: string[];
+  variants?: Omit<Variant, 'id' | 'product_id'>[];
+};
+
+export type UpdateProductPayload = {
+  name?: string;
+  description?: string;
+  status?: string;
+  type?: string;
+  images?: string[];
+  variants?: Omit<Variant, 'id' | 'product_id'>[];
+};
+
+export type CreateProductInShopPayload = {
+  name: string;
+  description?: string;
+  type?: string;
+  images?: string[];
+  variants?: Omit<Variant, 'id' | 'product_id'>[];
+};

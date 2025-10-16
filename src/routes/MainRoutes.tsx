@@ -24,6 +24,9 @@ import ShopManagement from "@/pages/Shop/ShopManagement";
 import CreateShop from "@/pages/Shop/CreateShop";
 import EditShop from "@/pages/Shop/EditShop";
 import ProductDemo from "@/pages/Shop/ProductDemo";
+import ProductManagement from "@/pages/Products/ProductManagement";
+import CreateProduct from "@/pages/Products/CreateProduct";
+import EditProduct from "@/pages/Products/EditProduct";
 import Policy from "@/pages/Policy/Policy";
 import TermsOfService from "@/pages/Policy/TermsOfService";
 
@@ -164,26 +167,50 @@ export default function MainRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/shop/edit/:id"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <EditShop />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/shop/demo"
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <ProductDemo />
-              </Layout>
-            </ProtectedRoute>
-          }
-        />
+         <Route
+           path="/shop/edit"
+           element={
+             <ProtectedRoute>
+               <Layout>
+                 <EditShop />
+               </Layout>
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/shop/demo"
+           element={
+             <ProtectedRoute>
+               <Layout>
+                 <ProductDemo />
+               </Layout>
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/products"
+           element={
+             <ProtectedRoute>
+               <ProductManagement />
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/products/create"
+           element={
+             <ProtectedRoute>
+               <CreateProduct />
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/products/edit/:id"
+           element={
+             <ProtectedRoute>
+               <EditProduct />
+             </ProtectedRoute>
+           }
+         />
         <Route
           path="/create"
           element={
@@ -199,12 +226,12 @@ export default function MainRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/policy" element={<Policy />} />
-        <Route path="/terms" element={<TermsOfService />} />
+         <Route path="/login" element={<Login />} />
+         <Route path="/register" element={<Register />} />
+         <Route path="/forgot-password" element={<ForgotPassword />} />
+         <Route path="/reset-password" element={<ResetPassword />} />
+         <Route path="/policy" element={<Policy />} />
+         <Route path="/terms" element={<TermsOfService />} />
       </Routes>
     </>
   );

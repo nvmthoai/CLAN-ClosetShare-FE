@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { shopApi } from "@/apis/shop.api";
 import { Card } from "@/components/ui/card";
@@ -7,11 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "react-toastify";
-import { ArrowLeft, Upload, Store, Save, X } from "lucide-react";
+import { ArrowLeft, Upload, Save, X } from "lucide-react";
 import type { UpdateShopPayload } from "@/models/Shop";
 
 export default function EditShop() {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
@@ -29,10 +28,9 @@ export default function EditShop() {
 
   // Fetch shop data
   const { data: shop, isLoading, isError } = useQuery({
-    queryKey: ["shop", id],
-    queryFn: () => shopApi.getById(id!),
+    queryKey: ["my-shop"],
+    queryFn: () => shopApi.getMyShop(),
     select: (res) => res.data,
-    enabled: !!id,
   });
 
   // Update form data when shop data is loaded
@@ -51,11 +49,10 @@ export default function EditShop() {
   }, [shop]);
 
   const updateShopMutation = useMutation({
-    mutationFn: (payload: UpdateShopPayload) => shopApi.update(id!, payload),
+    mutationFn: (payload: UpdateShopPayload) => shopApi.update(payload),
     onSuccess: () => {
       toast.success("Cập nhật shop thành công!");
-      queryClient.invalidateQueries({ queryKey: ["shop", id] });
-      queryClient.invalidateQueries({ queryKey: ["my-shops"] });
+      queryClient.invalidateQueries({ queryKey: ["my-shop"] });
       setHasChanges(false);
     },
     onError: (error: any) => {

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ import {
   MapPin, 
   Phone, 
   Mail, 
-  Calendar, 
   ShoppingBag,
   Heart,
   Share2,
@@ -155,7 +155,7 @@ export default function ViewShop() {
   });
 
   // Use API data if available, otherwise fallback to mock data
-  const products = productsData?.products || mockProducts;
+  const products = (productsData?.products || mockProducts) as any[];
   const totalPages = productsData?.totalPages || 1;
   const totalProducts = productsData?.total || mockProducts.length;
 
@@ -183,7 +183,8 @@ export default function ViewShop() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout>
+      <div className="min-h-screen bg-gray-50">
       {/* Header với background image */}
       <div className="relative h-64 md:h-80">
         <img
@@ -556,6 +557,7 @@ export default function ViewShop() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 }

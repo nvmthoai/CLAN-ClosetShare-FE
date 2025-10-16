@@ -11,87 +11,61 @@ import {
   Edit,
   Trash2,
   Eye,
-  MoreVertical,
   Store,
   Calendar,
   Star,
   MapPin,
   Phone,
   Mail,
-  Settings
+  Settings,
+  Camera,
+  Upload,
+  BarChart3,
+  Users,
+  Package,
+  TrendingUp,
+  ArrowLeft
 } from "lucide-react";
 import type { Shop } from "@/models/Shop";
 
 export default function ShopManagement() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedShop, setSelectedShop] = useState<Shop | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Mock data for testing
-  const mockShops: Shop[] = [
-    {
-      id: "1",
-      name: "Fashion Boutique",
-      description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại. Chúng tôi cam kết mang đến cho khách hàng những trải nghiệm mua sắm tuyệt vời nhất.",
-      address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
-      phone_number: "0901 234 567",
-      email: "contact@fashionboutique.com",
-      avatar: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center",
-      background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center",
-      rating: 4.8,
-      status: "ACTIVE",
-      created_at: "2024-01-15T10:30:00Z",
-      updated_at: "2024-01-20T15:45:00Z",
-    },
-    {
-      id: "2",
-      name: "Vintage Store",
-      description: "Cửa hàng chuyên về quần áo vintage và retro. Tìm kiếm những món đồ độc đáo từ những thập niên trước.",
-      address: "456 Lê Lợi, Quận 3, TP.HCM",
-      phone_number: "0902 345 678",
-      email: "info@vintagestore.vn",
-      avatar: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop&crop=center",
-      background: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=200&fit=crop&crop=center",
-      rating: 4.5,
-      status: "UNVERIFIED",
-      created_at: "2024-01-10T14:20:00Z",
-      updated_at: "2024-01-18T09:15:00Z",
-    },
-    {
-      id: "3",
-      name: "Modern Style",
-      description: "Thời trang hiện đại cho giới trẻ năng động. Phong cách trẻ trung, năng động và cá tính.",
-      address: "789 Điện Biên Phủ, Quận Bình Thạnh, TP.HCM",
-      phone_number: "0903 456 789",
-      email: "hello@modernstyle.com",
-      avatar: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=100&h=100&fit=crop&crop=center",
-      background: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=200&fit=crop&crop=center",
-      rating: 4.2,
-      status: "ACTIVE",
-      created_at: "2024-01-05T08:45:00Z",
-      updated_at: "2024-01-22T16:30:00Z",
-    }
-  ];
+  // Mock data for single shop
+  const mockShop: Shop = {
+    id: "1",
+    name: "Fashion Boutique",
+    description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại. Chúng tôi cam kết mang đến cho khách hàng những trải nghiệm mua sắm tuyệt vời nhất.",
+    address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
+    phone_number: "0901 234 567",
+    email: "contact@fashionboutique.com",
+    avatar: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center",
+    background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center",
+    rating: 4.8,
+    status: "ACTIVE",
+    created_at: "2024-01-15T10:30:00Z",
+    updated_at: "2024-01-20T15:45:00Z",
+  };
 
-  // Fetch user's shops (using mock data for now)
-  const { data: shops, isLoading, isError } = useQuery({
-    queryKey: ["my-shops"],
-    queryFn: () => Promise.resolve({ data: mockShops }),
-    select: (res) => res.data as Shop[],
+  // Fetch user's single shop (using mock data for now)
+  const { data: shop, isLoading, isError } = useQuery({
+    queryKey: ["my-shop"],
+    queryFn: () => Promise.resolve({ data: mockShop }),
+    select: (res) => res.data as Shop,
     // Uncomment below when you have real API
-    // queryFn: () => shopApi.getMyShops(),
-    // select: (res) => res.data as Shop[],
+    // queryFn: () => shopApi.getMyShop(),
+    // select: (res) => res.data as Shop,
   });
 
   // Delete shop mutation
   const deleteShopMutation = useMutation({
-    mutationFn: (id: string) => shopApi.delete(id),
+    mutationFn: () => shopApi.delete(),
     onSuccess: () => {
       toast.success("Xóa shop thành công");
-      queryClient.invalidateQueries({ queryKey: ["my-shops"] });
+      queryClient.invalidateQueries({ queryKey: ["my-shop"] });
       setShowDeleteModal(false);
-      setSelectedShop(null);
     },
     onError: (error: any) => {
       toast.error("Xóa shop thất bại");
@@ -100,9 +74,7 @@ export default function ShopManagement() {
   });
 
   const handleDeleteShop = () => {
-    if (selectedShop) {
-      deleteShopMutation.mutate(selectedShop.id);
-    }
+    deleteShopMutation.mutate();
   };
 
   const getStatusBadge = (status?: string) => {
@@ -128,7 +100,7 @@ export default function ShopManagement() {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Đang tải danh sách shop...</p>
+          <p className="text-gray-500">Đang tải thông tin shop...</p>
         </div>
       </div>
     );
@@ -137,7 +109,7 @@ export default function ShopManagement() {
   if (isError) {
     return (
       <div className="text-center py-20">
-        <div className="text-red-600 mb-4">Không thể tải danh sách shop</div>
+        <div className="text-red-600 mb-4">Không thể tải thông tin shop</div>
         <Button onClick={() => window.location.reload()}>Thử lại</Button>
       </div>
     );
@@ -147,135 +119,244 @@ export default function ShopManagement() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Shop</h1>
-          <p className="text-gray-600 mt-1">
-            Quản lý các shop của bạn ({shops?.length || 0} shop)
-          </p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Quay lại
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Quản lý Shop</h1>
+            <p className="text-gray-600 mt-1">
+              Quản lý shop của bạn
+            </p>
+          </div>
         </div>
-        <Button
-          onClick={() => navigate("/shop/create")}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Tạo Shop Mới
-        </Button>
+        {!shop && (
+          <Button
+            onClick={() => navigate("/shop/create")}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Tạo Shop
+          </Button>
+        )}
       </div>
 
-      {/* Shops Grid */}
-      {shops && shops.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {shops.map((shop) => (
-            <Card key={shop.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              {/* Shop Header */}
-              <div className="relative h-32 bg-gradient-to-br from-purple-100 to-pink-100">
-                {shop.background && (
-                  <img
-                    src={shop.background}
-                    alt={shop.name}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                <div className="absolute top-3 right-3">
-                  {getStatusBadge(shop.status)}
-                </div>
-                <div className="absolute bottom-3 left-3 right-3">
-                  <div className="flex items-center gap-2">
+      {/* Shop Content */}
+      {shop ? (
+        <div className="space-y-6">
+          {/* Shop Overview Card */}
+          <Card className="overflow-hidden">
+            {/* Shop Header with Background */}
+            <div className="relative h-48 bg-gradient-to-br from-purple-100 to-pink-100">
+              {shop.background && (
+                <img
+                  src={shop.background}
+                  alt={shop.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-black/20" />
+              
+              {/* Status Badge */}
+              <div className="absolute top-4 right-4">
+                {getStatusBadge(shop.status)}
+              </div>
+
+              {/* Shop Info Overlay */}
+              <div className="absolute bottom-4 left-4 right-4">
+                <div className="flex items-end gap-4">
+                  <div className="relative">
                     {shop.avatar ? (
                       <img
                         src={shop.avatar}
                         alt={shop.name}
-                        className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                        className="w-20 h-20 rounded-full border-4 border-white object-cover"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-white border-2 border-white flex items-center justify-center">
-                        <Store className="w-4 h-4 text-purple-600" />
+                      <div className="w-20 h-20 rounded-full bg-white border-4 border-white flex items-center justify-center">
+                        <Store className="w-10 h-10 text-purple-600" />
                       </div>
                     )}
-                    <span className="text-white font-medium text-sm bg-black/20 px-2 py-1 rounded">
-                      {shop.name}
-                    </span>
+                    <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors">
+                      <Camera className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                  <div className="flex-1 text-white">
+                    <h2 className="text-2xl font-bold mb-1">{shop.name}</h2>
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span>{shop.rating}</span>
+                      </div>
+                      <span>•</span>
+                      <span>Tạo: {formatDate(shop.created_at)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Shop Info */}
-              <div className="p-4 space-y-3">
-                <div className="space-y-2">
-                  {shop.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
+            {/* Shop Details */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Description */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Mô tả shop</h3>
+                    <p className="text-gray-700 leading-relaxed">
                       {shop.description}
                     </p>
-                  )}
-                  
-                  <div className="space-y-1 text-xs text-gray-500">
+                  </div>
+
+                  {/* Contact Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {shop.address && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        <span className="truncate">{shop.address}</span>
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Địa chỉ</p>
+                          <p className="text-sm text-gray-600">{shop.address}</p>
+                        </div>
                       </div>
                     )}
                     {shop.phone_number && (
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        <span>{shop.phone_number}</span>
+                      <div className="flex items-start gap-3">
+                        <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Số điện thoại</p>
+                          <p className="text-sm text-gray-600">{shop.phone_number}</p>
+                        </div>
                       </div>
                     )}
                     {shop.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        <span className="truncate">{shop.email}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>Tạo: {formatDate(shop.created_at)}</span>
-                    </div>
-                    {shop.rating && (
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                        <span>{shop.rating}</span>
+                      <div className="flex items-start gap-3">
+                        <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Email</p>
+                          <p className="text-sm text-gray-600">{shop.email}</p>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => navigate(`/view-shop/${shop.id}`)}
-                  >
-                    <Eye className="w-3 h-3 mr-1" />
-                    Xem
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => navigate(`/shop/edit/${shop.id}`)}
-                  >
-                    <Edit className="w-3 h-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedShop(shop);
-                      setShowDeleteModal(true);
-                    }}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                {/* Right Column - Stats & Actions */}
+                <div className="space-y-4">
+                  {/* Quick Stats */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">Thống kê nhanh</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Package className="w-4 h-4 text-blue-600" />
+                          <span className="text-sm text-gray-600">Sản phẩm</span>
+                        </div>
+                        <span className="font-semibold">24</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-gray-600">Người theo dõi</span>
+                        </div>
+                        <span className="font-semibold">156</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-purple-600" />
+                          <span className="text-sm text-gray-600">Doanh thu tháng</span>
+                        </div>
+                        <span className="font-semibold">2.5M</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="space-y-2">
+                    <Button
+                      onClick={() => navigate(`/view-shop/${shop.id}`)}
+                      className="w-full flex items-center gap-2"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Xem shop công khai
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/shop/edit")}
+                      className="w-full flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Chỉnh sửa shop
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDeleteModal(true)}
+                      className="w-full flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Xóa shop
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Quick Actions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/products")}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Package className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Quản lý sản phẩm</p>
+                  <p className="text-sm text-gray-600">24 sản phẩm</p>
                 </div>
               </div>
             </Card>
-          ))}
+
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Thống kê</p>
+                  <p className="text-sm text-gray-600">Xem báo cáo</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Khách hàng</p>
+                  <p className="text-sm text-gray-600">156 người theo dõi</p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <Settings className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Cài đặt</p>
+                  <p className="text-sm text-gray-600">Tùy chỉnh shop</p>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       ) : (
         <div className="text-center py-20">
@@ -283,23 +364,23 @@ export default function ShopManagement() {
             <Store className="w-12 h-12 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Chưa có shop nào
+            Chưa có shop
           </h3>
           <p className="text-gray-600 mb-6">
-            Tạo shop đầu tiên của bạn để bắt đầu bán hàng
+            Tạo shop để bắt đầu bán hàng và chia sẻ tủ đồ của bạn
           </p>
           <Button
             onClick={() => navigate("/shop/create")}
             className="flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Tạo Shop Mới
+            Tạo Shop
           </Button>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && selectedShop && (
+      {showDeleteModal && shop && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="w-full max-w-md bg-white rounded-xl shadow-lg border p-6">
             <div className="text-center">
@@ -310,16 +391,13 @@ export default function ShopManagement() {
                 Xác nhận xóa shop
               </h3>
               <p className="text-gray-600 mb-6">
-                Bạn có chắc chắn muốn xóa shop <strong>"{selectedShop.name}"</strong>? 
+                Bạn có chắc chắn muốn xóa shop <strong>"{shop.name}"</strong>? 
                 Hành động này không thể hoàn tác.
               </p>
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setSelectedShop(null);
-                  }}
+                  onClick={() => setShowDeleteModal(false)}
                   className="flex-1"
                   disabled={deleteShopMutation.isPending}
                 >

@@ -1,11 +1,10 @@
 import Layout from "@/components/layout/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
-import { shopApi } from "@/apis/shop.api";
 import type { User } from "@/models/User";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Store, Plus, Settings } from "lucide-react";
+import { ChevronDown, Store, Plus, Settings, MapPin, Phone, Mail } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -20,58 +19,28 @@ export default function Profile() {
     select: (res) => res.data as User,
   });
 
-  // Mock data for testing
-  const mockShops = [
-    {
-      id: "1",
-      name: "Fashion Boutique",
-      description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại.",
-      address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
-      phone_number: "0901 234 567",
-      email: "contact@fashionboutique.com",
-      avatar: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center",
-      background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center",
-      rating: 4.8,
-      status: "ACTIVE",
-      created_at: "2024-01-15T10:30:00Z",
-      updated_at: "2024-01-20T15:45:00Z",
-    },
-    {
-      id: "2",
-      name: "Vintage Store",
-      description: "Cửa hàng chuyên về quần áo vintage và retro. Tìm kiếm những món đồ độc đáo từ những thập niên trước.",
-      address: "456 Lê Lợi, Quận 3, TP.HCM",
-      phone_number: "0902 345 678",
-      email: "info@vintagestore.vn",
-      avatar: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=100&h=100&fit=crop&crop=center",
-      background: "https://images.unsplash.com/photo-1472851294608-062f824d29cc?w=400&h=200&fit=crop&crop=center",
-      rating: 4.5,
-      status: "UNVERIFIED",
-      created_at: "2024-01-10T14:20:00Z",
-      updated_at: "2024-01-18T09:15:00Z",
-    },
-    {
-      id: "3",
-      name: "Modern Style",
-      description: "Thời trang hiện đại cho giới trẻ năng động. Phong cách trẻ trung, năng động và cá tính.",
-      address: "789 Điện Biên Phủ, Quận Bình Thạnh, TP.HCM",
-      phone_number: "0903 456 789",
-      email: "hello@modernstyle.com",
-      avatar: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=100&h=100&fit=crop&crop=center",
-      background: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&h=200&fit=crop&crop=center",
-      rating: 4.2,
-      status: "ACTIVE",
-      created_at: "2024-01-05T08:45:00Z",
-      updated_at: "2024-01-22T16:30:00Z",
-    }
-  ];
+  // Mock data for single shop
+  const mockShop = {
+    id: "1",
+    name: "Fashion Boutique",
+    description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại.",
+    address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
+    phone_number: "0901 234 567",
+    email: "contact@fashionboutique.com",
+    avatar: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center",
+    background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center",
+    rating: 4.8,
+    status: "ACTIVE",
+    created_at: "2024-01-15T10:30:00Z",
+    updated_at: "2024-01-20T15:45:00Z",
+  };
 
-  const { data: myShops } = useQuery({
-    queryKey: ["my-shops"],
-    queryFn: () => Promise.resolve({ data: mockShops }),
+  const { data: myShop } = useQuery({
+    queryKey: ["my-shop"],
+    queryFn: () => Promise.resolve({ data: mockShop }),
     select: (res) => res.data,
     // Uncomment below when you have real API
-    // queryFn: () => shopApi.getMyShops(),
+    // queryFn: () => shopApi.getMyShop(),
     // select: (res) => res.data,
   });
 
@@ -131,9 +100,9 @@ export default function Profile() {
           >
             <Store className="w-4 h-4" />
             Quản lý Shop
-            {myShops && myShops.length > 0 && (
+            {myShop && (
               <Badge variant="secondary" className="ml-1">
-                {myShops.length}
+                {myShop.status === 'ACTIVE' ? 'Hoạt động' : 'Chờ xác minh'}
               </Badge>
             )}
           </button>
@@ -240,99 +209,114 @@ export default function Profile() {
               <div>
                 <h2 className="text-xl font-bold text-gray-900">Quản lý Shop</h2>
                 <p className="text-gray-600 mt-1">
-                  Quản lý các shop của bạn ({myShops?.length || 0} shop)
+                  Quản lý shop của bạn
                 </p>
               </div>
-              <Button
-                onClick={() => navigate("/shop/create")}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Tạo Shop Mới
-              </Button>
+              {!myShop && (
+                <Button
+                  onClick={() => navigate("/shop/create")}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Tạo Shop
+                </Button>
+              )}
             </div>
 
-            {/* Shops List */}
-            {myShops && myShops.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myShops.map((shop) => (
-                  <div key={shop.id} className="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-                    {/* Shop Header */}
-                    <div className="relative h-24 bg-gradient-to-br from-purple-100 to-pink-100">
-                      {shop.background && (
+            {/* Shop Content */}
+            {myShop ? (
+              <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+                {/* Shop Header */}
+                <div className="relative h-32 bg-gradient-to-br from-purple-100 to-pink-100">
+                  {myShop.background && (
+                    <img
+                      src={myShop.background}
+                      alt={myShop.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  <div className="absolute top-3 right-3">
+                    {myShop.status === 'ACTIVE' ? (
+                      <Badge className="bg-green-100 text-green-800">Hoạt động</Badge>
+                    ) : myShop.status === 'UNVERIFIED' ? (
+                      <Badge className="bg-yellow-100 text-yellow-800">Chờ xác minh</Badge>
+                    ) : (
+                      <Badge variant="secondary">Tạm dừng</Badge>
+                    )}
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <div className="flex items-center gap-3">
+                      {myShop.avatar ? (
                         <img
-                          src={shop.background}
-                          alt={shop.name}
-                          className="w-full h-full object-cover"
+                          src={myShop.avatar}
+                          alt={myShop.name}
+                          className="w-12 h-12 rounded-full border-2 border-white object-cover"
                         />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-white border-2 border-white flex items-center justify-center">
+                          <Store className="w-6 h-6 text-purple-600" />
+                        </div>
                       )}
-                      <div className="absolute top-2 right-2">
-                        {shop.status === 'ACTIVE' ? (
-                          <Badge className="bg-green-100 text-green-800">Hoạt động</Badge>
-                        ) : shop.status === 'UNVERIFIED' ? (
-                          <Badge className="bg-yellow-100 text-yellow-800">Chờ xác minh</Badge>
-                        ) : (
-                          <Badge variant="secondary">Tạm dừng</Badge>
-                        )}
-                      </div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <div className="flex items-center gap-2">
-                          {shop.avatar ? (
-                            <img
-                              src={shop.avatar}
-                              alt={shop.name}
-                              className="w-6 h-6 rounded-full border border-white object-cover"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-white border border-white flex items-center justify-center">
-                              <Store className="w-3 h-3 text-purple-600" />
-                            </div>
-                          )}
-                          <span className="text-white text-sm font-medium bg-black/20 px-2 py-1 rounded">
-                            {shop.name}
-                          </span>
+                      <div className="text-white">
+                        <h3 className="font-semibold">{myShop.name}</h3>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>⭐ {myShop.rating}</span>
+                          <span>•</span>
+                          <span>{new Date(myShop.created_at || "").toLocaleDateString("vi-VN")}</span>
                         </div>
                       </div>
                     </div>
-
-                    {/* Shop Info */}
-                    <div className="p-4 space-y-3">
-                      {shop.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {shop.description}
-                        </p>
-                      )}
-                      
-                      <div className="flex items-center justify-between text-xs text-gray-500">
-                        <span>Tạo: {new Date(shop.created_at || "").toLocaleDateString("vi-VN")}</span>
-                        {shop.rating && (
-                          <span className="flex items-center gap-1">
-                            ⭐ {shop.rating}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 pt-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => navigate(`/view-shop/${shop.id}`)}
-                        >
-                          Xem
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate(`/shop/edit/${shop.id}`)}
-                        >
-                          <Settings className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Shop Info */}
+                <div className="p-4 space-y-4">
+                  {myShop.description && (
+                    <p className="text-sm text-gray-600 line-clamp-2">
+                      {myShop.description}
+                    </p>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-500">
+                    {myShop.address && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate">{myShop.address}</span>
+                      </div>
+                    )}
+                    {myShop.phone_number && (
+                      <div className="flex items-center gap-1">
+                        <Phone className="w-3 h-3" />
+                        <span>{myShop.phone_number}</span>
+                      </div>
+                    )}
+                    {myShop.email && (
+                      <div className="flex items-center gap-1">
+                        <Mail className="w-3 h-3" />
+                        <span className="truncate">{myShop.email}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => navigate(`/view-shop/${myShop.id}`)}
+                    >
+                      Xem shop
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigate("/shop/edit")}
+                    >
+                      <Settings className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-center py-20">
@@ -340,17 +324,17 @@ export default function Profile() {
                   <Store className="w-12 h-12 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Chưa có shop nào
+                  Chưa có shop
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  Tạo shop đầu tiên của bạn để bắt đầu bán hàng
+                  Tạo shop để bắt đầu bán hàng và chia sẻ tủ đồ của bạn
                 </p>
                 <Button
                   onClick={() => navigate("/shop/create")}
                   className="flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Tạo Shop Mới
+                  Tạo Shop
                 </Button>
               </div>
             )}

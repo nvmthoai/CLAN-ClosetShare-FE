@@ -209,6 +209,15 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                     className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                     onClick={() => {
                       setMenuOpen(false);
+                      navigate("/products");
+                    }}
+                  >
+                    Manage products
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={() => {
+                      setMenuOpen(false);
                       navigate("/profile/edit");
                     }}
                   >
@@ -233,7 +242,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                         navigate(`/view-shop/${shopId}`);
                       }}
                     >
-                      View shop
+                      View my shop
                     </button>
                   )}
                   <button
