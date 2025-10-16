@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 export function InstagramNav() {
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
-    { to: "/search", icon: Search, label: "Search" },
+    // { to: "/search", icon: Search, label: "Search" },
     { to: "/create", icon: PlusSquare, label: "Create" },
     { to: "/activity", icon: Heart, label: "Activity" },
     { to: "/profile", icon: User, label: "Profile" },

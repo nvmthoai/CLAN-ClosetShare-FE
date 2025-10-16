@@ -8,7 +8,6 @@ import { shopApi } from "@/apis/shop.api";
 import { toast } from "react-toastify";
 import {
   Home,
-  Search,
   PlusSquare,
   Heart,
   Menu,
@@ -86,7 +85,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
 
   const navItems = [
     { to: "/home", icon: Home, label: "Home" },
-    { to: "/search", icon: Search, label: "Search" },
+    // { to: "/search", icon: Search, label: "Search" },
     { to: "/shop", icon: ShoppingBag, label: "Shop" },
     { to: "/subscriptions", icon: BadgeDollarSign, label: "Plans" },
     { to: "/create", icon: PlusSquare, label: "Create" },
@@ -201,6 +200,15 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                     className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                     onClick={() => {
                       setMenuOpen(false);
+                      navigate("/profile/shops");
+                    }}
+                  >
+                    Manage shops
+                  </button>
+                  <button
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={() => {
+                      setMenuOpen(false);
                       navigate("/profile/edit");
                     }}
                   >
@@ -222,7 +230,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                       className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
                       onClick={() => {
                         setMenuOpen(false);
-                        navigate("/shop");
+                        navigate(`/view-shop/${shopId}`);
                       }}
                     >
                       View shop
@@ -274,8 +282,31 @@ export default function Layout({ children, sidebar }: LayoutProps) {
         )}
         <div className="flex-1 min-w-0">{children}</div>
       </main>
-      <footer className="border-t py-6 mt-auto text-center text-xs text-gray-500">
-        © {new Date().getFullYear()} ClosetShare. All rights reserved.
+      <footer className="border-t py-6 mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-xs text-gray-500">
+              © {new Date().getFullYear()} ClosetShare. All rights reserved.
+            </div>
+            <div className="flex items-center gap-6 text-xs">
+              <button
+                onClick={() => navigate("/policy")}
+                className="text-gray-500 hover:text-purple-600 transition-colors"
+              >
+                Chính sách
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={() => navigate("/terms")}
+                className="text-gray-500 hover:text-purple-600 transition-colors"
+              >
+                Điều khoản
+              </button>
+              <span className="text-gray-300">|</span>
+              <span className="text-gray-500">support@closetshare.vn</span>
+            </div>
+          </div>
+        </div>
       </footer>
 
       {showCreateShop && (

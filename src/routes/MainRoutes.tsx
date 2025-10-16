@@ -14,12 +14,18 @@ import EditProfile from "@/pages/Profile/EditProfile";
 import Layout from "@/components/layout/Layout";
 
 import Feed from "@/pages/Feed/Feed";
-import Search from "@/pages/Search/Search";
 import Activity from "@/pages/Activity/Activity";
 import Subscriptions from "@/pages/Subscription/Subscriptions";
 import PaymentCallback from "@/pages/Payment/PaymentCallback";
 import PaymentSuccess from "@/pages/Payment/PaymentSuccess";
 import PaymentFailure from "@/pages/Payment/PaymentFailure";
+import ViewShop from "@/pages/Shop/ViewShop";
+import ShopManagement from "@/pages/Shop/ShopManagement";
+import CreateShop from "@/pages/Shop/CreateShop";
+import EditShop from "@/pages/Shop/EditShop";
+import ProductDemo from "@/pages/Shop/ProductDemo";
+import Policy from "@/pages/Policy/Policy";
+import TermsOfService from "@/pages/Policy/TermsOfService";
 
 export default function MainRoutes() {
   return (
@@ -82,14 +88,14 @@ export default function MainRoutes() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/search"
+        {/* <Route
+          path="/search"/
           element={
             <ProtectedRoute>
               <Search />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/activity"
           element={
@@ -131,6 +137,54 @@ export default function MainRoutes() {
           }
         />
         <Route
+          path="/view-shop/:id"
+          element={
+            <ProtectedRoute>
+              <ViewShop />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/shops"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ShopManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shop/create"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CreateShop />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shop/edit/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <EditShop />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shop/demo"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ProductDemo />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/create"
           element={
             <ProtectedRoute>
@@ -149,6 +203,8 @@ export default function MainRoutes() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/policy" element={<Policy />} />
+        <Route path="/terms" element={<TermsOfService />} />
       </Routes>
     </>
   );

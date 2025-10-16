@@ -32,3 +32,11 @@ export type PagedResponse<T> = {
   limit?: number;
   total?: number;
 };
+
+export type ProductListResponse = {
+  products: Product[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};

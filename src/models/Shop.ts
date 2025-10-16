@@ -20,3 +20,20 @@ export type CreateShopPayload = {
   phone_number?: string;
   email?: string;
 };
+
+export type UpdateShopPayload = {
+  name?: string;
+  description?: string;
+  address?: string;
+  phone_number?: string;
+  email?: string;
+  avatar?: string;
+  background?: string;
+};
+
+export type ShopListResponse = {
+  shops: Shop[];
+  total: number;
+  page: number;
+  limit: number;
+};

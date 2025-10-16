@@ -1,28 +1,26 @@
 import { fetcher } from "./fetcher";
+import type { Product, ProductListResponse } from "@/models/Product";
 
 export type GetProductsParams = {
+  shopId: string; // Required parameter
   page?: number;
   limit?: number;
   search?: string;
   type?: string;
-  shopId?: string;
-  sort?: string; // e.g. newest | price_asc | price_desc
-  sizes?: string; // comma separated sizes
-  priceMin?: number | null;
-  priceMax?: number | null;
-  // Backend-driven filter selections: pass prop IDs (e.g., size "37" prop id)
-  filterPropIds?: string; // comma separated list of filter prop IDs
-  filter_prop_ids?: string; // snake_case alternative
-  // snake_case fallbacks some backends may expect
-  price_min?: number | null;
-  price_max?: number | null;
 };
 
 export const productApi = {
-  getProducts: async (params: GetProductsParams = {}) => {
-    return fetcher.get("/products", { params });
-  },
-  getProductById: async (id: string) => {
-    return fetcher.get(`/products/${id}`);
-  },
+  // Get products with pagination (matching API documentation)
+  getProducts: (params: GetProductsParams) => 
+    fetcher.get<ProductListResponse>("/products", { params }),
+  
+  // Get single product by ID
+  getProductById: (id: string) => 
+    fetcher.get<Product>(`/products/${id}`),
+  
+  // Get products for a specific shop (convenience method)
+  getProductsByShop: (shopId: string, params?: Omit<GetProductsParams, 'shopId'>) =>
+    fetcher.get<ProductListResponse>("/products", { 
+      params: { shopId, ...params } 
+    }),
 };
