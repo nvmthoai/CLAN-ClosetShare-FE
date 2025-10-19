@@ -1,6 +1,8 @@
 import Layout from "@/components/layout/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
+import { shopApi } from "@/apis/shop.api";
+import { getUserId } from "@/lib/user";
 import type { User } from "@/models/User";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,30 +21,35 @@ export default function Profile() {
     select: (res) => res.data as User,
   });
 
-  // Mock data for single shop
+  // Mock data for single shop - phù hợp với API response
   const mockShop = {
-    id: "1",
+    id: "e928f1fe-4f7f-40ba-8532-82c8f78519ed",
     name: "Fashion Boutique",
     description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại.",
     address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
     phone_number: "0901 234 567",
     email: "contact@fashionboutique.com",
-    avatar: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center",
-    background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center",
-    rating: 4.8,
-    status: "ACTIVE",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-01-20T15:45:00Z",
+    avatar: null, // API trả về null
+    background: null, // API trả về null
+    rating: 0, // API trả về 0
+    status: "UNVERIFIED", // API trả về UNVERIFIED
+    created_at: "2025-09-22T13:21:37.865Z",
+    updated_at: "2025-09-22T13:21:37.865Z",
   };
 
+  // Sử dụng user ID từ login
+  const userId = getUserId();
+  const shopId = userId || "e928f1fe-4f7f-40ba-8532-82c8f78519ed"; // Fallback nếu không có user ID
   const { data: myShop } = useQuery({
-    queryKey: ["my-shop"],
-    queryFn: () => Promise.resolve({ data: mockShop }),
+    queryKey: ["my-shop", shopId],
+    queryFn: () => shopApi.getMyShop(shopId),
     select: (res) => res.data,
-    // Uncomment below when you have real API
-    // queryFn: () => shopApi.getMyShop(),
-    // select: (res) => res.data,
+    retry: false,
+    enabled: !!shopId, // Chỉ fetch khi có shop ID
   });
+
+  // Use mock data if API fails
+  const shopData = myShop || mockShop;
 
   // Mock data for recently viewed and virtual closet
   const recentlyViewed = Array(5).fill(null);
@@ -100,9 +107,9 @@ export default function Profile() {
           >
             <Store className="w-4 h-4" />
             Quản lý Shop
-            {myShop && (
+            {shopData && (
               <Badge variant="secondary" className="ml-1">
-                {myShop.status === 'ACTIVE' ? 'Hoạt động' : 'Chờ xác minh'}
+                {shopData.status === 'ACTIVE' ? 'Hoạt động' : 'Chờ xác minh'}
               </Badge>
             )}
           </button>
@@ -212,7 +219,7 @@ export default function Profile() {
                   Quản lý shop của bạn
                 </p>
               </div>
-              {!myShop && (
+              {!shopData && (
                 <Button
                   onClick={() => navigate("/shop/create")}
                   className="flex items-center gap-2"
@@ -224,21 +231,19 @@ export default function Profile() {
             </div>
 
             {/* Shop Content */}
-            {myShop ? (
+            {shopData ? (
               <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 {/* Shop Header */}
                 <div className="relative h-32 bg-gradient-to-br from-purple-100 to-pink-100">
-                  {myShop.background && (
-                    <img
-                      src={myShop.background}
-                      alt={myShop.name}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
+                  <img
+                    src={shopData.background || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center"}
+                    alt={shopData.name}
+                    className="w-full h-full object-cover"
+                  />
                   <div className="absolute top-3 right-3">
-                    {myShop.status === 'ACTIVE' ? (
+                    {shopData.status === 'ACTIVE' ? (
                       <Badge className="bg-green-100 text-green-800">Hoạt động</Badge>
-                    ) : myShop.status === 'UNVERIFIED' ? (
+                    ) : shopData.status === 'UNVERIFIED' ? (
                       <Badge className="bg-yellow-100 text-yellow-800">Chờ xác minh</Badge>
                     ) : (
                       <Badge variant="secondary">Tạm dừng</Badge>
@@ -246,23 +251,17 @@ export default function Profile() {
                   </div>
                   <div className="absolute bottom-3 left-3 right-3">
                     <div className="flex items-center gap-3">
-                      {myShop.avatar ? (
-                        <img
-                          src={myShop.avatar}
-                          alt={myShop.name}
-                          className="w-12 h-12 rounded-full border-2 border-white object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-white border-2 border-white flex items-center justify-center">
-                          <Store className="w-6 h-6 text-purple-600" />
-                        </div>
-                      )}
+                      <img
+                        src={shopData.avatar || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center"}
+                        alt={shopData.name}
+                        className="w-12 h-12 rounded-full border-2 border-white object-cover"
+                      />
                       <div className="text-white">
-                        <h3 className="font-semibold">{myShop.name}</h3>
+                        <h3 className="font-semibold">{shopData.name}</h3>
                         <div className="flex items-center gap-2 text-sm">
-                          <span>⭐ {myShop.rating}</span>
+                          <span>⭐ {shopData.rating || 0}</span>
                           <span>•</span>
-                          <span>{new Date(myShop.created_at || "").toLocaleDateString("vi-VN")}</span>
+                          <span>{new Date(shopData.created_at || "").toLocaleDateString("vi-VN")}</span>
                         </div>
                       </div>
                     </div>
@@ -271,29 +270,29 @@ export default function Profile() {
 
                 {/* Shop Info */}
                 <div className="p-4 space-y-4">
-                  {myShop.description && (
+                  {shopData.description && (
                     <p className="text-sm text-gray-600 line-clamp-2">
-                      {myShop.description}
+                      {shopData.description}
                     </p>
                   )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-500">
-                    {myShop.address && (
+                    {shopData.address && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
-                        <span className="truncate">{myShop.address}</span>
+                        <span className="truncate">{shopData.address}</span>
                       </div>
                     )}
-                    {myShop.phone_number && (
+                    {shopData.phone_number && (
                       <div className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
-                        <span>{myShop.phone_number}</span>
+                        <span>{shopData.phone_number}</span>
                       </div>
                     )}
-                    {myShop.email && (
+                    {shopData.email && (
                       <div className="flex items-center gap-1">
                         <Mail className="w-3 h-3" />
-                        <span className="truncate">{myShop.email}</span>
+                        <span className="truncate">{shopData.email}</span>
                       </div>
                     )}
                   </div>
@@ -304,7 +303,7 @@ export default function Profile() {
                       size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => navigate(`/view-shop/${myShop.id}`)}
+                      onClick={() => navigate(`/view-shop/${shopData.id}`)}
                     >
                       Xem shop
                     </Button>

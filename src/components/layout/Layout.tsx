@@ -80,6 +80,8 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     localStorage.removeItem("user_role");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_data");
     navigate("/login");
   };
 
@@ -118,9 +120,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               to="/home"
               className="flex items-center gap-2 font-bold text-lg tracking-tight"
             >
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-sm shadow">
-                <Camera className="w-4 h-4" />
-              </span>
+              <img 
+                src="/logobox_512x512.png" 
+                alt="ClosetShare" 
+                className="w-8 h-8 rounded-lg object-cover shadow"
+              />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
                 ClosetShare
               </span>

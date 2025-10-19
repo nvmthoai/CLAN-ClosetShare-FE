@@ -28,7 +28,7 @@ export default function ProductDetail() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState("PAYOS");
+  const [paymentMethod, setPaymentMethod] = useState("Chuyển khoản");
 
   const { mutate: createOrder, isPending: isOrdering } = useMutation({
     mutationFn: (payload: CreateOrderPayload) => orderApi.create(payload),
@@ -62,7 +62,7 @@ export default function ProductDetail() {
       province_id: 0, // TODO: integrate province selection
       ward_id: 0, // TODO: integrate ward selection
       type: "SALE",
-      payment_method: paymentMethod,
+      payment_method: paymentMethod as "BANK_TRANSFER" | "COD",
       items: [
         {
           variant_id: firstVariant.id,
@@ -173,7 +173,6 @@ export default function ProductDetail() {
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 >
-                  <option value="PAYOS">PayOS</option>
                   <option value="BANK_TRANSFER">Chuyển khoản</option>
                   <option value="COD">COD</option>
                 </select>

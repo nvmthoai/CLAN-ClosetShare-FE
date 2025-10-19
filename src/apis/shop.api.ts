@@ -4,15 +4,14 @@ import type { Shop, CreateShopPayload, UpdateShopPayload, ShopListResponse } fro
 export const shopApi = {
   // CRUD Operations for single shop per user
   create: (payload: CreateShopPayload) => fetcher.post<Shop>("/shops", payload),
-  getMyShop: () => fetcher.get<Shop>("/shops/my-shop"),
+  getMyShop: (id: string) => fetcher.get<Shop>(`/shop/${id}`), // Sử dụng shop ID thay vì my-shop
   update: (payload: UpdateShopPayload) => fetcher.patch<Shop>("/shops/my-shop", payload),
   delete: () => fetcher.delete("/shops/my-shop"),
   
-  // Public view
-  viewShop: (id: string) => fetcher.get<Shop>(`/view-shop/${id}`),
+  // Get shop by ID (public view)
+  getById: (id: string) => fetcher.get<Shop>(`/shop/${id}`),
   
   // Admin operations (if needed)
   getAll: (params?: { page?: number; limit?: number; search?: string }) => 
     fetcher.get<ShopListResponse>("/shops", { params }),
-  getById: (id: string) => fetcher.get<Shop>(`/shops/${id}`),
 };

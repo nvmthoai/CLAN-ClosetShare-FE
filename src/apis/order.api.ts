@@ -12,7 +12,7 @@ export type CreateOrderPayload = {
   province_id: number;
   ward_id: number;
   type: string; // e.g. SALE
-  payment_method: string; // e.g. BANK_TRANSFER, PAYOS
+  payment_method: "BANK_TRANSFER" | "COD";
   items: CreateOrderItem[]; // note: backend screenshot shows 'item', normalize to 'items'
 };
 

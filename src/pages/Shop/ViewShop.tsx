@@ -5,6 +5,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useProductsByShop } from "@/hooks/useProducts";
+import { useQuery } from "@tanstack/react-query";
+import { shopApi } from "@/apis/shop.api";
+import { getUserId } from "@/lib/user";
 import { 
   Star, 
   MapPin, 
@@ -21,21 +24,21 @@ import {
   ChevronRight
 } from "lucide-react";
 
-// Mock data cho shop
+// Mock data cho shop - phù hợp với API response
 const mockShopData = {
-  id: "1",
+  id: "e928f1fe-4f7f-40ba-8532-82c8f78519ed",
   name: "Fashion Boutique",
   description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại. Chúng tôi cam kết mang đến cho khách hàng những trải nghiệm mua sắm tuyệt vời nhất.",
   address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
   phone_number: "0901 234 567",
   email: "contact@fashionboutique.com",
-  avatar: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop&crop=center",
-  background: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop&crop=center",
-  rating: 4.8,
-  status: "ACTIVE",
-  created_at: "2024-01-15T10:30:00Z",
-  updated_at: "2024-01-20T15:45:00Z",
-  // Thêm thông tin mở rộng
+  avatar: null, // API trả về null
+  background: null, // API trả về null
+  rating: 0, // API trả về 0
+  status: "UNVERIFIED", // API trả về UNVERIFIED
+  created_at: "2025-09-22T13:21:37.865Z",
+  updated_at: "2025-09-22T13:21:37.865Z",
+  // Thêm thông tin mở rộng cho UI
   followers: 1250,
   following: 89,
   products_count: 156,
@@ -135,6 +138,9 @@ const mockReviews = [
 
 export default function ViewShop() {
   const { id } = useParams<{ id: string }>();
+  const userId = getUserId();
+  // Sử dụng ID từ URL, hoặc user ID, hoặc fallback
+  const shopId = id || userId || "e928f1fe-4f7f-40ba-8532-82c8f78519ed";
   const [activeTab, setActiveTab] = useState<'products' | 'reviews' | 'about'>('products');
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -147,7 +153,7 @@ export default function ViewShop() {
     data: productsData, 
     isLoading: productsLoading, 
     isError: productsError 
-  } = useProductsByShop(id || "1", {
+  } = useProductsByShop(shopId, {
     page: currentPage,
     limit: 8,
     search: searchTerm || undefined,
@@ -159,8 +165,17 @@ export default function ViewShop() {
   const totalPages = productsData?.totalPages || 1;
   const totalProducts = productsData?.total || mockProducts.length;
 
-  // Trong thực tế, sẽ fetch data từ API dựa trên id
-  const shop = mockShopData;
+  // Fetch shop data from API
+  const { data: shopData, isLoading: shopLoading, isError: shopError } = useQuery({
+    queryKey: ["shop", shopId],
+    queryFn: () => shopApi.getById(shopId),
+    select: (res) => res.data,
+    enabled: !!shopId,
+    retry: false,
+  });
+
+  // Use API data if available, otherwise fallback to mock data
+  const shop = shopData || mockShopData;
   const reviews = mockReviews;
 
   const formatDate = (dateString: string) => {
@@ -188,7 +203,7 @@ export default function ViewShop() {
       {/* Header với background image */}
       <div className="relative h-64 md:h-80">
         <img
-          src={shop.background}
+          src={shop.background || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=400&fit=crop&crop=center"}
           alt={shop.name}
           className="w-full h-full object-cover"
         />
@@ -196,7 +211,7 @@ export default function ViewShop() {
         <div className="absolute bottom-6 left-6 right-6 text-white">
           <div className="flex items-end gap-4">
             <img
-              src={shop.avatar}
+              src={shop.avatar || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop&crop=center"}
               alt={shop.name}
               className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white object-cover"
             />
@@ -204,13 +219,13 @@ export default function ViewShop() {
               <h1 className="text-2xl md:text-3xl font-bold mb-2">{shop.name}</h1>
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1">
-                  {renderStars(shop.rating)}
-                  <span className="ml-1">{shop.rating}</span>
+                  {renderStars(shop.rating || 0)}
+                  <span className="ml-1">{shop.rating || 0}</span>
                 </div>
                 <span>•</span>
-                <span>{shop.reviews_count} đánh giá</span>
+                <span>{shop.reviews_count || 0} đánh giá</span>
                 <span>•</span>
-                <span>{shop.products_count} sản phẩm</span>
+                <span>{shop.products_count || 0} sản phẩm</span>
               </div>
             </div>
           </div>
@@ -450,32 +465,40 @@ export default function ViewShop() {
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Thông tin liên hệ</h3>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5 text-gray-400" />
-                    <span>{shop.address}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone className="w-5 h-5 text-gray-400" />
-                    <span>{shop.phone_number}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="w-5 h-5 text-gray-400" />
-                    <span>{shop.email}</span>
-                  </div>
+                  {shop.address && (
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-gray-400" />
+                      <span>{shop.address}</span>
+                    </div>
+                  )}
+                  {shop.phone_number && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-gray-400" />
+                      <span>{shop.phone_number}</span>
+                    </div>
+                  )}
+                  {shop.email && (
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-5 h-5 text-gray-400" />
+                      <span>{shop.email}</span>
+                    </div>
+                  )}
                 </div>
               </Card>
 
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Giờ mở cửa</h3>
-                <div className="space-y-2">
-                  {Object.entries(shop.opening_hours).map(([day, hours]) => (
-                    <div key={day} className="flex justify-between">
-                      <span className="capitalize">{day}</span>
-                      <span className="text-gray-600">{hours}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
+              {shop.opening_hours && (
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Giờ mở cửa</h3>
+                  <div className="space-y-2">
+                    {Object.entries(shop.opening_hours).map(([day, hours]) => (
+                      <div key={day} className="flex justify-between">
+                        <span className="capitalize">{day}</span>
+                        <span className="text-gray-600">{hours}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </div>
 
             <div className="space-y-6">
@@ -484,55 +507,63 @@ export default function ViewShop() {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span>Sản phẩm</span>
-                    <span className="font-medium">{shop.products_count}</span>
+                    <span className="font-medium">{shop.products_count || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Đánh giá</span>
-                    <span className="font-medium">{shop.reviews_count}</span>
+                    <span className="font-medium">{shop.reviews_count || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Người theo dõi</span>
-                    <span className="font-medium">{shop.followers}</span>
+                    <span className="font-medium">{shop.followers || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Đang theo dõi</span>
-                    <span className="font-medium">{shop.following}</span>
+                    <span className="font-medium">{shop.following || 0}</span>
                   </div>
                 </div>
               </Card>
 
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Mạng xã hội</h3>
-                <div className="space-y-3">
-                  <a
-                    href={shop.social_links.instagram}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-pink-600 hover:text-pink-700"
-                  >
-                    <Instagram className="w-5 h-5" />
-                    <span>Instagram</span>
-                  </a>
-                  <a
-                    href={shop.social_links.facebook}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-blue-600 hover:text-blue-700"
-                  >
-                    <Facebook className="w-5 h-5" />
-                    <span>Facebook</span>
-                  </a>
-                  <a
-                    href={shop.social_links.twitter}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 text-blue-400 hover:text-blue-500"
-                  >
-                    <Twitter className="w-5 h-5" />
-                    <span>Twitter</span>
-                  </a>
-                </div>
-              </Card>
+              {shop.social_links && (
+                <Card className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Mạng xã hội</h3>
+                  <div className="space-y-3">
+                    {shop.social_links.instagram && (
+                      <a
+                        href={shop.social_links.instagram}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-pink-600 hover:text-pink-700"
+                      >
+                        <Instagram className="w-5 h-5" />
+                        <span>Instagram</span>
+                      </a>
+                    )}
+                    {shop.social_links.facebook && (
+                      <a
+                        href={shop.social_links.facebook}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-blue-600 hover:text-blue-700"
+                      >
+                        <Facebook className="w-5 h-5" />
+                        <span>Facebook</span>
+                      </a>
+                    )}
+                    {shop.social_links.twitter && (
+                      <a
+                        href={shop.social_links.twitter}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 text-blue-400 hover:text-blue-500"
+                      >
+                        <Twitter className="w-5 h-5" />
+                        <span>Twitter</span>
+                      </a>
+                    )}
+                  </div>
+                </Card>
+              )}
 
               <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">Thông tin shop</h3>
@@ -543,14 +574,18 @@ export default function ViewShop() {
                       {shop.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
                     </Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Ngày tạo</span>
-                    <span>{formatDate(shop.created_at)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Cập nhật</span>
-                    <span>{formatDate(shop.updated_at)}</span>
-                  </div>
+                  {shop.created_at && (
+                    <div className="flex justify-between">
+                      <span>Ngày tạo</span>
+                      <span>{formatDate(shop.created_at)}</span>
+                    </div>
+                  )}
+                  {shop.updated_at && (
+                    <div className="flex justify-between">
+                      <span>Cập nhật</span>
+                      <span>{formatDate(shop.updated_at)}</span>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>

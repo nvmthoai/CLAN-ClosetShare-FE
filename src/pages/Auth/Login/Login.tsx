@@ -8,6 +8,7 @@ import type { LoginRequest } from "@/models/Auth";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { extractTokens } from "@/lib/auth";
+import { setUserData } from "@/lib/user";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -42,6 +43,14 @@ function Login() {
         localStorage.setItem("refresh_token", refresh_token);
         console.log("Refresh token saved to localStorage");
       }
+      
+      // Lưu user data nếu có trong response
+      if (res.data?.user || res.data?.data?.user) {
+        const userData = res.data?.user || res.data?.data?.user;
+        setUserData(userData);
+        console.log("User data saved:", userData);
+      }
+      
       toast.success("Đăng nhập thành công");
       console.log("Navigating to:", from);
       navigate(from, { replace: true });
