@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
@@ -24,6 +24,8 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCreateShop, setShowCreateShop] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const [shopId, setShopId] = useState<string | null>(() =>
     typeof window !== "undefined" ? localStorage.getItem("shop_id") : null
   );
@@ -36,6 +38,20 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   });
   const navigate = useNavigate();
   const hasToken = Boolean(localStorage.getItem("access_token"));
+
+  // Handle click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+        setNotificationOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   const { data: me } = useQuery({
     queryKey: ["me"],
     queryFn: () => userApi.getMe(),
@@ -153,12 +169,86 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 className="w-64 text-sm border rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/70"
               />
             </div>
-            <button className="relative text-sm p-2 rounded-full hover:bg-purple-50">
-              🔔
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] leading-none px-1 rounded">
-                9+
-              </span>
-            </button>
+            <div className="relative" ref={notificationRef}>
+              <button 
+                className="relative text-sm p-2 rounded-full hover:bg-purple-50"
+                onClick={() => setNotificationOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={notificationOpen}
+              >
+                🔔
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] leading-none px-1 rounded">
+                  9+
+                </span>
+              </button>
+              
+              {notificationOpen && (
+                <div className="absolute right-0 mt-2 w-96 rounded-md border bg-white shadow-lg z-50 max-h-[28rem] overflow-y-auto">
+                  <div className="p-3 border-b">
+                    <h3 className="font-semibold text-sm">Thông báo</h3>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {/* Sample notifications */}
+                    <div className="p-3 border-b hover:bg-gray-50 cursor-pointer">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 text-xs">📦</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Đơn hàng mới</p>
+                          <p className="text-xs text-gray-600">Bạn có đơn hàng mới từ khách hàng</p>
+                          <p className="text-xs text-gray-400 mt-1">2 phút trước</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 border-b hover:bg-gray-50 cursor-pointer">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 text-xs">💰</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Thanh toán thành công</p>
+                          <p className="text-xs text-gray-600">Đơn hàng #12345 đã được thanh toán</p>
+                          <p className="text-xs text-gray-400 mt-1">1 giờ trước</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 border-b hover:bg-gray-50 cursor-pointer">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                          <span className="text-purple-600 text-xs">⭐</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Đánh giá mới</p>
+                          <p className="text-xs text-gray-600">Khách hàng đã đánh giá sản phẩm của bạn</p>
+                          <p className="text-xs text-gray-400 mt-1">3 giờ trước</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-3 border-b hover:bg-gray-50 cursor-pointer">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                          <span className="text-orange-600 text-xs">🔔</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Cập nhật hệ thống</p>
+                          <p className="text-xs text-gray-600">Hệ thống đã được cập nhật với tính năng mới</p>
+                          <p className="text-xs text-gray-400 mt-1">1 ngày trước</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-3 border-t">
+                    <button className="w-full text-sm text-purple-600 hover:text-purple-700 font-medium">
+                      Xem tất cả thông báo
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="relative">
               <button
                 className="flex items-center gap-2 p-1.5 rounded-full hover:bg-purple-50"
