@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PostCard } from "@/components/social/PostCard";
 import { Stories } from "@/components/social/Stories";
 import Layout from "@/components/layout/Layout";
-import type { Post, Story } from "@/models/Social";
+import type { Post, Story, CreatePostPayload } from "@/models/Social";
+import { socialApi } from "@/apis/social.api";
 import { useState } from "react";
 
 // Mock data for development
@@ -36,6 +37,8 @@ const mockStories: Story[] = [
 const mockPosts: Post[] = [
   {
     id: "1",
+    title: "Vintage Blazer Find",
+    content: "New vintage find! 💫 This 90s blazer is everything. Can't wait to style it with my favorite jeans. #vintage #fashion #ootd",
     user: {
       id: "1",
       username: "fashionista",
@@ -77,6 +80,8 @@ const mockPosts: Post[] = [
   },
   {
     id: "2",
+    title: "Sunset Dress Vibes",
+    content: "Sunset vibes in my favorite dress ✨ Sometimes the simplest outfits make the biggest statement.",
     user: {
       id: "2",
       username: "styleicon",
@@ -112,6 +117,7 @@ const mockPosts: Post[] = [
 export default function Feed() {
   const queryClient = useQueryClient();
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [postTitle, setPostTitle] = useState("");
   const [postContent, setPostContent] = useState("");
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
@@ -178,6 +184,29 @@ export default function Feed() {
             : post
         );
       });
+    },
+  });
+
+  const createPostMutation = useMutation({
+    mutationFn: (payload: CreatePostPayload) => socialApi.createPost(payload),
+    onSuccess: (data) => {
+      // Add the new post to the feed
+      queryClient.setQueryData(["feed"], (oldPosts: Post[] | undefined) => {
+        if (!oldPosts || !Array.isArray(oldPosts)) return [];
+        const newPost = data?.data || data;
+        if (newPost) {
+          return [newPost, ...oldPosts];
+        }
+        return oldPosts;
+      });
+      // Reset form
+      setPostTitle("");
+      setPostContent("");
+      setSelectedImages([]);
+      setShowCreatePost(false);
+    },
+    onError: (error) => {
+      console.error("Error creating post:", error);
     },
   });
 
@@ -375,6 +404,20 @@ export default function Feed() {
             </div>
             
             <div className="p-6 space-y-4">
+              {/* Title Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tiêu đề bài viết
+                </label>
+                <input
+                  type="text"
+                  value={postTitle}
+                  onChange={(e) => setPostTitle(e.target.value)}
+                  placeholder="Nhập tiêu đề bài viết..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
               {/* Content Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -466,16 +509,17 @@ export default function Feed() {
               </button>
               <button
                 onClick={() => {
-                  // Handle post creation here
-                  console.log("Creating post:", { postContent, selectedImages });
-                  setShowCreatePost(false);
-                  setPostContent("");
-                  setSelectedImages([]);
+                  if (postTitle.trim() && postContent.trim()) {
+                    createPostMutation.mutate({
+                      title: postTitle.trim(),
+                      content: postContent.trim(),
+                    });
+                  }
                 }}
-                disabled={!postContent.trim() && selectedImages.length === 0}
+                disabled={!postTitle.trim() || !postContent.trim() || createPostMutation.isPending}
                 className="px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Đăng bài
+                {createPostMutation.isPending ? "Đang đăng..." : "Đăng bài"}
               </button>
             </div>
           </div>

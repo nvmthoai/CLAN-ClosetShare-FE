@@ -1,9 +1,13 @@
 import { fetcher } from "./fetcher";
+import type { CreatePostPayload } from "../models/Social";
 
 export const socialApi = {
   // Posts
   getFeed: (page = 1, limit = 10) =>
     fetcher.get("/posts/feed", { params: { page, limit } }),
+
+  createPost: (payload: CreatePostPayload) =>
+    fetcher.post("/posts", payload),
 
   likePost: (postId: string) => fetcher.post(`/posts/${postId}/like`),
 

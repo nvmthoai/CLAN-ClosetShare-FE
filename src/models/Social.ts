@@ -1,5 +1,7 @@
 export interface Post {
   id: string;
+  title: string;
+  content: string;
   user: {
     id: string;
     username: string;
@@ -13,6 +15,11 @@ export interface Post {
   comments: Comment[];
   createdAt: string;
   location?: string;
+}
+
+export interface CreatePostPayload {
+  title: string;
+  content: string;
 }
 
 export interface Comment {
