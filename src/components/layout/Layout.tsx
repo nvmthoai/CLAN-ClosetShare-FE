@@ -9,11 +9,9 @@ import { toast } from "react-toastify";
 import {
   Home,
   PlusSquare,
-  Heart,
   Menu,
   X,
   ShoppingBag,
-  Camera,
   BadgeDollarSign,
 } from "lucide-react";
 
@@ -91,7 +89,6 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     { to: "/shop", icon: ShoppingBag, label: "Shop" },
     { to: "/subscriptions", icon: BadgeDollarSign, label: "Plans" },
     { to: "/create", icon: PlusSquare, label: "Create" },
-    { to: "/activity", icon: Heart, label: "Activity" },
   ];
 
   return (

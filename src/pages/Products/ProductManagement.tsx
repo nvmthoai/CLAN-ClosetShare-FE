@@ -6,13 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { productApi } from "@/apis/product.api";
 import type { Product } from "@/models/Product";
 import { toast } from "react-toastify";
 import {
   Plus,
   Search,
-  Filter,
   MoreVertical,
   Edit,
   Trash2,
@@ -21,7 +19,6 @@ import {
   Package,
   TrendingUp,
   Star,
-  Calendar,
   DollarSign,
   Grid3X3,
   List,
@@ -225,7 +222,7 @@ export default function ProductManagement() {
 
   // Delete product mutation
   const deleteProductMutation = useMutation({
-    mutationFn: (productId: string) => {
+    mutationFn: (_productId: string) => {
       // Mock delete - in real app, this would call productApi.deleteProduct(productId)
       return Promise.resolve({ success: true });
     },
@@ -242,7 +239,7 @@ export default function ProductManagement() {
 
   // Duplicate product mutation
   const duplicateProductMutation = useMutation({
-    mutationFn: (productId: string) => {
+    mutationFn: (_productId: string) => {
       // Mock duplicate - in real app, this would call productApi.actionOnProduct(productId, "duplicate")
       return Promise.resolve({ success: true });
     },

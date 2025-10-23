@@ -1,6 +1,6 @@
 export type Pricing = {
-  id: string;
-  variant_id: string;
+  id?: string;
+  variant_id?: string;
   price: number;
 };
 

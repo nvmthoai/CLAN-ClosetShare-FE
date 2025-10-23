@@ -4,7 +4,7 @@ import type { Shop, CreateShopPayload, UpdateShopPayload, ShopListResponse } fro
 export const shopApi = {
   // CRUD Operations for single shop per user
   create: (payload: CreateShopPayload) => fetcher.post<Shop>("/shops", payload),
-  getMyShop: (id: string) => fetcher.get<Shop>(`/shop/${id}`), // Sử dụng shop ID thay vì my-shop
+  getMyShop: () => fetcher.get<Shop>("/shops/my-shop"), // Get current user's shop
   update: (payload: UpdateShopPayload) => fetcher.patch<Shop>("/shops/my-shop", payload),
   delete: () => fetcher.delete("/shops/my-shop"),
   

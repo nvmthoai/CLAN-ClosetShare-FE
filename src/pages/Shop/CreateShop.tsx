@@ -22,7 +22,7 @@ export default function CreateShop() {
 
   const createShopMutation = useMutation({
     mutationFn: (payload: CreateShopPayload) => shopApi.create(payload),
-    onSuccess: (response) => {
+    onSuccess: (_response) => {
       toast.success("Tạo shop thành công! Đang chờ xác minh.");
       navigate("/profile/shops");
     },

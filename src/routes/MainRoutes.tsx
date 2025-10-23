@@ -14,7 +14,6 @@ import EditProfile from "@/pages/Profile/EditProfile";
 import Layout from "@/components/layout/Layout";
 
 import Feed from "@/pages/Feed/Feed";
-import Activity from "@/pages/Activity/Activity";
 import Subscriptions from "@/pages/Subscription/Subscriptions";
 import PaymentCallback from "@/pages/Payment/PaymentCallback";
 import PaymentSuccess from "@/pages/Payment/PaymentSuccess";
@@ -88,22 +87,6 @@ export default function MainRoutes() {
           element={
             <ProtectedRoute>
               <EditProfile />
-            </ProtectedRoute>
-          }
-        />
-        {/* <Route
-          path="/search"/
-          element={
-            <ProtectedRoute>
-              <Search />
-            </ProtectedRoute>
-          }
-        /> */}
-        <Route
-          path="/activity"
-          element={
-            <ProtectedRoute>
-              <Activity />
             </ProtectedRoute>
           }
         />

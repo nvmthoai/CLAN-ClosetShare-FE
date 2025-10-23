@@ -48,9 +48,7 @@ export default function Products() {
     filterPropIds: selectedPropIds.length
       ? selectedPropIds.join(",")
       : undefined,
-    filter_prop_ids: selectedPropIds.length
-      ? selectedPropIds.join(",")
-      : undefined,
+      // Removed invalid property 'filter_prop_ids' per type 'GetProductsParams'
   };
 
   const { data, isLoading, isError, refetch } = useQuery({

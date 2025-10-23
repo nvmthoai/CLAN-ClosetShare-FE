@@ -1,13 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { Home, Search, PlusSquare, Heart, User, Camera } from "lucide-react";
+import { Home, PlusSquare, User, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function InstagramNav() {
   const navItems = [
     { to: "/", icon: Home, label: "Home" },
-    // { to: "/search", icon: Search, label: "Search" },
     { to: "/create", icon: PlusSquare, label: "Create" },
-    { to: "/activity", icon: Heart, label: "Activity" },
     { to: "/profile", icon: User, label: "Profile" },
   ];
 

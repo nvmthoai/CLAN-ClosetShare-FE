@@ -11,6 +11,16 @@ export type Shop = {
   status?: string; // e.g. UNVERIFIED / ACTIVE
   created_at?: string;
   updated_at?: string;
+  reviews_count?: number;
+  products_count?: number;
+  followers?: number;
+  following?: number;
+  opening_hours?: Record<string, string>;
+  social_links?: {
+    instagram?: string;
+    facebook?: string;
+    twitter?: string;
+  };
 };
 
 export type CreateShopPayload = {

@@ -5,8 +5,6 @@ import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { productApi } from "@/apis/product.api";
 import type { UpdateProductPayload, Product } from "@/models/Product";
 import { toast } from "react-toastify";
 import {
@@ -17,7 +15,6 @@ import {
   Plus,
   Trash2,
   Package,
-  DollarSign,
   Hash,
   Image as ImageIcon,
   Loader2

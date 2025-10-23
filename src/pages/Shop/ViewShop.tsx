@@ -166,7 +166,7 @@ export default function ViewShop() {
   const totalProducts = productsData?.total || mockProducts.length;
 
   // Fetch shop data from API
-  const { data: shopData, isLoading: shopLoading, isError: shopError } = useQuery({
+  const { data: shopData } = useQuery({
     queryKey: ["shop", shopId],
     queryFn: () => shopApi.getById(shopId),
     select: (res) => res.data,

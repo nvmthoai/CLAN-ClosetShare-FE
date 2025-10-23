@@ -2,7 +2,6 @@ import { fetcher } from "./fetcher";
 import type { 
   Product, 
   ProductListResponse, 
-  CreateProductPayload, 
   UpdateProductPayload, 
   CreateProductInShopPayload 
 } from "@/models/Product";
@@ -13,6 +12,12 @@ export type GetProductsParams = {
   limit?: number;
   search?: string;
   type?: string;
+  sort?: string;
+  priceMin?: number;
+  priceMax?: number;
+  price_min?: number;
+  price_max?: number;
+  filterPropIds?: string;
 };
 
 export const productApi = {

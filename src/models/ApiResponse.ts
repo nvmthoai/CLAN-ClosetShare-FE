@@ -5,6 +5,8 @@ export type ApiResponse<T = unknown> = AxiosResponse<T>;
 
 // Auth-specific payload returned by auth endpoints
 export interface AuthPayload {
+  user: any;
+  data: any;
   access_token?: string;
   refresh_token?: string;
 }

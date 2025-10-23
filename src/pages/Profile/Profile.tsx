@@ -42,7 +42,7 @@ export default function Profile() {
   const shopId = userId || "e928f1fe-4f7f-40ba-8532-82c8f78519ed"; // Fallback nếu không có user ID
   const { data: myShop } = useQuery({
     queryKey: ["my-shop", shopId],
-    queryFn: () => shopApi.getMyShop(shopId),
+    queryFn: () => shopApi.getMyShop(),
     select: (res) => res.data,
     retry: false,
     enabled: !!shopId, // Chỉ fetch khi có shop ID
