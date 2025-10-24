@@ -1,38 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PostCard } from "@/components/social/PostCard";
-import { Stories } from "@/components/social/Stories";
 import Layout from "@/components/layout/Layout";
-import type { Post, Story, CreatePostPayload, UpdatePostPayload } from "@/models/Social";
+import type { Post, CreatePostPayload, UpdatePostPayload } from "@/models/Social";
 import { postApi } from "@/apis/post.api";
 import { useState } from "react";
 
-// Mock data for development
-const mockStories: Story[] = [
-  {
-    id: "1",
-    user: {
-      id: "1",
-      username: "fashionista",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b35d4e36?w=100",
-    },
-    image: "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=400",
-    isViewed: false,
-    createdAt: "2025-09-27T10:00:00Z",
-  },
-  {
-    id: "2",
-    user: {
-      id: "2",
-      username: "styleicon",
-      avatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100",
-    },
-    image: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400",
-    isViewed: true,
-    createdAt: "2025-09-27T09:30:00Z",
-  },
-];
 
 
 export default function Feed() {
@@ -41,12 +13,7 @@ export default function Feed() {
   const [postTitle, setPostTitle] = useState("");
   const [postContent, setPostContent] = useState("");
 
-  // Use mock data for now, replace with actual API calls later
-  const { data: stories = mockStories } = useQuery({
-    queryKey: ["stories"],
-    queryFn: () => Promise.resolve({ data: mockStories }),
-    select: (res) => res.data,
-  });
+  // Stories removed from feed (per design request)
 
   // Fetch posts from API
   const { data: posts, isLoading, isError: postsError } = useQuery({
@@ -170,15 +137,7 @@ export default function Feed() {
     editPostMutation.mutate({ postId, payload });
   };
 
-  const handleViewStory = (storyId: string) => {
-    // Mark story as viewed
-    queryClient.setQueryData(["stories"], (oldStories: Story[] | undefined) => {
-      if (!oldStories) return [];
-      return oldStories.map((story) =>
-        story.id === storyId ? { ...story, isViewed: true } : story
-      );
-    });
-  };
+  // Stories removed — no story handling needed
 
   const categories = [
     "For you",
@@ -246,10 +205,7 @@ export default function Feed() {
           <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
         </div>
 
-        {/* Stories (glass card) */}
-        <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
-          <Stories stories={stories} onViewStory={handleViewStory} />
-        </div>
+        {/* Stories removed */}
 
         {/* Category pills */}
         <div className="flex flex-wrap gap-2">
@@ -368,21 +324,7 @@ export default function Feed() {
               </div>
             </div>
 
-            <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
-              <h2 className="text-sm font-semibold mb-3">Trending tags</h2>
-              <div className="flex flex-wrap gap-2 text-xs">
-                {["#vintage", "#streetwear", "#y2k", "#minimal", "#summer"].map(
-                  (t) => (
-                    <span
-                      key={t}
-                      className="px-2 py-1 rounded-full border text-gray-600 hover:bg-primary/10 hover:text-primary"
-                    >
-                      {t}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+            {/* Trending tags removed */}
 
             <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
               <h2 className="text-sm font-semibold mb-2">Weekly highlight</h2>
