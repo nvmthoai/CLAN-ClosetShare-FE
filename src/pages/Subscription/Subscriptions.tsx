@@ -137,9 +137,14 @@ export default function Subscriptions() {
 
   const plans = data || [];
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<Subscription | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [ripples, setRipples] = useState<Array<{ id: string; key: number; x: number; y: number }>>([]);
 
   return (
     <Layout>
+      {/* Ripple keyframes used by card click effect */}
+      <style>{`@keyframes ripple { from { transform: scale(0); opacity: 0.36 } to { transform: scale(4); opacity: 0 } }`}</style>
       <div className="space-y-10 flex flex-col mx-auto w-full max-w-5xl p-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Gói thành viên</h1>
@@ -190,13 +195,15 @@ export default function Subscriptions() {
               <div
                 key={p.id}
                 // Interactive: hover shadow and press scale implemented via JS to avoid linter issues
-                className="border rounded-xl bg-white p-5 shadow-sm w-full max-w-sm transform transition-transform duration-150 ease-out hover:shadow-md cursor-pointer"
+                className="relative border rounded-xl bg-white p-5 shadow-sm w-full max-w-sm transform transition-transform duration-150 ease-out hover:shadow-md cursor-pointer"
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
                     e.preventDefault();
-                    buy(p.id);
+                    // keyboard activation opens confirmation modal
+                    setSelectedPlan(p);
+                    setShowConfirm(true);
                   }
                 }}
                 onMouseDown={() => setActiveId(p.id)}
@@ -205,11 +212,52 @@ export default function Subscriptions() {
                 onTouchStart={() => setActiveId(p.id)}
                 onTouchEnd={() => setActiveId(null)}
                 style={{ transform: activeId === p.id ? "scale(0.97)" : undefined }}
+                onClick={(e) => {
+                  // create ripple
+                  try {
+                    const target = e.currentTarget as HTMLElement;
+                    const rect = target.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const key = Date.now();
+                    setRipples((r) => [...r, { id: p.id, key, x, y }]);
+                    // remove ripple after animation
+                    setTimeout(() => {
+                      setRipples((r) => r.filter((rp) => rp.key !== key));
+                    }, 600);
+                  } catch (err) {
+                    // ignore
+                  }
+                  // open confirm modal
+                  setSelectedPlan(p);
+                  setShowConfirm(true);
+                }}
               >
                 <div className="text-lg font-semibold">{p.name}</div>
                 <div className="text-gray-600 text-sm mt-1">
                   {p.description || ""}
                 </div>
+                {/* Ripples for this card */}
+                {ripples
+                  .filter((r) => r.id === p.id)
+                  .map((r) => (
+                    <span
+                      key={r.key}
+                      style={{
+                        position: "absolute",
+                        left: r.x,
+                        top: r.y,
+                        width: 200,
+                        height: 200,
+                        marginLeft: -100,
+                        marginTop: -100,
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.06)",
+                        pointerEvents: "none",
+                        animation: "ripple 600ms ease-out forwards",
+                      }}
+                    />
+                  ))}
                 <div className="text-2xl font-extrabold text-primary mt-3">
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
@@ -233,6 +281,48 @@ export default function Subscriptions() {
           </div>
         )}
       </div>
+      {/* Confirm modal for purchase */}
+      {showConfirm && selectedPlan && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md bg-white rounded-xl shadow-lg border p-6">
+            <h3 className="text-xl font-semibold mb-2">Xác nhận mua gói</h3>
+            <div className="mb-2 text-sm text-gray-700">Bạn sắp mua gói:</div>
+            <div className="mb-4">
+              <div className="font-semibold">{selectedPlan.name}</div>
+              <div className="text-sm text-gray-500">
+                {new Intl.NumberFormat("vi-VN", {
+                  style: "currency",
+                  currency: "VND",
+                }).format(selectedPlan.price)} • {selectedPlan.duration_days} ngày
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowConfirm(false);
+                  setSelectedPlan(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedPlan) {
+                    buy(selectedPlan.id);
+                  }
+                  setShowConfirm(false);
+                  setSelectedPlan(null);
+                }}
+                disabled={isPending}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-60"
+              >
+                {isPending ? "Đang xử lý..." : "Xác nhận mua"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }
