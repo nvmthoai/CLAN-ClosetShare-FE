@@ -1,7 +1,31 @@
 import axios from "axios";
 
-const BASE_URL =
-  import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_BASE_URL || "http://103.163.24.150:3000";
+let BASE_URL =
+  import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_BASE_URL || "/api";
+
+// Safety: if the page is loaded over HTTPS in the browser but BASE_URL is an
+// explicit http:// origin, the browser will block requests (Mixed Content).
+// When running in a browser on HTTPS, prefer the relative proxy path `/api`
+// so hosting platforms (Vercel) can rewrite/proxy to the backend. This
+// avoids mixed-content errors when the backend doesn't have HTTPS.
+if (typeof window !== "undefined") {
+  try {
+    const runningOverHttps = window.location.protocol === "https:";
+    if (runningOverHttps && typeof BASE_URL === "string" && BASE_URL.startsWith("http://")) {
+      // Use relative proxy to avoid mixed content
+      // NOTE: for production it's recommended to set VITE_BASE_URL to '/api'
+      // or enable HTTPS on the backend.
+      // Keep a console message for easier debugging.
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[fetcher] Page loaded over HTTPS but BASE_URL is insecure (${BASE_URL}). Falling back to '/api' to avoid mixed content.`
+      );
+      BASE_URL = "/api";
+    }
+  } catch (e) {
+    // ignore environment where `window` exists but access throws
+  }
+}
 
 export const fetcher = axios.create({
   baseURL: BASE_URL,
