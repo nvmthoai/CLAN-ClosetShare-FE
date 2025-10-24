@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PostCard } from "@/components/social/PostCard";
 import { Stories } from "@/components/social/Stories";
 import Layout from "@/components/layout/Layout";
-import type { Post, Story, CreatePostPayload } from "@/models/Social";
-import { socialApi } from "@/apis/social.api";
+import type { Post, Story, CreatePostPayload, UpdatePostPayload } from "@/models/Social";
+import { postApi } from "@/apis/post.api";
 import { useState } from "react";
 
 // Mock data for development
@@ -34,92 +34,12 @@ const mockStories: Story[] = [
   },
 ];
 
-const mockPosts: Post[] = [
-  {
-    id: "1",
-    title: "Vintage Blazer Find",
-    content: "New vintage find! 💫 This 90s blazer is everything. Can't wait to style it with my favorite jeans. #vintage #fashion #ootd",
-    user: {
-      id: "1",
-      username: "fashionista",
-      name: "Emma Style",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b35d4e36?w=100",
-    },
-    images: [
-      "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=600",
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=600",
-    ],
-    caption:
-      "New vintage find! 💫 This 90s blazer is everything. Can't wait to style it with my favorite jeans. #vintage #fashion #ootd",
-    likes: 2847,
-    isLiked: false,
-    comments: [
-      {
-        id: "1",
-        user: {
-          id: "2",
-          username: "styleicon",
-          avatar:
-            "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100",
-        },
-        text: "This is gorgeous! Where did you find it? 😍",
-        createdAt: "2025-09-27T11:30:00Z",
-        likes: 12,
-      },
-      {
-        id: "2",
-        user: { id: "3", username: "vintagelover" },
-        text: "90s blazers are the best! Perfect fit 🔥",
-        createdAt: "2025-09-27T11:45:00Z",
-        likes: 8,
-      },
-    ],
-    createdAt: "2025-09-27T10:00:00Z",
-    location: "Vintage Store, NYC",
-  },
-  {
-    id: "2",
-    title: "Sunset Dress Vibes",
-    content: "Sunset vibes in my favorite dress ✨ Sometimes the simplest outfits make the biggest statement.",
-    user: {
-      id: "2",
-      username: "styleicon",
-      name: "Maya Chen",
-      avatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100",
-    },
-    images: [
-      "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600",
-    ],
-    caption:
-      "Sunset vibes in my favorite dress ✨ Sometimes the simplest outfits make the biggest statement.",
-    likes: 1234,
-    isLiked: true,
-    comments: [
-      {
-        id: "3",
-        user: {
-          id: "1",
-          username: "fashionista",
-          avatar:
-            "https://images.unsplash.com/photo-1494790108755-2616b35d4e36?w=100",
-        },
-        text: "Absolutely stunning! 💖",
-        createdAt: "2025-09-27T09:15:00Z",
-        likes: 5,
-      },
-    ],
-    createdAt: "2025-09-27T08:30:00Z",
-  },
-];
 
 export default function Feed() {
   const queryClient = useQueryClient();
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [postTitle, setPostTitle] = useState("");
   const [postContent, setPostContent] = useState("");
-  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   // Use mock data for now, replace with actual API calls later
   const { data: stories = mockStories } = useQuery({
@@ -128,11 +48,23 @@ export default function Feed() {
     select: (res) => res.data,
   });
 
-  const { data: posts = mockPosts, isLoading } = useQuery({
-    queryKey: ["feed"],
-    queryFn: () => Promise.resolve({ data: mockPosts }),
-    select: (res) => res.data,
+  // Fetch posts from API
+  const { data: posts, isLoading, isError: postsError } = useQuery({
+    queryKey: ["posts"],
+    queryFn: () => postApi.getPosts(),
+    select: (res) => {
+      // Handle both array response and object with posts property
+      if (Array.isArray(res.data)) {
+        return res.data;
+      }
+      return res.data?.posts || [];
+    },
   });
+
+  // Debug: Log API data
+  console.log("Posts API Response:", posts);
+  console.log("Loading:", isLoading);
+  console.log("Error:", postsError);
 
   const likeMutation = useMutation({
     mutationFn: (_postId: string) => {
@@ -141,14 +73,14 @@ export default function Feed() {
     },
     onMutate: async (postId) => {
       // Optimistic update
-      queryClient.setQueryData(["feed"], (oldPosts: Post[] | undefined) => {
+      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
         if (!oldPosts) return [];
-        return oldPosts.map((post) =>
+        return oldPosts.map((post: Post) =>
           post.id === postId
             ? {
                 ...post,
                 isLiked: !post.isLiked,
-                likes: post.isLiked ? post.likes - 1 : post.likes + 1,
+                likes: post.isLiked ? (post.likes || 0) - 1 : (post.likes || 0) + 1,
               }
             : post
         );
@@ -176,11 +108,11 @@ export default function Feed() {
       });
     },
     onSuccess: (data, { postId }) => {
-      queryClient.setQueryData(["feed"], (oldPosts: Post[] | undefined) => {
+      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
         if (!oldPosts) return [];
-        return oldPosts.map((post) =>
+        return oldPosts.map((post: Post) =>
           post.id === postId
-            ? { ...post, comments: [...post.comments, data.data] }
+            ? { ...post, comments: [...(post.comments || []), data.data] }
             : post
         );
       });
@@ -188,12 +120,12 @@ export default function Feed() {
   });
 
   const createPostMutation = useMutation({
-    mutationFn: (payload: CreatePostPayload) => socialApi.createPost(payload),
+    mutationFn: (payload: CreatePostPayload) => postApi.createPost(payload),
     onSuccess: (data) => {
       // Add the new post to the feed
-      queryClient.setQueryData(["feed"], (oldPosts: Post[] | undefined) => {
-        if (!oldPosts || !Array.isArray(oldPosts)) return [];
-        const newPost = data?.data || data;
+      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
+        if (!oldPosts) return [];
+        const newPost = data.data;
         if (newPost) {
           return [newPost, ...oldPosts];
         }
@@ -202,11 +134,27 @@ export default function Feed() {
       // Reset form
       setPostTitle("");
       setPostContent("");
-      setSelectedImages([]);
       setShowCreatePost(false);
     },
     onError: (error) => {
       console.error("Error creating post:", error);
+    },
+  });
+
+  const editPostMutation = useMutation({
+    mutationFn: ({ postId, payload }: { postId: string; payload: UpdatePostPayload }) => 
+      postApi.updatePost(postId, payload),
+    onSuccess: (data, { postId }) => {
+      // Update the post in the cache
+      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
+        if (!oldPosts) return [];
+        return oldPosts.map((post: Post) =>
+          post.id === postId ? { ...post, ...data.data } : post
+        );
+      });
+    },
+    onError: (error) => {
+      console.error("Error updating post:", error);
     },
   });
 
@@ -216,6 +164,10 @@ export default function Feed() {
 
   const handleComment = (postId: string, text: string) => {
     commentMutation.mutate({ postId, text });
+  };
+
+  const handleEdit = (postId: string, payload: UpdatePostPayload) => {
+    editPostMutation.mutate({ postId, payload });
   };
 
   const handleViewStory = (storyId: string) => {
@@ -315,14 +267,71 @@ export default function Feed() {
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-6 items-start">
           {/* Feed */}
           <div className="space-y-6 max-w-2xl">
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={handleLike}
-                onComment={handleComment}
-              />
-            ))}
+            {isLoading ? (
+              <div className="space-y-6">
+                {Array(3).fill(0).map((_, i) => (
+                  <div key={i} className="bg-white border rounded-lg animate-pulse">
+                    <div className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                      </div>
+                    </div>
+                    <div className="w-full h-64 bg-gray-200"></div>
+                    <div className="p-3 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : postsError ? (
+              <div className="text-center py-12 bg-red-50 rounded-xl border border-red-200">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <h3 className="text-lg font-semibold text-red-900 mb-2">
+                  Lỗi tải bài viết
+                </h3>
+                <p className="text-red-600 mb-4">
+                  Không thể tải bài viết từ server. Vui lòng thử lại sau.
+                </p>
+                <button
+                  onClick={() => queryClient.invalidateQueries({ queryKey: ["posts"] })}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Thử lại
+                </button>
+              </div>
+            ) : (posts?.length || 0) === 0 ? (
+              <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">📝</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Chưa có bài viết nào
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Hãy tạo bài viết đầu tiên để chia sẻ phong cách của bạn!
+                </p>
+                <button
+                  onClick={() => setShowCreatePost(true)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  Tạo bài viết
+                </button>
+              </div>
+            ) : (
+              (posts || []).map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={handleLike}
+                  onComment={handleComment}
+                  onEdit={handleEdit}
+                />
+              ))
+            )}
 
             {/* Load more indicator */}
             <div className="text-center py-8">
@@ -431,72 +440,6 @@ export default function Feed() {
                 />
               </div>
 
-              {/* Image Upload */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Hình ảnh (tối đa 10 ảnh)
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files || []);
-                      setSelectedImages(prev => [...prev, ...files].slice(0, 10));
-                    }}
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <label
-                    htmlFor="image-upload"
-                    className="cursor-pointer flex flex-col items-center"
-                  >
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-2">
-                      <span className="text-purple-600 text-xl">📷</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Nhấp để thêm hình ảnh
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      PNG, JPG, GIF tối đa 10MB
-                    </p>
-                  </label>
-                </div>
-                
-                {/* Selected Images Preview */}
-                {selectedImages.length > 0 && (
-                  <div className="mt-4 grid grid-cols-3 gap-2">
-                    {selectedImages.map((file, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={URL.createObjectURL(file)}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-20 object-cover rounded-lg"
-                        />
-                        <button
-                          onClick={() => setSelectedImages(prev => prev.filter((_, i) => i !== index))}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Hashtags
-                </label>
-                <input
-                  type="text"
-                  placeholder="#vintage #fashion #style"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
             </div>
 
             {/* Actions */}

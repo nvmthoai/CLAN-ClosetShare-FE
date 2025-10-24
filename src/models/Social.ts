@@ -2,24 +2,35 @@ export interface Post {
   id: string;
   title: string;
   content: string;
-  user: {
+  author_id: string;
+  created_at: string;
+  updated_at: string;
+  published: boolean;
+  // Optional fields for UI display
+  user?: {
     id: string;
     username: string;
     name: string;
     avatar?: string;
   };
-  images: string[];
-  caption: string;
-  likes: number;
-  isLiked: boolean;
-  comments: Comment[];
-  createdAt: string;
+  images?: string[];
+  caption?: string;
+  likes?: number;
+  isLiked?: boolean;
+  comments?: Comment[];
+  createdAt?: string;
   location?: string;
 }
 
 export interface CreatePostPayload {
   title: string;
   content: string;
+}
+
+export interface UpdatePostPayload {
+  title?: string;
+  content?: string;
+  published?: boolean;
 }
 
 export interface Comment {
