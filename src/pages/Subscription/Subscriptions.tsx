@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { subscriptionApi } from "@/apis/subscription.api";
 import { userApi } from "@/apis/user.api";
@@ -135,6 +136,7 @@ export default function Subscriptions() {
   }
 
   const plans = data || [];
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   return (
     <Layout>
@@ -187,7 +189,22 @@ export default function Subscriptions() {
             {plans.map((p) => (
               <div
                 key={p.id}
-                className="border rounded-xl bg-white p-5 shadow-sm w-full max-w-sm"
+                // Interactive: hover shadow and press scale implemented via JS to avoid linter issues
+                className="border rounded-xl bg-white p-5 shadow-sm w-full max-w-sm transform transition-transform duration-150 ease-out hover:shadow-md cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                    e.preventDefault();
+                    buy(p.id);
+                  }
+                }}
+                onMouseDown={() => setActiveId(p.id)}
+                onMouseUp={() => setActiveId(null)}
+                onMouseLeave={() => setActiveId(null)}
+                onTouchStart={() => setActiveId(p.id)}
+                onTouchEnd={() => setActiveId(null)}
+                style={{ transform: activeId === p.id ? "scale(0.97)" : undefined }}
               >
                 <div className="text-lg font-semibold">{p.name}</div>
                 <div className="text-gray-600 text-sm mt-1">
