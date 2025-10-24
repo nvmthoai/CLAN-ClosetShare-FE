@@ -77,27 +77,27 @@ function Register() {
         {/* Right Side - Register Form */}
         <div className="w-full md:w-1/2 p-8 md:p-12">
           <div className="max-w-md mx-auto">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Create Account</h2>
-              <p className="text-gray-600 text-sm">Join the fashion community and start sharing your style</p>
-            </div>
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Tạo tài khoản</h2>
+                <p className="text-gray-600 text-sm">Tham gia cộng đồng thời trang và bắt đầu chia sẻ phong cách của bạn</p>
+              </div>
 
             <form className="space-y-6" onSubmit={onSubmit}>
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" />
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Họ và tên</label>
+                <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nhập họ và tên" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" />
               </div>
 
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email address" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" />
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Nhập địa chỉ email" className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu</label>
                 <div className="relative">
-                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" autoComplete="new-password" />
-                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700" aria-label={showPassword ? "Hide password" : "Show password"}>
+                  <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Nhập mật khẩu" className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200" autoComplete="new-password" />
+                  <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700" aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
@@ -111,7 +111,7 @@ function Register() {
                     value={phone}
                     onChange={setPhone}
                     enableSearch
-                    placeholder="Enter your phone number"
+                    placeholder="Nhập số điện thoại"
                     dropdownStyle={{
                       position: "absolute",
                       top: "-200px",
@@ -145,7 +145,7 @@ function Register() {
               </div>
 
               <Button type="submit" disabled={registerMutation.isPending} className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg">
-                {registerMutation.isPending ? "Signing up..." : "Sign Up"}
+                {registerMutation.isPending ? "Đang đăng ký..." : "Đăng ký"}
               </Button>
             </form>
 

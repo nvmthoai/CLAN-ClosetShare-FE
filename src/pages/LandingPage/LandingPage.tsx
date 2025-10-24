@@ -52,28 +52,28 @@ function LandingPage() {
                   href="#features"
                   className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
                 >
-                  Features
+                  Tính năng
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
                 </a>
                 <a
                   href="#how-it-works"
                   className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
                 >
-                  How It Works
+                  Cách hoạt động
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
                 </a>
                 <a
                   href="#pricing"
                   className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
                 >
-                  Pricing
+                  Bảng giá
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
                 </a>
                 <a
                   href="#community"
                   className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
                 >
-                  Community
+                  Cộng đồng
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
                 </a>
               </div>
@@ -86,10 +86,10 @@ function LandingPage() {
                   href="/login"
                   className="text-gray-700 hover:text-primary px-4 py-2 text-sm font-medium transition-colors duration-200"
                 >
-                  Sign In
+                  Đăng nhập
                 </a>
                 <Button className="bg-brand-gradient hover:opacity-90 text-white px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  <a href="/register">Get Started</a>
+                  <a href="/register">Bắt đầu</a>
                 </Button>
               </div>
             </div>
@@ -142,17 +142,17 @@ function LandingPage() {
               Community
             </a>
             <div className="pt-4 space-y-2">
-              <a
-                href="/login"
-                className="block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Sign In
-              </a>
-              <a
+                <a
+                  href="/login"
+                  className="block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium"
+                >
+                  Đăng nhập
+                </a>
+                <a
                 href="/register"
                 className="block text-center bg-brand-gradient hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium"
               >
-                Get Started
+                Bắt đầu
               </a>
             </div>
           </div>
@@ -164,22 +164,21 @@ function LandingPage() {
         <div className="mx-auto max-w-6xl grid gap-12 grid-cols-1 md:grid-cols-2 items-center">
           <div className="text-center md:text-left">
             <Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center">
-              🎉 Now Live - Join the Fashion Revolution
+              🎉 Đã ra mắt - Tham gia Cách mạng Thời trang
             </Badge>
 
             <h1 className="hero-title">
-              Your Virtual Wardrobe.{" "}
+              Tủ đồ ảo của bạn. {" "}
               <span className="bg-brand-gradient bg-clip-text text-transparent">
-                Shared, Styled, and Smart.
+                Chia sẻ, Tạo kiểu & Thông minh.
               </span>
             </h1>
 
             <p className="hero-subtitle">
-              ClosetShare is a social fashion platform where individuals
-              showcase their outfits, rent or sell items, and brands launch
-              their collections with priority exposure. Powered by AI,
-              ClosetShare helps you discover, style, and shop fashion in a
-              smarter way.
+              ClosetShare là nền tảng thời trang xã hội nơi mọi người
+              trưng bày trang phục, cho thuê hoặc bán đồ, và thương hiệu
+              ra mắt bộ sưu tập với ưu tiên hiển thị. Được hỗ trợ bởi AI,
+              ClosetShare giúp bạn khám phá, tạo kiểu và mua sắm thông minh hơn.
             </p>
 
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-start">
@@ -188,7 +187,7 @@ function LandingPage() {
                   size="lg"
                   className="bg-brand-gradient text-white hover:opacity-90"
                 >
-                  Join Now – It's Free
+                  Tham gia ngay — Miễn phí
                 </Button>
               </a>
               <a href="#features">
@@ -197,7 +196,7 @@ function LandingPage() {
                   variant="outline"
                   className="border-primary text-primary hover:bg-primary/10 hover:text-primary"
                 >
-                  For Brands: Get Started
+                  Dành cho thương hiệu: Bắt đầu
                 </Button>
               </a>
             </div>
@@ -224,7 +223,7 @@ function LandingPage() {
       <section className="px-6 py-16 bg-white" id="features">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Why ClosetShare?
+            Tại sao chọn ClosetShare?
           </h2>
 
           <div className="grid gap-8 md:grid-cols-3">
@@ -233,12 +232,12 @@ function LandingPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   👥
                 </div>
-                <CardTitle className="text-primary">For Individuals</CardTitle>
+                <CardTitle className="text-primary">Dành cho cá nhân</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-gray-600">
-                  Build your own virtual closet, mix and match outfits, share
-                  your looks, and even rent or sell pieces you no longer use.
+                  Xây dựng tủ đồ ảo của bạn, phối đồ, chia sẻ phong cách,
+                  và thậm chí cho thuê hoặc bán những món đồ bạn không còn dùng.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -248,13 +247,12 @@ function LandingPage() {
                 <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
                   🏢
                 </div>
-                <CardTitle className="text-secondary">For Brands</CardTitle>
+                <CardTitle className="text-secondary">Dành cho thương hiệu</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-gray-600">
-                  Gain priority visibility in our feed, run targeted ad
-                  campaigns, and connect directly with Gen Z fashion-forward
-                  users.
+                  Tăng khả năng hiển thị trên bảng tin, chạy chiến dịch quảng cáo
+                  nhắm mục tiêu, và tiếp cận trực tiếp người dùng quan tâm thời trang.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -264,12 +262,12 @@ function LandingPage() {
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                   🤖
                 </div>
-                <CardTitle className="text-primary">For Everyone</CardTitle>
+                <CardTitle className="text-primary">Dành cho mọi người</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-gray-600">
-                  Discover fashion that fits your size, your budget, and your
-                  lifestyle — curated by AI recommendations.
+                  Khám phá thời trang phù hợp với kích thước, ngân sách và lối sống
+                  của bạn — được gợi ý bởi AI.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -281,7 +279,7 @@ function LandingPage() {
       <section className="px-6 py-16 bg-gray-50" id="key-features">
         <div className="mx-auto max-w-6xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Key Features
+            Tính năng chính
           </h2>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
@@ -290,11 +288,11 @@ function LandingPage() {
                 <span className="text-2xl">📱</span>
               </div>
               <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Social Posting & Community
+                Đăng bài & Cộng đồng
               </h3>
               <p className="text-gray-600">
-                Share your outfit-of-the-day with photos, videos, and product
-                links. Get likes, comments, and build your following.
+                Chia sẻ trang phục hằng ngày với ảnh, video và liên kết sản phẩm.
+                Nhận like, bình luận và xây dựng người theo dõi.
               </p>
             </div>
 
@@ -303,11 +301,11 @@ function LandingPage() {
                 <span className="text-2xl">👗</span>
               </div>
               <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Virtual Closet & Outfit Builder
+                Tủ đồ ảo & Trình tạo outfit
               </h3>
               <p className="text-gray-600">
-                Upload your fashion items, organize them by category, and create
-                outfits with just a few taps.
+                Tải lên món đồ thời trang, sắp xếp theo danh mục và tạo outfit chỉ
+                với vài thao tác.
               </p>
             </div>
 
@@ -316,11 +314,11 @@ function LandingPage() {
                 <span className="text-2xl">🛍️</span>
               </div>
               <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Buy & Rent Marketplace
+                Thị trường Mua & Thuê
               </h3>
               <p className="text-gray-600">
-                Browse secondhand gems or brand-new collections. Buy or rent
-                items safely through our platform.
+                Duyệt đồ secondhand hoặc bộ sưu tập mới. Mua hoặc thuê an toàn
+                thông qua nền tảng.
               </p>
             </div>
 
@@ -329,12 +327,11 @@ function LandingPage() {
                 <span className="text-2xl">🤖</span>
               </div>
               <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Smart AI Assistant
+                Trợ lý AI thông minh
               </h3>
               <p className="text-gray-600">
-                Our stylist AI learns your preferences, analyzes your closet,
-                and suggests new outfit combinations or items to complement your
-                style.
+                Trợ lý AI học thói quen của bạn, phân tích tủ đồ và gợi ý những
+                cách phối hay món đồ phù hợp.
               </p>
             </div>
           </div>
@@ -345,35 +342,35 @@ function LandingPage() {
       <section className="px-6 py-16 bg-white" id="how-it-works">
         <div className="mx-auto max-w-4xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            How It Works
+            Cách hoạt động
           </h2>
 
           <div className="space-y-4">
             {[
               {
                 step: "01",
-                title: "Get Started",
-                desc: "Sign up as an individual or brand.",
+                title: "Bắt đầu",
+                desc: "Đăng ký với tư cách cá nhân hoặc thương hiệu.",
               },
               {
                 step: "02",
-                title: "Upload",
-                desc: "Upload your closet items or shop collections.",
+                title: "Tải lên",
+                desc: "Tải lên món đồ trong tủ hoặc bộ sưu tập của cửa hàng.",
               },
               {
                 step: "03",
-                title: "Share",
-                desc: "Share posts, outfits, or campaigns.",
+                title: "Chia sẻ",
+                desc: "Chia sẻ bài viết, outfit hoặc chiến dịch.",
               },
               {
                 step: "04",
-                title: "Discover",
-                desc: "Discover AI-powered recommendations.",
+                title: "Khám phá",
+                desc: "Khám phá gợi ý được hỗ trợ bởi AI.",
               },
               {
                 step: "05",
-                title: "Buy / Rent / Sell",
-                desc: "Buy, rent, or sell with confidence.",
+                title: "Mua / Thuê / Bán",
+                desc: "Mua, thuê hoặc bán với sự an tâm.",
               },
             ].map((s) => {
               const isFirst = s.step === "01";
@@ -479,7 +476,7 @@ function LandingPage() {
       <section className="px-6 py-16 bg-gray-50" id="pricing">
         <div className="mx-auto max-w-4xl">
           <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Plans for Individuals & Brands
+            Gói dành cho Cá nhân & Thương hiệu
           </h2>
 
           {plansData && plansData.length > 0 ? (
@@ -524,53 +521,53 @@ function LandingPage() {
             <div className="grid gap-8 md:grid-cols-2">
               <Card className="border-primary/20 hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center">
-                  <CardTitle className="text-2xl text-primary">
-                    Personal Plans
+                    <CardTitle className="text-2xl text-primary">
+                    Gói cá nhân
                   </CardTitle>
                   <CardDescription className="text-lg">
-                    Enhanced features for fashion enthusiasts
+                    Tính năng nâng cao dành cho người đam mê thời trang
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-3">
                     <span className="text-primary">✓</span>
-                    <span>More closet slots</span>
+                    <span>Nhiều khe tủ hơn</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-primary">✓</span>
-                    <span>Advanced AI styling</span>
+                    <span>Gợi ý tạo kiểu AI nâng cao</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-primary">✓</span>
-                    <span>Ad-free experience</span>
+                    <span>Trải nghiệm không quảng cáo</span>
                   </div>
                 </CardContent>
               </Card>
               <Card className="border-secondary/20 hover:shadow-lg transition-shadow">
                 <CardHeader className="text-center">
                   <CardTitle className="text-2xl text-secondary">
-                    Brand Plans
+                    Gói thương hiệu
                   </CardTitle>
                   <CardDescription className="text-lg">
-                    Professional tools for fashion brands
+                    Công cụ chuyên nghiệp dành cho thương hiệu thời trang
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex items-center gap-3">
                     <span className="text-secondary">✓</span>
-                    <span>Priority placement in feeds</span>
+                    <span>Ưu tiên hiển thị trên bảng tin</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-secondary">✓</span>
-                    <span>Sponsored campaigns</span>
+                    <span>Chiến dịch được tài trợ</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-secondary">✓</span>
-                    <span>Advanced analytics</span>
+                    <span>Phân tích nâng cao</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-secondary">✓</span>
-                    <span>Moderation priority</span>
+                    <span>Ưu tiên kiểm duyệt</span>
                   </div>
                 </CardContent>
               </Card>

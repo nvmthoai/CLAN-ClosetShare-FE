@@ -200,9 +200,9 @@ export default function MainRoutes() {
             <ProtectedRoute>
               <Layout>
                 <div className="p-6">
-                  <h1 className="text-2xl font-bold mb-4">Create Post</h1>
+                  <h1 className="text-2xl font-bold mb-4">Tạo bài viết</h1>
                   <p className="text-gray-600">
-                    Upload your fashion content here...
+                    Tải nội dung thời trang của bạn lên ở đây...
                   </p>
                 </div>
               </Layout>

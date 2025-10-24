@@ -1,11 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { PostCard } from "@/components/social/PostCard";
 import Layout from "@/components/layout/Layout";
-import type { Post, CreatePostPayload, UpdatePostPayload } from "@/models/Social";
+import type {
+  Post,
+  CreatePostPayload,
+  UpdatePostPayload,
+} from "@/models/Social";
 import { postApi } from "@/apis/post.api";
 import { useState } from "react";
-
-
 
 export default function Feed() {
   const queryClient = useQueryClient();
@@ -16,7 +18,11 @@ export default function Feed() {
   // Stories removed from feed (per design request)
 
   // Fetch posts from API
-  const { data: posts, isLoading, isError: postsError } = useQuery({
+  const {
+    data: posts,
+    isLoading,
+    isError: postsError,
+  } = useQuery({
     queryKey: ["posts"],
     queryFn: () => postApi.getPosts(),
     select: (res) => {
@@ -47,7 +53,9 @@ export default function Feed() {
             ? {
                 ...post,
                 isLiked: !post.isLiked,
-                likes: post.isLiked ? (post.likes || 0) - 1 : (post.likes || 0) + 1,
+                likes: post.isLiked
+                  ? (post.likes || 0) - 1
+                  : (post.likes || 0) + 1,
               }
             : post
         );
@@ -109,8 +117,13 @@ export default function Feed() {
   });
 
   const editPostMutation = useMutation({
-    mutationFn: ({ postId, payload }: { postId: string; payload: UpdatePostPayload }) => 
-      postApi.updatePost(postId, payload),
+    mutationFn: ({
+      postId,
+      payload,
+    }: {
+      postId: string;
+      payload: UpdatePostPayload;
+    }) => postApi.updatePost(postId, payload),
     onSuccess: (data, { postId }) => {
       // Update the post in the cache
       queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
@@ -140,12 +153,12 @@ export default function Feed() {
   // Stories removed — no story handling needed
 
   const categories = [
-    "For you",
-    "Trending",
-    "Minimal",
-    "Vintage",
-    "Street",
-    "Runway",
+    "Dành cho bạn",
+    "Thịnh hành",
+    "Tối giản",
+    "Cổ điển",
+    "Đường phố",
+    "Sàn diễn",
   ];
 
   if (isLoading) {
@@ -183,13 +196,13 @@ export default function Feed() {
           <div className="flex items-center justify-between gap-4">
             <div>
               <div className="text-xs uppercase tracking-wider opacity-90">
-                Welcome back
+                Chào mừng trở lại
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold">
-                Your Fashion Feed
+                Bảng tin thời trang của bạn
               </h1>
               <p className="opacity-90 mt-1 text-sm">
-                Curated looks and drops tailored for you
+                Những bộ trang phục và cập nhật được chọn lọc dành riêng cho bạn
               </p>
             </div>
             <button
@@ -197,7 +210,7 @@ export default function Feed() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-primary font-medium hover:bg-white/90 shadow"
             >
               <span>＋</span>
-              Create post
+              Tạo bài viết
             </button>
           </div>
           {/* Decorative blobs */}
@@ -225,21 +238,26 @@ export default function Feed() {
           <div className="space-y-6 max-w-2xl">
             {isLoading ? (
               <div className="space-y-6">
-                {Array(3).fill(0).map((_, i) => (
-                  <div key={i} className="bg-white border rounded-lg animate-pulse">
-                    <div className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                        <div className="h-4 bg-gray-200 rounded w-24"></div>
+                {Array(3)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div
+                      key={i}
+                      className="bg-white border rounded-lg animate-pulse"
+                    >
+                      <div className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                          <div className="h-4 bg-gray-200 rounded w-24"></div>
+                        </div>
+                      </div>
+                      <div className="w-full h-64 bg-gray-200"></div>
+                      <div className="p-3 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
                       </div>
                     </div>
-                    <div className="w-full h-64 bg-gray-200"></div>
-                    <div className="p-3 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : postsError ? (
               <div className="text-center py-12 bg-red-50 rounded-xl border border-red-200">
@@ -253,7 +271,9 @@ export default function Feed() {
                   Không thể tải bài viết từ server. Vui lòng thử lại sau.
                 </p>
                 <button
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ["posts"] })}
+                  onClick={() =>
+                    queryClient.invalidateQueries({ queryKey: ["posts"] })
+                  }
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                 >
                   Thử lại
@@ -291,9 +311,9 @@ export default function Feed() {
 
             {/* Load more indicator */}
             <div className="text-center py-8">
-              <div className="inline-flex items-center gap-2 text-gray-500">
+                <div className="inline-flex items-center gap-2 text-gray-500">
                 <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                Loading more posts...
+                Đang tải thêm bài viết...
               </div>
             </div>
           </div>
@@ -301,7 +321,7 @@ export default function Feed() {
           {/* Suggestions */}
           <aside className="hidden xl:block space-y-4 sticky top-24">
             <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
-              <h2 className="text-sm font-semibold mb-3">Who to follow</h2>
+              <h2 className="text-sm font-semibold mb-3">Gợi ý theo dõi</h2>
               <div className="space-y-3">
                 {["sophia", "kenny", "maria"].map((u) => (
                   <div key={u} className="flex items-center justify-between">
@@ -313,11 +333,11 @@ export default function Feed() {
                       />
                       <div className="text-sm">
                         <div className="font-medium">{u}</div>
-                        <div className="text-gray-500">New on ClosetShare</div>
+                        <div className="text-gray-500">Mới trên ClosetShare</div>
                       </div>
                     </div>
                     <button className="text-sm px-2 py-1 rounded border hover:bg-primary/10 hover:text-primary">
-                      Follow
+                      Theo dõi
                     </button>
                   </div>
                 ))}
@@ -327,12 +347,12 @@ export default function Feed() {
             {/* Trending tags removed */}
 
             <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
-              <h2 className="text-sm font-semibold mb-2">Weekly highlight</h2>
+              <h2 className="text-sm font-semibold mb-2">Điểm nổi bật trong tuần</h2>
               <div className="p-3 rounded-lg border bg-gradient-to-br from-white to-gray-50">
-                <div className="text-sm font-medium mb-1">AI stylist tip</div>
+                <div className="text-sm font-medium mb-1">Mẹo stylist AI</div>
                 <p className="text-xs text-gray-600">
-                  Try pairing vintage blazers with modern sneakers for a fresh
-                  silhouette.
+                  Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
+                  đại để tạo phom dáng tươi mới.
                 </p>
               </div>
             </div>
@@ -353,7 +373,7 @@ export default function Feed() {
                 ×
               </button>
             </div>
-            
+
             <div className="p-6 space-y-4">
               {/* Title Input */}
               <div>
@@ -381,7 +401,6 @@ export default function Feed() {
                   className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                 />
               </div>
-
             </div>
 
             {/* Actions */}
@@ -401,7 +420,11 @@ export default function Feed() {
                     });
                   }
                 }}
-                disabled={!postTitle.trim() || !postContent.trim() || createPostMutation.isPending}
+                disabled={
+                  !postTitle.trim() ||
+                  !postContent.trim() ||
+                  createPostMutation.isPending
+                }
                 className="px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {createPostMutation.isPending ? "Đang đăng..." : "Đăng bài"}
