@@ -17,10 +17,13 @@ export type CreateOrderPayload = {
 };
 
 export const orderApi = {
-  create: (payload: CreateOrderPayload) =>
-    fetcher.post("/orders", {
-      ...payload,
-      // adapt key if backend expects 'item'
-      item: payload.items,
-    }),
+  create: (payload: CreateOrderPayload) => {
+    // Don't send both 'items' and 'item' to avoid conflicts
+    // Remove 'items' and only send 'item' if backend expects it
+    const { items, ...rest } = payload;
+    return fetcher.post("/orders", {
+      ...rest,
+      item: items, // Backend expects 'item' not 'items'
+    });
+  },
 };

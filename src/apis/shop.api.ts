@@ -5,8 +5,8 @@ export const shopApi = {
   // CRUD Operations for single shop per user
   create: (payload: CreateShopPayload) => fetcher.post<Shop>("/shops", payload),
   getMyShop: () => fetcher.get<Shop>("/shops/my-shop"), // Get current user's shop
-  update: (payload: UpdateShopPayload) => fetcher.patch<Shop>("/shops/my-shop", payload),
-  delete: () => fetcher.delete("/shops/my-shop"),
+  update: (payload: UpdateShopPayload) => fetcher.patch<Shop>("/shops", payload),
+  delete: () => fetcher.delete("/shops"),
   
   // Get shop by ID (public view)
   getById: (id: string) => fetcher.get<Shop>(`/shop/${id}`),

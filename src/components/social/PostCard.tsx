@@ -66,59 +66,50 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
   };
 
   return (
-    <article className="bg-white border rounded-lg shadow-sm">
+    <article className="bg-white border-b">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold border-2 border-gray-200">
             {post.user?.username?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div>
             <h3 className="font-semibold text-sm text-gray-900">
               {post.user?.username || 'User'}
             </h3>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span>ID: {post.id.slice(0, 8)}...</span>
-              <span>•</span>
-              <span>{formatTimeAgo(post.created_at)}</span>
-            </div>
+            <span className="text-xs text-gray-500">{formatTimeAgo(post.created_at)}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-            {post.published ? 'Published' : 'Draft'}
-          </div>
-          <div className="relative">
-            <button 
-              onClick={() => setShowMoreMenu(!showMoreMenu)}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
-              <MoreHorizontal className="w-5 h-5 text-gray-600" />
-            </button>
-            
-            {/* More Menu */}
-            {showMoreMenu && (
-              <div className="absolute right-0 top-8 bg-white border rounded-lg shadow-lg py-1 z-10 min-w-[120px]">
-                <button
-                  onClick={() => {
-                    setShowEditModal(true);
-                    setShowMoreMenu(false);
-                  }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </button>
-                <button
-                  onClick={() => setShowMoreMenu(false)}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
+        <div className="relative">
+          <button 
+            onClick={() => setShowMoreMenu(!showMoreMenu)}
+            className="p-1 hover:bg-gray-100 rounded-full"
+          >
+            <MoreHorizontal className="w-5 h-5 text-gray-900" />
+          </button>
+          
+          {/* More Menu */}
+          {showMoreMenu && (
+            <div className="absolute right-0 top-8 bg-white border rounded-xl shadow-lg py-1 z-10 min-w-[150px] overflow-hidden">
+              <button
+                onClick={() => {
+                  setShowEditModal(true);
+                  setShowMoreMenu(false);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-gray-900"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Chỉnh sửa</span>
+              </button>
+              <button
+                onClick={() => setShowMoreMenu(false)}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Xóa</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -159,99 +150,94 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
       )}
 
       {/* Actions */}
-      <div className="px-3 py-2">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-3">
-            <button onClick={() => onLike(post.id)} className="p-1">
+      <div className="px-4 py-2">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => onLike(post.id)} 
+              className="p-0 hover:opacity-70 transition-opacity"
+            >
               <Heart
                 className={cn(
-                  "w-6 h-6 transition",
-                  post.isLiked ? "text-red-500 fill-red-500" : "text-gray-700"
+                  "w-7 h-7 transition-all",
+                  post.isLiked ? "text-red-500 fill-red-500 scale-110" : "text-gray-900"
                 )}
               />
             </button>
             <button
               onClick={() => setShowComments(!showComments)}
-              className="p-1"
+              className="p-0 hover:opacity-70 transition-opacity"
             >
-              <MessageCircle className="w-6 h-6 text-gray-700" />
+              <MessageCircle className="w-7 h-7 text-gray-900" />
             </button>
-            <button className="p-1">
-              <Send className="w-6 h-6 text-gray-700" />
+            <button className="p-0 hover:opacity-70 transition-opacity">
+              <Send className="w-7 h-7 text-gray-900" />
             </button>
           </div>
-          <button className="p-1">
-            <Bookmark className="w-6 h-6 text-gray-700" />
+          <button className="p-0 hover:opacity-70 transition-opacity">
+            <Bookmark className="w-7 h-7 text-gray-900" />
           </button>
         </div>
 
         {/* Likes */}
         <p className="font-semibold text-sm mb-1">
-          {(post.likes || 0).toLocaleString()} likes
+          {(post.likes || 0).toLocaleString()} lượt thích
         </p>
 
         {/* Post Content */}
-        <div className="mb-3">
-          <h2 className="font-semibold text-lg text-gray-900 mb-2">{post.title}</h2>
-          <p className="text-gray-700 leading-relaxed">{post.content}</p>
+        <div className="mb-2">
+          <p className="text-sm leading-relaxed">
+            <span className="font-semibold text-gray-900 mr-2">
+              {post.user?.username || 'User'}
+            </span>
+            <span className="text-gray-900">{post.content}</span>
+          </p>
         </div>
 
         {/* Comments preview */}
         {post.comments && post.comments.length > 0 && (
           <button
             onClick={() => setShowComments(!showComments)}
-            className="text-sm text-gray-500 mb-2"
+            className="text-sm text-gray-500 mb-2 hover:text-gray-900"
           >
-            View all {post.comments.length} comments
+            Xem tất cả {post.comments.length} bình luận
           </button>
         )}
 
         {/* Comments */}
         {showComments && (
-          <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">
+          <div className="space-y-2 mb-2 max-h-48 overflow-y-auto pr-2">
             {post.comments?.slice(0, 3).map((comment) => (
               <div key={comment.id} className="text-sm">
-                <span className="font-semibold mr-2">
+                <span className="font-semibold mr-2 text-gray-900">
                   {comment.user.username}
                 </span>
-                <span>{comment.text}</span>
+                <span className="text-gray-900">{comment.text}</span>
               </div>
             ))}
           </div>
         )}
 
-        {/* Post Details */}
-        <div className="text-xs text-gray-500 space-y-1">
-          <div className="flex items-center justify-between">
-            <span>Created: {new Date(post.created_at).toLocaleString()}</span>
-          </div>
-          {post.updated_at !== post.created_at && (
-            <div className="text-orange-600">
-              Updated: {new Date(post.updated_at).toLocaleString()}
-            </div>
-          )}
-        </div>
-
         
       </div>
 
       {/* Add comment */}
-      <div className="border-t px-3 py-2">
-        <div className="flex items-center gap-2">
+      <div className="border-t px-4 py-2">
+        <div className="flex items-center gap-3">
           <input
             type="text"
-            placeholder="Add a comment..."
+            placeholder="Thêm bình luận..."
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            className="flex-1 text-sm placeholder-gray-500 focus:outline-none"
+            className="flex-1 text-sm placeholder-gray-400 focus:outline-none text-gray-900"
             onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
           />
           {commentText.trim() && (
             <button
               onClick={handleSubmitComment}
-              className="text-sm font-semibold text-primary hover:opacity-90"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              Post
+              Đăng
             </button>
           )}
         </div>

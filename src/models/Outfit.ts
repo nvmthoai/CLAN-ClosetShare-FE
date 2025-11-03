@@ -10,6 +10,22 @@ export interface Outfit {
   id: string;
   name: string;
   user_id: string;
+  style: string | null;
+  occasion: string | null;
+  season: string | null;
+  color_theme: string | null;
+  created_at: string;
+  updated_at: string;
+  top_id: string | null;
+  outwear_id: string | null;
+  bottom_id: string | null;
+}
+
+// Deprecated: Keep for backward compatibility
+export interface OutfitLegacy {
+  id: string;
+  name: string;
+  user_id: string;
   top: ClothingItem | null;
   bottom: ClothingItem | null;
   outwear: ClothingItem | null;
@@ -22,8 +38,11 @@ export interface GetOutfitsParams {
 
 export interface CreateOutfitPayload {
   name: string;
-  top?: string | null;
-  bottom?: string | null;
-  outwear?: string | null;
-  accessories?: string[];
+  style?: string | null;
+  occasion?: string | null;
+  season?: string | null;
+  color_theme?: string | null;
+  top_id?: string | null;
+  outwear_id?: string | null;
+  bottom_id?: string | null;
 }

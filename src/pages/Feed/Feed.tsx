@@ -34,10 +34,6 @@ export default function Feed() {
     },
   });
 
-  // Debug: Log API data
-  console.log("Posts API Response:", posts);
-  console.log("Loading:", isLoading);
-  console.log("Error:", postsError);
 
   const likeMutation = useMutation({
     mutationFn: (_postId: string) => {
@@ -96,24 +92,16 @@ export default function Feed() {
 
   const createPostMutation = useMutation({
     mutationFn: (payload: CreatePostPayload) => postApi.createPost(payload),
-    onSuccess: (data) => {
-      // Add the new post to the feed
-      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
-        if (!oldPosts) return [];
-        const newPost = data.data;
-        if (newPost) {
-          return [newPost, ...oldPosts];
-        }
-        return oldPosts;
-      });
+    onSuccess: () => {
       // Reset form
       setPostTitle("");
       setPostContent("");
       setShowCreatePost(false);
+      
+      // Invalidate and refetch posts
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
-    onError: (error) => {
-      console.error("Error creating post:", error);
-    },
+    onError: () => {},
   });
 
   const editPostMutation = useMutation({
@@ -133,9 +121,7 @@ export default function Feed() {
         );
       });
     },
-    onError: (error) => {
-      console.error("Error updating post:", error);
-    },
+    onError: () => {},
   });
 
   const handleLike = (postId: string) => {
@@ -299,19 +285,19 @@ export default function Feed() {
               </div>
             ) : (
               (posts || []).map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onLike={handleLike}
-                  onComment={handleComment}
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={handleLike}
+                onComment={handleComment}
                   onEdit={handleEdit}
-                />
+              />
               ))
             )}
 
             {/* Load more indicator */}
             <div className="text-center py-8">
-                <div className="inline-flex items-center gap-2 text-gray-500">
+              <div className="inline-flex items-center gap-2 text-gray-500">
                 <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
                 Đang tải thêm bài viết...
               </div>

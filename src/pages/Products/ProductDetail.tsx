@@ -40,6 +40,8 @@ export default function ProductDetail() {
       if (e?.response?.status === 401) {
         toast.error("Bạn cần đăng nhập");
         navigate("/login");
+      } else if (e?.response?.data?.message) {
+        toast.error(e.response.data.message);
       } else {
         toast.error("Tạo đơn thất bại");
       }
@@ -55,6 +57,7 @@ export default function ProductDetail() {
       toast.warn("Điền đủ thông tin nhận hàng");
       return;
     }
+    
     createOrder({
       receiver_name: receiverName,
       phone_number: phone,
