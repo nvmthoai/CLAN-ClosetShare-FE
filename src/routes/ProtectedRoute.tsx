@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { getAccessToken, isAuthenticated } from "@/lib/token";
 
 type ProtectedRouteProps = {
   children: React.ReactElement;
@@ -7,12 +8,12 @@ type ProtectedRouteProps = {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
-  const [token, setToken] = useState(localStorage.getItem("access_token"));
+  const [token, setToken] = useState(getAccessToken());
 
   // Listen for storage changes (token might be cleared by fetcher)
   useEffect(() => {
     const handleStorageChange = () => {
-      const newToken = localStorage.getItem("access_token");
+      const newToken = getAccessToken();
       setToken(newToken);
     };
 
@@ -28,16 +29,17 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     };
   }, []);
 
-  const isAuthenticated = Boolean(token);
+  const authenticated = isAuthenticated();
 
   // Debug logging
   console.log("ProtectedRoute check:", {
     hasToken: !!token,
     tokenLength: token?.length,
     path: location.pathname,
+    isAuthenticated: authenticated,
   });
 
-  if (!isAuthenticated) {
+  if (!authenticated) {
     console.log("No token found, redirecting to login");
     return <Navigate to="/login" replace state={{ from: location }} />;
   }

@@ -23,10 +23,7 @@ export function Header() {
               to="/"
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
-              <img src="/logocs.png" alt="CLOSETSHARE" className="h-8 w-auto" />
-              <span className="text-2xl font-bold tracking-tight text-gray-900 uppercase">
-                CLOSETSHARE
-              </span>
+              <img src="/combine_logo.png" alt="CLOSETSHARE" className="h-12 w-auto" />
             </Link>
           </div>
 

@@ -7,14 +7,8 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           {/* Logo/Text */}
           <div className="mb-4 md:mb-0">
-          <h3
-
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-            >
-              <img src="/logocs.png" alt="CLOSETSHARE" className="h-8 w-auto" />
-              <span className="text-2xl font-bold tracking-tight text-gray-900 uppercase">
-                CLOSETSHARE
-              </span>
+          <h3 className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+              <img src="/combine_logo.png" alt="CLOSETSHARE" className="h-12 w-auto" />
             </h3>
             <p className="text-sm text-gray-600 mt-2">
               Creative showcase and portfolio platform
@@ -29,13 +23,6 @@ export function Footer() {
               aria-label="Instagram"
             >
               <Instagram className="w-5 h-5" />
-            </a>
-            <a
-              href="#"
-              className="text-gray-600 hover:text-blue-500 transition-colors"
-              aria-label="Twitter"
-            >
-              <Twitter className="w-5 h-5" />
             </a>
             <a
               href="#"

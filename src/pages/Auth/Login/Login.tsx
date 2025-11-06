@@ -9,6 +9,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import { extractTokens } from "@/lib/auth";
 import { setUserData } from "@/lib/user";
+import { setTokens } from "@/lib/token";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -32,16 +33,16 @@ function Login() {
         hasAccessToken: !!access_token,
         hasRefreshToken: !!refresh_token,
         accessTokenLength: access_token?.length,
-        actualAccessToken: access_token,
-        actualRefreshToken: refresh_token,
       });
+      
+      // Save tokens using centralized token manager
       if (access_token) {
-        localStorage.setItem("access_token", access_token);
-        console.log("Access token saved to localStorage");
-      }
-      if (refresh_token) {
-        localStorage.setItem("refresh_token", refresh_token);
-        console.log("Refresh token saved to localStorage");
+        setTokens(access_token, refresh_token);
+        console.log("Tokens saved successfully");
+      } else {
+        console.error("No access token found in response");
+        toast.error("Đăng nhập thất bại: Không nhận được token");
+        return;
       }
       
       // Lưu user data nếu có trong response

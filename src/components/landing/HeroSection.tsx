@@ -41,7 +41,7 @@ export function HeroSection({
         {/* Content Overlay - Positioned on the dark part of the image */}
         <div className="absolute bottom-0 left-0 right-0 w-full pb-8 md:pb-12 lg:pb-16">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center space-y-6 md:space-y-8">
+            <div className="text-center space-y-6 md:space-y-3">
               {/* Main Heading */}
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
                 Nền tảng thời trang

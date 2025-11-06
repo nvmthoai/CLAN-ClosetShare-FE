@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
 import { shopApi } from "@/apis/shop.api";
 import { toast } from "react-toastify";
+import { isAuthenticated, clearTokens } from "@/lib/token";
 import {
   Home,
   Menu,
@@ -43,7 +44,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     email: "",
   });
   const navigate = useNavigate();
-  const hasToken = Boolean(localStorage.getItem("access_token"));
+  const hasToken = isAuthenticated();
 
   // Handle click outside to close dropdowns
   useEffect(() => {
@@ -97,8 +98,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   });
 
   const logout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+    clearTokens();
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_id");
     localStorage.removeItem("user_data");
@@ -138,13 +138,9 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               className="flex items-center gap-2 font-bold text-lg tracking-tight hover:opacity-80 transition-opacity"
             >
               <img 
-                src="/logocs.png" 
-                alt="CLOSETSHARE" 
-                className="h-8 w-auto"
+                src="/combine_logo.png" 
+                className="h-12 w-auto"
               />
-              <span className="text-gray-900 uppercase">
-                CLOSETSHARE
-              </span>
             </Link>
           </div>
 
@@ -178,86 +174,6 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               </div>
             </div>
             
-            <div className="relative" ref={notificationRef}>
-              <button 
-                className="relative text-sm p-2 rounded-full hover:bg-blue-50 hover:text-blue-500 transition-colors text-gray-900"
-                onClick={() => setNotificationOpen((o) => !o)}
-                aria-haspopup="menu"
-                aria-expanded={notificationOpen}
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full font-medium">
-                  9+
-                </span>
-              </button>
-              
-              {notificationOpen && (
-                <div className="absolute right-0 mt-2 w-96 rounded-xl border border-gray-200 bg-white shadow-xl z-50 max-h-[28rem] overflow-y-auto">
-                  <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-semibold text-sm text-gray-900">Thông báo</h3>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {/* Sample notifications */}
-                    <div className="p-4 border-b border-gray-100 hover:bg-blue-50/50 cursor-pointer transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Package className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">Đơn hàng mới</p>
-                          <p className="text-xs text-gray-600">Bạn có đơn hàng mới từ khách hàng</p>
-                          <p className="text-xs text-gray-400 mt-1">2 phút trước</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border-b border-gray-100 hover:bg-blue-50/50 cursor-pointer transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                          <BadgeDollarSign className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">Thanh toán thành công</p>
-                          <p className="text-xs text-gray-600">Đơn hàng #12345 đã được thanh toán</p>
-                          <p className="text-xs text-gray-400 mt-1">1 giờ trước</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border-b border-gray-100 hover:bg-blue-50/50 cursor-pointer transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <span className="text-blue-600 text-lg">⭐</span>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">Đánh giá mới</p>
-                          <p className="text-xs text-gray-600">Khách hàng đã đánh giá sản phẩm của bạn</p>
-                          <p className="text-xs text-gray-400 mt-1">3 giờ trước</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="p-4 border-b border-gray-100 hover:bg-blue-50/50 cursor-pointer transition-colors">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <Bell className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-900">Cập nhật hệ thống</p>
-                          <p className="text-xs text-gray-600">Hệ thống đã được cập nhật với tính năng mới</p>
-                          <p className="text-xs text-gray-400 mt-1">1 ngày trước</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4 border-t border-gray-200">
-                    <button className="w-full text-sm text-gray-900 hover:text-blue-500 transition-colors font-medium">
-                      Xem tất cả thông báo
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
             
             <div className="relative">
               <button
@@ -410,7 +326,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src="/logocs.png" alt="CLOSETSHARE" className="h-6 w-auto" />
+              <img src="/combine_logo.png" alt="CLOSETSHARE" className="h-8 w-auto" />
               <span className="text-xs text-gray-600">
                 © {new Date().getFullYear()} ClosetShare. All rights reserved.
               </span>

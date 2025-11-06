@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getAccessToken, getRefreshToken, setTokens, clearTokens, isValidToken } from "@/lib/token";
 
 let BASE_URL =
   import.meta.env.VITE_BASE_URL || import.meta.env.VITE_API_BASE_URL || "/api";
@@ -34,51 +35,105 @@ export const fetcher = axios.create({
   },
 });
 
-fetcher.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
-  if (token) {
-    config.headers["Authorization"] = `Bearer ${token}`;
+// Request Interceptor: Automatically add access token to all requests
+fetcher.interceptors.request.use(
+  (config) => {
+    // Get access token from centralized token manager
+    const token = getAccessToken();
+    
+    // Always add token if it exists (even if format validation fails)
+    // This ensures all authenticated requests have the token
+    if (token) {
+      // Validate token format (optional check)
+      if (!isValidToken(token)) {
+        console.warn("[fetcher] Token format validation failed, but adding to request anyway");
+      }
+      
+      // Always add token to Authorization header
+      config.headers["Authorization"] = `Bearer ${token}`;
+      
+      // Debug log (only in development)
+      if (import.meta.env.DEV) {
+        console.log(`[fetcher] Adding token to ${config.method?.toUpperCase()} ${config.url}`);
+      }
+    } else {
+      // Log when no token is available (only in development)
+      if (import.meta.env.DEV) {
+        console.log(`[fetcher] No token available for ${config.method?.toUpperCase()} ${config.url}`);
+      }
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
+// Response Interceptor: Handle token refresh on 401 errors
 fetcher.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
+
+    // Handle 401 Unauthorized - Try to refresh token
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        if (refreshToken) {
-          const refreshResponse = await axios.post(
-            `${BASE_URL}/auth/refresh-token`,
-            {
-              refresh_token: refreshToken,
-            }
-          );
-          const newAccessToken = refreshResponse.data?.access_token;
-          const newRefreshToken = refreshResponse.data?.refresh_token;
-          if (newAccessToken) {
-            localStorage.setItem("access_token", newAccessToken);
-            if (newRefreshToken)
-              localStorage.setItem("refresh_token", newRefreshToken);
-            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-            return fetcher(originalRequest);
+        const refreshToken = getRefreshToken();
+        
+        if (!refreshToken || !isValidToken(refreshToken)) {
+          throw new Error("No valid refresh token available");
+        }
+
+        // Attempt to refresh the access token
+        const refreshResponse = await axios.post(
+          `${BASE_URL}/auth/refresh-token`,
+          {
+            refresh_token: refreshToken,
+          },
+          {
+            // Don't use fetcher here to avoid infinite loop
+            headers: {
+              "Content-Type": "application/json",
+            },
           }
+        );
+
+        const responseData = refreshResponse.data?.data || refreshResponse.data;
+        const newAccessToken = responseData?.access_token || responseData?.accessToken;
+        const newRefreshToken = responseData?.refresh_token || responseData?.refreshToken;
+
+        if (newAccessToken && isValidToken(newAccessToken)) {
+          // Save new tokens
+          setTokens(newAccessToken, newRefreshToken);
+
+          // Retry original request with new token
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          return fetcher(originalRequest);
+        } else {
+          throw new Error("Invalid token format in refresh response");
         }
       } catch (refreshError) {
-        console.log("Refresh token failed:", refreshError);
-      }
-      console.log("401 error: clearing tokens");
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user_role");
+        // Refresh failed - clear tokens and redirect to login
+        console.error("[fetcher] Token refresh failed:", refreshError);
+        clearTokens();
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("user_data");
+        localStorage.removeItem("user_role");
 
-      return Promise.reject(error);
+        // Redirect to login if we're in browser
+        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+
+        return Promise.reject(error);
+      }
     }
+
     return Promise.reject(error);
   }
 );

@@ -9,7 +9,7 @@ export const shopApi = {
   delete: () => fetcher.delete("/shops"),
   
   // Get shop by ID (public view)
-  getById: (id: string) => fetcher.get<Shop>(`/shop/${id}`),
+  getById: (id: string) => fetcher.get<Shop>(`/shops/${id}`),
   
   // Admin operations (if needed)
   getAll: (params?: { page?: number; limit?: number; search?: string }) => 
