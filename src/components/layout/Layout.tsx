@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
@@ -13,7 +13,6 @@ import {
   X,
   ShoppingBag,
   BadgeDollarSign,
-  Bell,
   Search,
   User,
   Settings,
@@ -31,8 +30,6 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCreateShop, setShowCreateShop] = useState(false);
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const notificationRef = useRef<HTMLDivElement>(null);
   const [shopId, setShopId] = useState<string | null>(() =>
     typeof window !== "undefined" ? localStorage.getItem("shop_id") : null
   );
@@ -45,20 +42,6 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   });
   const navigate = useNavigate();
   const hasToken = isAuthenticated();
-
-  // Handle click outside to close dropdowns
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
-        setNotificationOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
   const { data: me } = useQuery({
     queryKey: ["me"],
     queryFn: () => userApi.getMe(),
