@@ -8,16 +8,237 @@ import type {
 } from "@/models/Social";
 import { postApi } from "@/apis/post.api";
 import { useState } from "react";
+import { Plus, X, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { TipTapEditor } from "@/components/ui/tiptap-editor";
+
+type FeedTab = "personal" | "explore";
+
+// Mock data for explore feed (Instagram style)
+const mockExplorePosts: Post[] = [
+  {
+    id: "explore-1",
+    title: "Street Style",
+    content: "Outfit của ngày hôm nay! #streetstyle #fashion",
+    author_id: "user-1",
+    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-1",
+      username: "fashionista_vn",
+      name: "Fashion Lover",
+    },
+    images: ["https://i.pinimg.com/1200x/e9/d1/d8/e9d1d8ab8a2ac41315e327ba12ef51b3.jpg"],
+    caption: "Street Style",
+    likes: 1240,
+    isLiked: false,
+    comments: [
+      {
+        id: "c1",
+        user: { id: "u1", username: "follower1" },
+        text: "Love this outfit!",
+        createdAt: new Date().toISOString(),
+        likes: 5,
+      },
+    ],
+  },
+  {
+    id: "explore-2",
+    title: "Minimalist Chic",
+    content: "Less is more 💫",
+    author_id: "user-2",
+    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-2",
+      username: "minimalist_life",
+      name: "Minimalist",
+    },
+    images: ["https://i.pinimg.com/736x/51/e9/ca/51e9ca5f6f96fd93a245e6dc6e6d4e47.jpg"],
+    caption: "Minimalist Chic",
+    likes: 892,
+    isLiked: false,
+    comments: [],
+  },
+  {
+    id: "explore-3",
+    title: "Vintage Vibes",
+    content: "Thrifted và repurposed ✨",
+    author_id: "user-3",
+    created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-3",
+      username: "vintage_collector",
+      name: "Vintage Collector",
+    },
+    images: ["https://i.pinimg.com/736x/dc/e6/a9/dce6a98701789ba3a1d5f27337a12915.jpg"],
+    caption: "Vintage Vibes",
+    likes: 2105,
+    isLiked: true,
+    comments: [
+      {
+        id: "c2",
+        user: { id: "u2", username: "follower2" },
+        text: "Where did you get this?",
+        createdAt: new Date().toISOString(),
+        likes: 12,
+      },
+    ],
+  },
+  {
+    id: "explore-4",
+    title: "Summer Fresh",
+    content: "Beach ready! 🏖️",
+    author_id: "user-4",
+    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-4",
+      username: "summer_vibes",
+      name: "Summer Vibes",
+    },
+    images: ["https://i.pinimg.com/1200x/08/36/41/083641bf526371e2373e29648857f582.jpg"],
+    caption: "Summer Fresh",
+    likes: 567,
+    isLiked: false,
+    comments: [],
+  },
+  {
+    id: "explore-5",
+    title: "Business Casual",
+    content: "Work appropriate outfit",
+    author_id: "user-5",
+    created_at: new Date(Date.now() - 15 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-5",
+      username: "corporate_chic",
+      name: "Corporate Chic",
+    },
+    images: ["https://i.pinimg.com/1200x/75/bb/2b/75bb2be8bedacc9666c41bb4c83be9dc.jpg"],
+    caption: "Business Casual",
+    likes: 1534,
+    isLiked: false,
+    comments: [
+      {
+        id: "c3",
+        user: { id: "u3", username: "follower3" },
+        text: "Perfect for the office!",
+        createdAt: new Date().toISOString(),
+        likes: 8,
+      },
+    ],
+  },
+  {
+    id: "explore-6",
+    title: "Cozy Winter",
+    content: "Staying warm and stylish 🧣",
+    author_id: "user-6",
+    created_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-6",
+      username: "winter_cozy",
+      name: "Winter Cozy",
+    },
+    images: ["https://i.pinimg.com/1200x/43/42/15/43421589a5761575133278c27fc368b7.jpg"],
+    caption: "Cozy Winter",
+    likes: 987,
+    isLiked: true,
+    comments: [],
+  },
+  {
+    id: "explore-7",
+    title: "Boho Dreams",
+    content: "Free spirit vibes 🌸",
+    author_id: "user-7",
+    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-7",
+      username: "boho_dreams",
+      name: "Boho Dreams",
+    },
+    images: ["https://i.pinimg.com/736x/d7/67/14/d76714dfc7906db36a1518ee39e5ef61.jpg"],
+    caption: "Boho Dreams",
+    likes: 2341,
+    isLiked: false,
+    comments: [
+      {
+        id: "c4",
+        user: { id: "u4", username: "follower4" },
+        text: "So beautiful!",
+        createdAt: new Date().toISOString(),
+        likes: 15,
+      },
+    ],
+  },
+  {
+    id: "explore-8",
+    title: "Athleisure",
+    content: "Comfort meets style",
+    author_id: "user-8",
+    created_at: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-8",
+      username: "active_life",
+      name: "Active Life",
+    },
+    images: ["https://i.pinimg.com/736x/0f/12/39/0f12396442d746cb8637b965e8449e05.jpg"],
+    caption: "Athleisure",
+    likes: 1123,
+    isLiked: false,
+    comments: [],
+  },
+  {
+    id: "explore-9",
+    title: "Evening Elegance",
+    content: "Ready for the night ✨",
+    author_id: "user-9",
+    created_at: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
+    updated_at: new Date().toISOString(),
+    published: true,
+    user: {
+      id: "user-9",
+      username: "night_owl",
+      name: "Night Owl",
+    },
+    images: ["https://i.pinimg.com/736x/5f/9b/4c/5f9b4c3f43a2e2449c0923ff1ec8d976.jpg"],
+    caption: "Evening Elegance",
+    likes: 2890,
+    isLiked: true,
+    comments: [
+      {
+        id: "c5",
+        user: { id: "u5", username: "follower5" },
+        text: "Stunning!",
+        createdAt: new Date().toISOString(),
+        likes: 20,
+      },
+    ],
+  },
+];
 
 export default function Feed() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<FeedTab>("explore");
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [postTitle, setPostTitle] = useState("");
   const [postContent, setPostContent] = useState("");
 
   // Stories removed from feed (per design request)
 
-  // Fetch posts from API
+  // Fetch posts from API (personal feed)
   const {
     data: posts,
     isLoading,
@@ -28,12 +249,13 @@ export default function Feed() {
     select: (res) => {
       // Handle both array response and object with posts property
       if (Array.isArray(res.data)) {
+        console.log(res.data);
         return res.data;
       }
+      console.log(res.data?.posts);
       return res.data?.posts || [];
     },
   });
-
 
   const likeMutation = useMutation({
     mutationFn: (_postId: string) => {
@@ -41,7 +263,7 @@ export default function Feed() {
       return Promise.resolve({ data: { success: true } });
     },
     onMutate: async (postId) => {
-      // Optimistic update
+      // Optimistic update for personal feed
       queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
         if (!oldPosts) return [];
         return oldPosts.map((post: Post) =>
@@ -53,37 +275,6 @@ export default function Feed() {
                   ? (post.likes || 0) - 1
                   : (post.likes || 0) + 1,
               }
-            : post
-        );
-      });
-    },
-  });
-
-  const commentMutation = useMutation({
-    mutationFn: ({
-      postId: _postId,
-      text,
-    }: {
-      postId: string;
-      text: string;
-    }) => {
-      // Mock API call
-      return Promise.resolve({
-        data: {
-          id: Date.now().toString(),
-          user: { id: "me", username: "you" },
-          text,
-          createdAt: new Date().toISOString(),
-          likes: 0,
-        },
-      });
-    },
-    onSuccess: (data, { postId }) => {
-      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
-        if (!oldPosts) return [];
-        return oldPosts.map((post: Post) =>
-          post.id === postId
-            ? { ...post, comments: [...(post.comments || []), data.data] }
             : post
         );
       });
@@ -103,6 +294,13 @@ export default function Feed() {
     },
     onError: () => {},
   });
+
+  // Reset form when closing modal
+  const handleCloseCreatePost = () => {
+    setPostTitle("");
+    setPostContent("");
+    setShowCreatePost(false);
+  };
 
   const editPostMutation = useMutation({
     mutationFn: ({
@@ -126,10 +324,10 @@ export default function Feed() {
 
   const handleLike = (postId: string) => {
     likeMutation.mutate(postId);
-  };
-
-  const handleComment = (postId: string, text: string) => {
-    commentMutation.mutate({ postId, text });
+    // For explore feed, update local state
+    if (activeTab === "explore") {
+      // This would be handled by API in real implementation
+    }
   };
 
   const handleEdit = (postId: string, payload: UpdatePostPayload) => {
@@ -138,16 +336,9 @@ export default function Feed() {
 
   // Stories removed — no story handling needed
 
-  const categories = [
-    "Dành cho bạn",
-    "Thịnh hành",
-    "Tối giản",
-    "Cổ điển",
-    "Đường phố",
-    "Sàn diễn",
-  ];
 
-  if (isLoading) {
+
+  if (isLoading && activeTab === "personal") {
     return (
       <Layout>
         <div className="space-y-6">
@@ -156,13 +347,13 @@ export default function Feed() {
             .map((_, i) => (
               <div
                 key={i}
-                className="bg-white border rounded-lg p-4 animate-pulse"
+                className="bg-white border border-gray-200 rounded-2xl p-4 animate-pulse shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
                   <div className="h-4 bg-gray-200 rounded w-24"></div>
                 </div>
-                <div className="aspect-square bg-gray-200 rounded mb-4"></div>
+                <div className="aspect-square bg-gray-200 rounded-xl mb-4"></div>
                 <div className="space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-full"></div>
                   <div className="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -178,192 +369,294 @@ export default function Feed() {
     <Layout>
       <div className="space-y-8">
         {/* Hero banner */}
-        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white bg-brand-gradient shadow">
+        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 text-white bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-xl">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <div className="text-xs uppercase tracking-wider opacity-90">
+              <div className="text-xs uppercase tracking-wider opacity-90 mb-2">
                 Chào mừng trở lại
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">
                 Bảng tin thời trang của bạn
               </h1>
-              <p className="opacity-90 mt-1 text-sm">
+              <p className="opacity-90 text-sm max-w-2xl">
                 Những bộ trang phục và cập nhật được chọn lọc dành riêng cho bạn
               </p>
             </div>
             <button
               onClick={() => setShowCreatePost(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-primary font-medium hover:bg-white/90 shadow"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-900 font-semibold hover:bg-blue-50 hover:text-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200"
             >
-              <span>＋</span>
+              <Plus className="w-4 h-4" />
               Tạo bài viết
             </button>
           </div>
           {/* Decorative blobs */}
-          <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
-          <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 blur-2xl" />
+          <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
+          <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-2 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab("explore")}
+            className={cn(
+              "px-6 py-3 font-semibold text-sm transition-all duration-200 relative",
+              activeTab === "explore"
+                ? "text-gray-900"
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            Khám phá
+            {activeTab === "explore" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("personal")}
+            className={cn(
+              "px-6 py-3 font-semibold text-sm transition-all duration-200 relative",
+              activeTab === "personal"
+                ? "text-gray-900"
+                : "text-gray-500 hover:text-gray-700"
+            )}
+          >
+            Của bạn
+            {activeTab === "personal" && (
+              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
+            )}
+          </button>
         </div>
 
         {/* Stories removed */}
 
-        {/* Category pills */}
-        <div className="flex flex-wrap gap-2">
-          {categories.map((t) => (
-            <button
-              key={t}
-              className="px-3 py-1.5 rounded-full border text-sm text-gray-700 hover:bg-primary/10 hover:text-primary"
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        {/* Category pills - only show for personal feed */}
+       
 
         {/* Main grid with suggestions */}
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-6 items-start">
           {/* Feed */}
           <div className="space-y-6 max-w-2xl">
-            {isLoading ? (
-              <div className="space-y-6">
-                {Array(3)
-                  .fill(0)
-                  .map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-white border rounded-lg animate-pulse"
-                    >
-                      <div className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                          <div className="h-4 bg-gray-200 rounded w-24"></div>
-                        </div>
-                      </div>
-                      <div className="w-full h-64 bg-gray-200"></div>
-                      <div className="p-3 space-y-2">
-                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
+            {activeTab === "explore" ? (
+              // Explore Feed - List Layout
+              <>
+                {mockExplorePosts.length === 0 ? (
+                  <div className="text-center py-12 bg-gradient-to-br from-white via-blue-50/30 to-white rounded-2xl border border-gray-200">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">🔍</span>
                     </div>
-                  ))}
-              </div>
-            ) : postsError ? (
-              <div className="text-center py-12 bg-red-50 rounded-xl border border-red-200">
-                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">⚠️</span>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Chưa có bài viết nào
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Khám phá những bài viết thời trang mới nhất từ cộng đồng!
+                    </p>
+                  </div>
+                ) : (
+                  mockExplorePosts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onLike={handleLike}
+                    />
+                  ))
+                )}
+
+                {/* Load more indicator */}
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center gap-2 text-gray-500">
+                    <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                    Đang tải thêm bài viết...
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold text-red-900 mb-2">
-                  Lỗi tải bài viết
-                </h3>
-                <p className="text-red-600 mb-4">
-                  Không thể tải bài viết từ server. Vui lòng thử lại sau.
-                </p>
-                <button
-                  onClick={() =>
-                    queryClient.invalidateQueries({ queryKey: ["posts"] })
-                  }
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                >
-                  Thử lại
-                </button>
-              </div>
-            ) : (posts?.length || 0) === 0 ? (
-              <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">📝</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Chưa có bài viết nào
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Hãy tạo bài viết đầu tiên để chia sẻ phong cách của bạn!
-                </p>
-                <button
-                  onClick={() => setShowCreatePost(true)}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                >
-                  Tạo bài viết
-                </button>
-              </div>
+              </>
             ) : (
-              (posts || []).map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={handleLike}
-                onComment={handleComment}
-                  onEdit={handleEdit}
-              />
-              ))
-            )}
-
-            {/* Load more indicator */}
-            <div className="text-center py-8">
-              <div className="inline-flex items-center gap-2 text-gray-500">
-                <div className="w-6 h-6 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
-                Đang tải thêm bài viết...
-              </div>
-            </div>
-          </div>
-
-          {/* Suggestions */}
-          <aside className="hidden xl:block space-y-4 sticky top-24">
-            <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
-              <h2 className="text-sm font-semibold mb-3">Gợi ý theo dõi</h2>
-              <div className="space-y-3">
-                {["sophia", "kenny", "maria"].map((u) => (
-                  <div key={u} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <img
-                        className="w-8 h-8 rounded-full object-cover"
-                        src={`https://ui-avatars.com/api/?name=${u}`}
-                        alt={u}
-                      />
-                      <div className="text-sm">
-                        <div className="font-medium">{u}</div>
-                        <div className="text-gray-500">Mới trên ClosetShare</div>
-                      </div>
+              // Personal Feed - Same layout as Explore
+              <>
+                {isLoading ? (
+                  <div className="space-y-6">
+                    {Array(3)
+                      .fill(0)
+                      .map((_, i) => (
+                        <div
+                          key={i}
+                          className="bg-white border border-gray-200 rounded-2xl animate-pulse shadow-sm"
+                        >
+                          <div className="p-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                              <div className="h-4 bg-gray-200 rounded w-24"></div>
+                            </div>
+                          </div>
+                          <div className="w-full h-64 bg-gray-200"></div>
+                          <div className="p-3 space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : postsError ? (
+                  <div className="text-center py-12 bg-red-50 rounded-2xl border border-red-200">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">⚠️</span>
                     </div>
-                    <button className="text-sm px-2 py-1 rounded border hover:bg-primary/10 hover:text-primary">
-                      Theo dõi
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Lỗi tải bài viết
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Không thể tải bài viết từ server. Vui lòng thử lại sau.
+                    </p>
+                    <button
+                      onClick={() =>
+                        queryClient.invalidateQueries({ queryKey: ["posts"] })
+                      }
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 font-medium"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Thử lại
                     </button>
                   </div>
-                ))}
-              </div>
-            </div>
+                ) : (posts?.length || 0) === 0 ? (
+                  <div className="text-center py-12 bg-gradient-to-br from-white via-blue-50/30 to-white rounded-2xl border border-gray-200">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">📝</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Chưa có bài viết nào
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Hãy tạo bài viết đầu tiên để chia sẻ phong cách của bạn!
+                    </p>
+                    <button
+                      onClick={() => setShowCreatePost(true)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 font-medium"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Tạo bài viết
+                    </button>
+                  </div>
+                ) : (
+                  (posts || []).map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onLike={handleLike}
+                      onEdit={handleEdit}
+                    />
+                  ))
+                )}
 
-            {/* Trending tags removed */}
+                {/* Load more indicator */}
+                <div className="text-center py-8">
+                  <div className="inline-flex items-center gap-2 text-gray-500">
+                    <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                    Đang tải thêm bài viết...
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
-            <div className="rounded-xl border bg-white/70 backdrop-blur p-4 shadow-sm">
-              <h2 className="text-sm font-semibold mb-2">Điểm nổi bật trong tuần</h2>
-              <div className="p-3 rounded-lg border bg-gradient-to-br from-white to-gray-50">
-                <div className="text-sm font-medium mb-1">Mẹo stylist AI</div>
-                <p className="text-xs text-gray-600">
-                  Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
-                  đại để tạo phom dáng tươi mới.
-                </p>
+          {/* Suggestions - show for both feeds */}
+          {activeTab === "explore" && (
+            <aside className="hidden xl:block space-y-4 sticky top-24">
+              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
+                <h2 className="text-sm font-bold text-gray-900 mb-4">Gợi ý theo dõi</h2>
+                <div className="space-y-3">
+                  {["sophia", "kenny", "maria"].map((u) => (
+                    <div key={u} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img
+                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                          src={`https://ui-avatars.com/api/?name=${u}`}
+                          alt={u}
+                        />
+                        <div className="text-sm">
+                          <div className="font-semibold text-gray-900">{u}</div>
+                          <div className="text-gray-500">Mới trên ClosetShare</div>
+                        </div>
+                      </div>
+                      <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 font-medium">
+                        Theo dõi
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </aside>
+
+              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
+                <h2 className="text-sm font-bold text-gray-900 mb-3">Điểm nổi bật trong tuần</h2>
+                <div className="p-4 rounded-xl border border-gray-200 bg-gradient-to-br from-white via-blue-50/30 to-white">
+                  <div className="text-sm font-semibold text-gray-900 mb-2">Mẹo stylist AI</div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
+                    đại để tạo phom dáng tươi mới.
+                  </p>
+                </div>
+              </div>
+            </aside>
+          )}
+
+          {/* Suggestions - only show for personal feed */}
+          {activeTab === "personal" && (
+            <aside className="hidden xl:block space-y-4 sticky top-24">
+              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
+                <h2 className="text-sm font-bold text-gray-900 mb-4">Gợi ý theo dõi</h2>
+                <div className="space-y-3">
+                  {["sophia", "kenny", "maria"].map((u) => (
+                    <div key={u} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img
+                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                          src={`https://ui-avatars.com/api/?name=${u}`}
+                          alt={u}
+                        />
+                        <div className="text-sm">
+                          <div className="font-semibold text-gray-900">{u}</div>
+                          <div className="text-gray-500">Mới trên ClosetShare</div>
+                        </div>
+                      </div>
+                      <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 font-medium">
+                        Theo dõi
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
+                <h2 className="text-sm font-bold text-gray-900 mb-3">Điểm nổi bật trong tuần</h2>
+                <div className="p-4 rounded-xl border border-gray-200 bg-gradient-to-br from-white via-blue-50/30 to-white">
+                  <div className="text-sm font-semibold text-gray-900 mb-2">Mẹo stylist AI</div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
+                    đại để tạo phom dáng tươi mới.
+                  </p>
+                </div>
+              </div>
+            </aside>
+          )}
         </div>
       </div>
 
       {/* Create Post Popup */}
       {showCreatePost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg border max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Tạo bài viết mới</h2>
+          <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Tạo bài viết mới</h2>
               <button
-                onClick={() => setShowCreatePost(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                onClick={handleCloseCreatePost}
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg p-1 transition-colors"
               >
-                ×
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-5">
               {/* Title Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Tiêu đề bài viết
                 </label>
                 <input
@@ -371,47 +664,48 @@ export default function Feed() {
                   value={postTitle}
                   onChange={(e) => setPostTitle(e.target.value)}
                   placeholder="Nhập tiêu đề bài viết..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
 
               {/* Content Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Nội dung bài viết
                 </label>
-                <textarea
-                  value={postContent}
-                  onChange={(e) => setPostContent(e.target.value)}
+                <TipTapEditor
+                  content={postContent}
+                  onChange={setPostContent}
                   placeholder="Chia sẻ phong cách thời trang của bạn..."
-                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                 />
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50 rounded-b-xl">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50/50 rounded-b-2xl">
               <button
-                onClick={() => setShowCreatePost(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                onClick={handleCloseCreatePost}
+                className="px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={() => {
-                  if (postTitle.trim() && postContent.trim()) {
+                  // Strip HTML tags to check if content is empty
+                  const textContent = postContent.replace(/<[^>]*>/g, '').trim();
+                  if (postTitle.trim() && textContent) {
                     createPostMutation.mutate({
                       title: postTitle.trim(),
-                      content: postContent.trim(),
+                      content: postContent.trim(), // Send HTML content
                     });
                   }
                 }}
                 disabled={
                   !postTitle.trim() ||
-                  !postContent.trim() ||
+                  !postContent.replace(/<[^>]*>/g, '').trim() ||
                   createPostMutation.isPending
                 }
-                className="px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-200"
               >
                 {createPostMutation.isPending ? "Đang đăng..." : "Đăng bài"}
               </button>

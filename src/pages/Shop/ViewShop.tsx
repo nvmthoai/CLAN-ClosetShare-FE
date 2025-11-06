@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useProductsByShop } from "@/hooks/useProducts";
 import { useQuery } from "@tanstack/react-query";
 import { shopApi } from "@/apis/shop.api";
@@ -199,7 +198,7 @@ export default function ViewShop() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
       {/* Header với background image */}
       <div className="relative h-64 md:h-80">
         <img
@@ -208,12 +207,15 @@ export default function ViewShop() {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute bottom-6 left-6 right-6 text-white">
+        {/* Decorative blobs */}
+        <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
+        <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
+        <div className="absolute bottom-6 left-6 right-6 text-white z-10">
           <div className="flex items-end gap-4">
             <img
               src={shop.avatar || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=400&fit=crop&crop=center"}
               alt={shop.name}
-              className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white object-cover"
+              className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white object-cover shadow-xl"
             />
             <div className="flex-1">
               <h1 className="text-2xl md:text-3xl font-bold mb-2">{shop.name}</h1>
@@ -235,29 +237,31 @@ export default function ViewShop() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Action buttons */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <Button
-            variant={isFollowing ? "outline" : "default"}
+          <button
             onClick={() => setIsFollowing(!isFollowing)}
-            className="flex items-center gap-2"
+            className={`px-5 py-2.5 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 ${
+              isFollowing
+                ? "border-2 border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300"
+                : "bg-gray-900 text-white hover:bg-blue-500 shadow-lg hover:shadow-blue-200"
+            }`}
           >
             {isFollowing ? "Đã theo dõi" : "Theo dõi"}
-          </Button>
-          <Button
-            variant="outline"
+          </button>
+          <button
             onClick={() => setIsLiked(!isLiked)}
-            className="flex items-center gap-2"
+            className="px-5 py-2.5 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 flex items-center gap-2 font-medium"
           >
             <Heart className={`w-4 h-4 ${isLiked ? 'text-red-500 fill-current' : ''}`} />
             Yêu thích
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          </button>
+          <button className="px-5 py-2.5 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 flex items-center gap-2 font-medium">
             <Share2 className="w-4 h-4" />
             Chia sẻ
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
+          </button>
+          <button className="px-5 py-2.5 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 flex items-center gap-2 font-medium">
             <MessageCircle className="w-4 h-4" />
             Liên hệ
-          </Button>
+          </button>
         </div>
 
         {/* Tabs */}
@@ -271,10 +275,10 @@ export default function ViewShop() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                className={`py-2 px-1 border-b-2 font-semibold text-sm transition-colors relative ${
                   activeTab === tab.key
-                    ? 'border-purple-500 text-purple-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'text-gray-900'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {tab.label}
@@ -282,6 +286,9 @@ export default function ViewShop() {
                   <span className="ml-2 bg-gray-100 text-gray-600 py-0.5 px-2 rounded-full text-xs">
                     {tab.count}
                   </span>
+                )}
+                {activeTab === tab.key && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
                 )}
               </button>
             ))}
@@ -299,14 +306,14 @@ export default function ViewShop() {
                   placeholder="Tìm kiếm sản phẩm..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
               <div className="sm:w-48">
                 <select
                   value={productType}
                   onChange={(e) => setProductType(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
                   <option value="">Tất cả loại</option>
                   <option value="áo sơ mi">Áo sơ mi</option>
@@ -321,38 +328,38 @@ export default function ViewShop() {
             {productsLoading ? (
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                  <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-500">Đang tải sản phẩm...</p>
+                  <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600">Đang tải sản phẩm...</p>
                 </div>
               </div>
             ) : productsError ? (
-              <div className="text-center py-20">
-                <div className="text-red-600 mb-4">Không thể tải sản phẩm</div>
-                <p className="text-gray-500">Sử dụng dữ liệu mẫu</p>
+              <div className="text-center py-20 bg-red-50 rounded-2xl border-2 border-red-200">
+                <div className="text-red-600 mb-4 font-semibold">Không thể tải sản phẩm</div>
+                <p className="text-gray-600">Sử dụng dữ liệu mẫu</p>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 font-medium">
                     Hiển thị {products.length} sản phẩm (tổng {totalProducts})
                   </p>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {products.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={product.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1">
                 <div className="relative">
                   <img
                     src={product.image}
                     alt={product.name}
                     className="w-full h-48 object-cover"
                   />
-                  <Badge className="absolute top-2 left-2 bg-white/90 text-gray-800">
+                  <Badge className="absolute top-2 left-2 bg-white/95 text-gray-900 border-gray-200">
                     {product.category}
                   </Badge>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">
+                  <h3 className="font-bold text-gray-900 mb-2 line-clamp-2">
                     {product.name}
                   </h3>
                   <div className="flex items-center gap-1 mb-2">
@@ -362,13 +369,13 @@ export default function ViewShop() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-purple-600">
+                    <span className="text-lg font-bold text-blue-500">
                       {product.price.toLocaleString('vi-VN')}đ
                     </span>
-                    <Button size="sm" className="flex items-center gap-1">
+                    <button className="px-4 py-1.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 flex items-center gap-1 text-sm font-medium">
                       <ShoppingBag className="w-4 h-4" />
                       Mua
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </Card>
@@ -378,44 +385,42 @@ export default function ViewShop() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-center gap-2 mt-8">
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="flex items-center gap-1"
+                      className="px-4 py-2 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 font-medium"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Trước
-                    </Button>
+                    </button>
                     
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         const pageNum = i + 1;
                         return (
-                          <Button
+                          <button
                             key={pageNum}
-                            variant={currentPage === pageNum ? "default" : "outline"}
-                            size="sm"
                             onClick={() => setCurrentPage(pageNum)}
-                            className="w-8 h-8 p-0"
+                            className={`w-8 h-8 rounded-xl font-medium transition-all duration-200 ${
+                              currentPage === pageNum
+                                ? "bg-gray-900 text-white hover:bg-blue-500"
+                                : "border-2 border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300"
+                            }`}
                           >
                             {pageNum}
-                          </Button>
+                          </button>
                         );
                       })}
                     </div>
                     
-                    <Button
-                      variant="outline"
-                      size="sm"
+                    <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="flex items-center gap-1"
+                      className="px-4 py-2 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 font-medium"
                     >
                       Sau
                       <ChevronRight className="w-4 h-4" />
-                    </Button>
+                    </button>
                   </div>
                 )}
               </>
@@ -426,16 +431,16 @@ export default function ViewShop() {
         {activeTab === 'reviews' && (
           <div className="space-y-6">
             {reviews.map((review) => (
-              <Card key={review.id} className="p-6">
+              <Card key={review.id} className="p-6 border-2 border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300">
                 <div className="flex items-start gap-4">
                   <img
                     src={review.user.avatar}
                     alt={review.user.name}
-                    className="w-12 h-12 rounded-full object-cover"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
                   />
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h4 className="font-medium">{review.user.name}</h4>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <h4 className="font-bold text-gray-900">{review.user.name}</h4>
                       <div className="flex items-center gap-1">
                         {renderStars(review.rating)}
                       </div>
@@ -443,8 +448,8 @@ export default function ViewShop() {
                         {formatDate(review.date)}
                       </span>
                     </div>
-                    <p className="text-gray-700 mb-2">{review.comment}</p>
-                    <Badge variant="outline" className="text-xs">
+                    <p className="text-gray-700 mb-2 leading-relaxed">{review.comment}</p>
+                    <Badge className="text-xs bg-blue-50 text-blue-600 border-blue-200">
                       Sản phẩm: {review.product}
                     </Badge>
                   </div>
@@ -457,42 +462,42 @@ export default function ViewShop() {
         {activeTab === 'about' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Giới thiệu</h3>
+              <Card className="p-6 border-2 border-gray-100 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Giới thiệu</h3>
                 <p className="text-gray-700 leading-relaxed">{shop.description}</p>
               </Card>
 
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Thông tin liên hệ</h3>
+              <Card className="p-6 border-2 border-gray-100 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Thông tin liên hệ</h3>
                 <div className="space-y-3">
                   {shop.address && (
                     <div className="flex items-center gap-3">
-                      <MapPin className="w-5 h-5 text-gray-400" />
-                      <span>{shop.address}</span>
+                      <MapPin className="w-5 h-5 text-blue-500" />
+                      <span className="text-gray-700">{shop.address}</span>
                     </div>
                   )}
                   {shop.phone_number && (
                     <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-gray-400" />
-                      <span>{shop.phone_number}</span>
+                      <Phone className="w-5 h-5 text-blue-500" />
+                      <span className="text-gray-700">{shop.phone_number}</span>
                     </div>
                   )}
                   {shop.email && (
                     <div className="flex items-center gap-3">
-                      <Mail className="w-5 h-5 text-gray-400" />
-                      <span>{shop.email}</span>
+                      <Mail className="w-5 h-5 text-blue-500" />
+                      <span className="text-gray-700">{shop.email}</span>
                     </div>
                   )}
                 </div>
               </Card>
 
               {shop.opening_hours && (
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Giờ mở cửa</h3>
+                <Card className="p-6 border-2 border-gray-100 shadow-lg">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Giờ mở cửa</h3>
                   <div className="space-y-2">
                     {Object.entries(shop.opening_hours).map(([day, hours]) => (
-                      <div key={day} className="flex justify-between">
-                        <span className="capitalize">{day}</span>
+                      <div key={day} className="flex justify-between py-2 border-b border-gray-100 last:border-0">
+                        <span className="capitalize font-medium text-gray-900">{day}</span>
                         <span className="text-gray-600">{hours}</span>
                       </div>
                     ))}
@@ -502,38 +507,38 @@ export default function ViewShop() {
             </div>
 
             <div className="space-y-6">
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Thống kê</h3>
+              <Card className="p-6 border-2 border-gray-100 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Thống kê</h3>
                 <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span>Sản phẩm</span>
-                    <span className="font-medium">{shop.products_count || 0}</span>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Sản phẩm</span>
+                    <span className="font-bold text-gray-900">{shop.products_count || 0}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Đánh giá</span>
-                    <span className="font-medium">{shop.reviews_count || 0}</span>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Đánh giá</span>
+                    <span className="font-bold text-gray-900">{shop.reviews_count || 0}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Người theo dõi</span>
-                    <span className="font-medium">{shop.followers || 0}</span>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Người theo dõi</span>
+                    <span className="font-bold text-gray-900">{shop.followers || 0}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Đang theo dõi</span>
-                    <span className="font-medium">{shop.following || 0}</span>
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-600">Đang theo dõi</span>
+                    <span className="font-bold text-gray-900">{shop.following || 0}</span>
                   </div>
                 </div>
               </Card>
 
               {shop.social_links && (
-                <Card className="p-6">
-                  <h3 className="text-lg font-semibold mb-4">Mạng xã hội</h3>
+                <Card className="p-6 border-2 border-gray-100 shadow-lg">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Mạng xã hội</h3>
                   <div className="space-y-3">
                     {shop.social_links.instagram && (
                       <a
                         href={shop.social_links.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 text-pink-600 hover:text-pink-700"
+                        className="flex items-center gap-3 text-gray-700 hover:text-blue-500 transition-colors font-medium"
                       >
                         <Instagram className="w-5 h-5" />
                         <span>Instagram</span>
@@ -544,7 +549,7 @@ export default function ViewShop() {
                         href={shop.social_links.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 text-blue-600 hover:text-blue-700"
+                        className="flex items-center gap-3 text-gray-700 hover:text-blue-500 transition-colors font-medium"
                       >
                         <Facebook className="w-5 h-5" />
                         <span>Facebook</span>
@@ -555,7 +560,7 @@ export default function ViewShop() {
                         href={shop.social_links.twitter}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 text-blue-400 hover:text-blue-500"
+                        className="flex items-center gap-3 text-gray-700 hover:text-blue-500 transition-colors font-medium"
                       >
                         <Twitter className="w-5 h-5" />
                         <span>Twitter</span>
@@ -565,25 +570,25 @@ export default function ViewShop() {
                 </Card>
               )}
 
-              <Card className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Thông tin shop</h3>
+              <Card className="p-6 border-2 border-gray-100 shadow-lg">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Thông tin shop</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Trạng thái</span>
-                    <Badge variant={shop.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                  <div className="flex justify-between py-2 border-b border-gray-100">
+                    <span className="text-gray-600">Trạng thái</span>
+                    <Badge className={shop.status === 'ACTIVE' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-gray-100 text-gray-800 border-gray-200'}>
                       {shop.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
                     </Badge>
                   </div>
                   {shop.created_at && (
-                    <div className="flex justify-between">
-                      <span>Ngày tạo</span>
-                      <span>{formatDate(shop.created_at)}</span>
+                    <div className="flex justify-between py-2 border-b border-gray-100">
+                      <span className="text-gray-600">Ngày tạo</span>
+                      <span className="font-medium text-gray-900">{formatDate(shop.created_at)}</span>
                     </div>
                   )}
                   {shop.updated_at && (
-                    <div className="flex justify-between">
-                      <span>Cập nhật</span>
-                      <span>{formatDate(shop.updated_at)}</span>
+                    <div className="flex justify-between py-2">
+                      <span className="text-gray-600">Cập nhật</span>
+                      <span className="font-medium text-gray-900">{formatDate(shop.updated_at)}</span>
                     </div>
                   )}
                 </div>

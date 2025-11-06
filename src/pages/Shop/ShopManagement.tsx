@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { shopApi } from "@/apis/shop.api";
 import { getUserId } from "@/lib/user";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "react-toastify";
 import {
@@ -83,13 +82,13 @@ export default function ShopManagement() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Badge className="bg-green-100 text-green-800">Hoạt động</Badge>;
+        return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>;
       case "UNVERIFIED":
-        return <Badge className="bg-yellow-100 text-yellow-800">Chờ xác minh</Badge>;
+        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Chờ xác minh</Badge>;
       case "SUSPENDED":
-        return <Badge className="bg-red-100 text-red-800">Tạm dừng</Badge>;
+        return <Badge className="bg-red-100 text-red-800 border-red-200">Tạm dừng</Badge>;
       default:
-        return <Badge variant="secondary">Không xác định</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>;
     }
   };
 
@@ -100,10 +99,10 @@ export default function ShopManagement() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-500">Đang tải thông tin shop...</p>
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải thông tin shop...</p>
         </div>
       </div>
     );
@@ -112,297 +111,300 @@ export default function ShopManagement() {
   // Không hiển thị error, sử dụng mock data thay thế
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/profile")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Quay lại
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý Shop</h1>
-            <p className="text-gray-600 mt-1">
-              Quản lý shop của bạn
-            </p>
-          </div>
-        </div>
-        {!shop && (
-          <Button
-            onClick={() => navigate("/shop/create")}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Tạo Shop
-          </Button>
-        )}
-      </div>
-
-      {/* Shop Content */}
-        {shopData ? (
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="space-y-6">
-          {/* Shop Overview Card */}
-          <Card className="overflow-hidden">
-            {/* Shop Header with Background */}
-            <div className="relative h-48 bg-gradient-to-br from-purple-100 to-pink-100">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate("/profile")}
+                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Quay lại
+              </button>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Quản lý Shop</h1>
+                <p className="text-gray-600 mt-1">
+                  Quản lý shop của bạn
+                </p>
+              </div>
+            </div>
+            {!shop && (
+              <button
+                onClick={() => navigate("/shop/create")}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Tạo Shop
+              </button>
+            )}
+          </div>
+
+          {/* Shop Content */}
+          {shopData ? (
+            <div className="space-y-6">
+              {/* Shop Overview Card */}
+              <Card className="overflow-hidden border-2 border-gray-100 shadow-lg">
+                {/* Shop Header with Background */}
+                <div className="relative h-48 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
                   <img
                     src={shopData.background || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center"}
                     alt={shopData.name}
                     className="w-full h-full object-cover"
                   />
-              <div className="absolute inset-0 bg-black/20" />
-              
-              {/* Status Badge */}
-              <div className="absolute top-4 right-4">
-                {getStatusBadge(shopData.status)}
-              </div>
-
-              {/* Shop Info Overlay */}
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="flex items-end gap-4">
-                  <div className="relative">
-                    <img
-                      src={shopData.avatar || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center"}
-                      alt={shopData.name}
-                      className="w-20 h-20 rounded-full border-4 border-white object-cover"
-                    />
-                    <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700 transition-colors">
-                      <Camera className="w-3 h-3 text-white" />
-                    </button>
+                  <div className="absolute inset-0 bg-black/40" />
+                  
+                  {/* Decorative blobs */}
+                  <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
+                  <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-4 right-4 z-10">
+                    {getStatusBadge(shopData.status)}
                   </div>
-                  <div className="flex-1 text-white">
-                    <h2 className="text-2xl font-bold mb-1">{shopData.name}</h2>
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span>{shopData.rating || 0}</span>
+
+                  {/* Shop Info Overlay */}
+                  <div className="absolute bottom-4 left-4 right-4 z-10">
+                    <div className="flex items-end gap-4">
+                      <div className="relative">
+                        <img
+                          src={shopData.avatar || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center"}
+                          alt={shopData.name}
+                          className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-xl"
+                        />
+                        <button className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg">
+                          <Camera className="w-3 h-3 text-white" />
+                        </button>
                       </div>
-                      <span>•</span>
-                      <span>Tạo: {formatDate(shopData.created_at || "")}</span>
+                      <div className="flex-1 text-white">
+                        <h2 className="text-2xl font-bold mb-1">{shopData.name}</h2>
+                        <div className="flex items-center gap-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span>{shopData.rating || 0}</span>
+                          </div>
+                          <span>•</span>
+                          <span>Tạo: {formatDate(shopData.created_at || "")}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Shop Details */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column - Description */}
-                <div className="lg:col-span-2 space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Mô tả shop</h3>
-                    <p className="text-gray-700 leading-relaxed">
-                      {shopData.description}
-                    </p>
-                  </div>
+                {/* Shop Details */}
+                <div className="p-6 bg-white">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Left Column - Description */}
+                    <div className="lg:col-span-2 space-y-4">
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">Mô tả shop</h3>
+                        <p className="text-gray-700 leading-relaxed">
+                          {shopData.description}
+                        </p>
+                      </div>
 
-                  {/* Contact Info */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {shopData.address && (
-                      <div className="flex items-start gap-3">
-                        <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Địa chỉ</p>
-                          <p className="text-sm text-gray-600">{shopData.address}</p>
-                        </div>
+                      {/* Contact Info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {shopData.address && (
+                          <div className="flex items-start gap-3">
+                            <MapPin className="w-5 h-5 text-blue-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">Địa chỉ</p>
+                              <p className="text-sm text-gray-600">{shopData.address}</p>
+                            </div>
+                          </div>
+                        )}
+                        {shopData.phone_number && (
+                          <div className="flex items-start gap-3">
+                            <Phone className="w-5 h-5 text-blue-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">Số điện thoại</p>
+                              <p className="text-sm text-gray-600">{shopData.phone_number}</p>
+                            </div>
+                          </div>
+                        )}
+                        {shopData.email && (
+                          <div className="flex items-start gap-3">
+                            <Mail className="w-5 h-5 text-blue-500 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">Email</p>
+                              <p className="text-sm text-gray-600">{shopData.email}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {shopData.phone_number && (
-                      <div className="flex items-start gap-3">
-                        <Phone className="w-5 h-5 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Số điện thoại</p>
-                          <p className="text-sm text-gray-600">{shopData.phone_number}</p>
-                        </div>
-                      </div>
-                    )}
-                    {shopData.email && (
-                      <div className="flex items-start gap-3">
-                        <Mail className="w-5 h-5 text-gray-400 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Email</p>
-                          <p className="text-sm text-gray-600">{shopData.email}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    </div>
 
-                {/* Right Column - Stats & Actions */}
-                <div className="space-y-4">
-                  {/* Quick Stats */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Thống kê nhanh</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-600">Sản phẩm</span>
+                    {/* Right Column - Stats & Actions */}
+                    <div className="space-y-4">
+                      {/* Quick Stats */}
+                      <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border-2 border-gray-100">
+                        <h4 className="font-bold text-gray-900 mb-3">Thống kê nhanh</h4>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Package className="w-4 h-4 text-blue-500" />
+                              <span className="text-sm text-gray-600">Sản phẩm</span>
+                            </div>
+                            <span className="font-bold text-gray-900">24</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Users className="w-4 h-4 text-blue-500" />
+                              <span className="text-sm text-gray-600">Người theo dõi</span>
+                            </div>
+                            <span className="font-bold text-gray-900">156</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4 text-blue-500" />
+                              <span className="text-sm text-gray-600">Doanh thu tháng</span>
+                            </div>
+                            <span className="font-bold text-gray-900">2.5M</span>
+                          </div>
                         </div>
-                        <span className="font-semibold">24</span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-gray-600">Người theo dõi</span>
-                        </div>
-                        <span className="font-semibold">156</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-purple-600" />
-                          <span className="text-sm text-gray-600">Doanh thu tháng</span>
-                        </div>
-                        <span className="font-semibold">2.5M</span>
+
+                      {/* Action Buttons */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => navigate(`/view-shop/${shopData.id}`)}
+                          className="w-full px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2 font-medium"
+                        >
+                          <Eye className="w-4 h-4" />
+                          Xem shop công khai
+                        </button>
+                        <button
+                          onClick={() => navigate("/shop/edit")}
+                          className="w-full px-4 py-2.5 border-2 border-gray-200 text-gray-900 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Chỉnh sửa shop
+                        </button>
+                        <button
+                          onClick={() => setShowDeleteModal(true)}
+                          className="w-full px-4 py-2.5 border-2 border-red-200 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-300 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Xóa shop
+                        </button>
                       </div>
                     </div>
                   </div>
-
-                  {/* Action Buttons */}
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => navigate(`/view-shop/${shopData.id}`)}
-                      className="w-full flex items-center gap-2"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Xem shop công khai
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/shop/edit")}
-                      className="w-full flex items-center gap-2"
-                    >
-                      <Edit className="w-4 h-4" />
-                      Chỉnh sửa shop
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setShowDeleteModal(true)}
-                      className="w-full flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Xóa shop
-                    </Button>
-                  </div>
                 </div>
+              </Card>
+
+              {/* Quick Actions Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card className="p-4 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1" onClick={() => navigate("/products")}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
+                      <Package className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">Quản lý sản phẩm</p>
+                      <p className="text-sm text-gray-600">24 sản phẩm</p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
+                      <BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">Thống kê</p>
+                      <p className="text-sm text-gray-600">Xem báo cáo</p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">Khách hàng</p>
+                      <p className="text-sm text-gray-600">156 người theo dõi</p>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-4 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
+                      <Settings className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900">Cài đặt</p>
+                      <p className="text-sm text-gray-600">Tùy chỉnh shop</p>
+                    </div>
+                  </div>
+                </Card>
               </div>
             </div>
-          </Card>
-
-          {/* Quick Actions Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/products")}>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Package className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Quản lý sản phẩm</p>
-                  <p className="text-sm text-gray-600">24 sản phẩm</p>
-                </div>
+          ) : (
+            <div className="text-center py-20 bg-white rounded-2xl border-2 border-dashed border-gray-200">
+              <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                <Store className="w-12 h-12 text-blue-500" />
               </div>
-            </Card>
-
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Thống kê</p>
-                  <p className="text-sm text-gray-600">Xem báo cáo</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Khách hàng</p>
-                  <p className="text-sm text-gray-600">156 người theo dõi</p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <Settings className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Cài đặt</p>
-                  <p className="text-sm text-gray-600">Tùy chỉnh shop</p>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-20">
-          <div className="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-            <Store className="w-12 h-12 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Chưa có shop
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Tạo shop để bắt đầu bán hàng và chia sẻ tủ đồ của bạn
-          </p>
-          <Button
-            onClick={() => navigate("/shop/create")}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Tạo Shop
-          </Button>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && shop && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-lg border p-6">
-            <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                <Trash2 className="w-8 h-8 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Xác nhận xóa shop
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Chưa có shop
               </h3>
               <p className="text-gray-600 mb-6">
-                Bạn có chắc chắn muốn xóa shop <strong>"{shopData.name}"</strong>? 
-                Hành động này không thể hoàn tác.
+                Tạo shop để bắt đầu bán hàng và chia sẻ tủ đồ của bạn
               </p>
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowDeleteModal(false)}
-                  className="flex-1"
-                  disabled={deleteShopMutation.isPending}
-                >
-                  Hủy
-                </Button>
-                <Button
-                  onClick={handleDeleteShop}
-                  className="flex-1 bg-red-600 hover:bg-red-700"
-                  disabled={deleteShopMutation.isPending}
-                >
-                  {deleteShopMutation.isPending ? "Đang xóa..." : "Xóa"}
-                </Button>
+              <button
+                onClick={() => navigate("/shop/create")}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 font-medium"
+              >
+                <Plus className="w-4 h-4" />
+                Tạo Shop
+              </button>
+            </div>
+          )}
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteModal && shop && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+              <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border-2 border-gray-100 p-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    Xác nhận xóa shop
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Bạn có chắc chắn muốn xóa shop <strong>"{shopData.name}"</strong>? 
+                    Hành động này không thể hoàn tác.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowDeleteModal(false)}
+                      className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-900 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
+                      disabled={deleteShopMutation.isPending}
+                    >
+                      Hủy
+                    </button>
+                    <button
+                      onClick={handleDeleteShop}
+                      className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all duration-200 shadow-lg hover:shadow-red-200"
+                      disabled={deleteShopMutation.isPending}
+                    >
+                      {deleteShopMutation.isPending ? "Đang xóa..." : "Xóa"}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

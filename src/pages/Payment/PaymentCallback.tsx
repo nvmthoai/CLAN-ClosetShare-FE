@@ -37,11 +37,21 @@ export default function PaymentCallback() {
 
   return (
     <Layout>
-      <div className="flex flex-col items-center justify-center py-24 gap-4">
-        <div className="animate-spin h-10 w-10 border-4 border-primary border-t-transparent rounded-full" />
-        <p className="text-sm text-gray-600">
-          Đang xử lý kết quả thanh toán...
-        </p>
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
+        <div className="flex flex-col items-center justify-center py-24 gap-6">
+          <div className="relative">
+            <div className="animate-spin h-16 w-16 border-4 border-gray-900 border-t-blue-500 rounded-full" />
+            <div className="absolute inset-0 animate-ping h-16 w-16 border-4 border-blue-200 rounded-full opacity-20" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-lg font-bold text-gray-900">
+              Đang xử lý kết quả thanh toán...
+            </p>
+            <p className="text-sm text-gray-600">
+              Vui lòng đợi trong giây lát
+            </p>
+          </div>
+        </div>
       </div>
     </Layout>
   );

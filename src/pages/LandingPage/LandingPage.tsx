@@ -1,733 +1,200 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Camera, Menu, X, Apple, Grid2x2 } from "lucide-react";
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { subscriptionApi } from "@/apis/subscription.api";
-import type { Subscription } from "@/models/Subscription";
+import { Header } from "@/components/landing/Header";
+import { HeroSection } from "@/components/landing/HeroSection";
+import { ShowcaseSection, type ShowcaseItem } from "@/components/landing/ShowcaseSection";
+import { FeatureBanner } from "@/components/landing/FeatureBanner";
+import { Footer } from "@/components/landing/Footer";
 
 function LandingPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { data: plansData } = useQuery({
-    queryKey: ["subscriptions"],
-    queryFn: () => subscriptionApi.getAll(),
-    select: (res) =>
-      (Array.isArray(res.data)
-        ? res.data
-        : (res.data as any).data) as Subscription[],
-    staleTime: 60_000,
-  });
+  // Portfolio/Showcase items
+  const showcaseItems: ShowcaseItem[] = [
+    {
+      id: "1",
+      title: "AI Outfit Companion",
+      description: "Khám phá sức mạnh của công nghệ với tính năng AI Gợi Ý Phong Cách – nơi bạn chỉ cần chọn vài món đồ trong tủ, hệ thống sẽ tự động phối hợp thành những outfit hoàn chỉnh phù hợp với cá tính, vóc dáng và xu hướng thời trang hiện tại.",
+      image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&auto=format&fit=crop",
+    },
+    {
+      id: "2",
+      title: "Personal Wardrobe Profile",
+      description: "Biến tủ đồ của bạn thành không gian số. Mỗi người dùng có thể đăng tải, quản lý và trưng bày outfit cá nhân, tạo thành một hồ sơ phong cách riêng biệt – nơi mỗi bộ trang phục thể hiện cá tính và câu chuyện của chính bạn.",
+      image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&auto=format&fit=crop",
+    },
+    {
+      id: "3",
+      title: "Social Fashion Hub",
+      description: "Không chỉ là nơi mua sắm – đây là cộng đồng thời trang năng động dành cho Gen Z. Người dùng có thể đăng bài viết, chia sẻ cảm hứng, bình luận và thảo luận về xu hướng mới, outfit yêu thích, hay những bộ sưu tập độc quyền.",
+      image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&auto=format&fit=crop",
+    },
+    {
+      id: "4",
+      title: "Smart Marketplace",
+      description: "Mở cửa hàng của riêng bạn chỉ với vài thao tác. Người bán có thể tạo shop, đăng sản phẩm, kết nối với người mua và theo dõi đơn hàng, trong khi người mua dễ dàng tìm kiếm sản phẩm theo phong cách hoặc theo gợi ý từ AI.",
+      image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=400&auto=format&fit=crop",
+    },
+    {
+      id: "5",
+      title: "Outfit Collab & Tagging",
+      description: "Tính năng gắn thẻ outfit cho phép người dùng kết hợp các món đồ của nhiều thương hiệu hoặc từ nhiều người dùng khác nhau, tạo ra những bộ outfit độc đáo và chia sẻ trực tiếp lên profile – mang đến trải nghiệm phối đồ cộng đồng sáng tạo và sống động.",
+      image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&auto=format&fit=crop",
+    },
+    {
+      id: "6",
+      title: "Fashion Discovery Feed",
+      description: "Hệ thống sẽ học thói quen của bạn để gợi ý nhiều outfit, shop và người dùng phù hợp với gu riêng — giúp bạn luôn dẫn đầu xu hướng, không cần phải tìm kiếm quá nhiều.",
+      image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=400&auto=format&fit=crop",
+    },
+  ];
+
 
   return (
-    <div className="min-h-screen pt-20 bg-gradient-to-br from-purple-50 via-white to-pink-50">
-      {/* Modern Navbar with Glass Effect */}
-      <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg bg-white/80 border-b border-white/20 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-brand-gradient rounded-lg flex items-center justify-center">
-                    <img src="/logobox_512x512.png" alt="ClosetShare" className="w-full h-full object-cover" />
-                  </div>
-                  <span className="text-xl font-bold bg-brand-gradient bg-clip-text text-transparent">
-                    ClosetShare
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
-                <a
-                  href="#features"
-                  className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
-                >
-                  Tính năng
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
-                </a>
-                <a
-                  href="#how-it-works"
-                  className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
-                >
-                  Cách hoạt động
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
-                </a>
-                <a
-                  href="#pricing"
-                  className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
-                >
-                  Bảng giá
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
-                </a>
-                <a
-                  href="#community"
-                  className="text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium transition-colors duration-200 relative group"
-                >
-                  Cộng đồng
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-gradient group-hover:w-full transition-all duration-300"></span>
-                </a>
-              </div>
-            </nav>
-
-            {/* Action Buttons */}
-            <div className="hidden md:block">
-              <div className="ml-4 flex items-center space-x-4">
-                <a
-                  href="/login"
-                  className="text-gray-700 hover:text-primary px-4 py-2 text-sm font-medium transition-colors duration-200"
-                >
-                  Đăng nhập
-                </a>
-                <Button className="bg-brand-gradient hover:opacity-90 text-white px-6 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  <a href="/register">Bắt đầu</a>
-                </Button>
-              </div>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-lg text-gray-700 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-              >
-                {mobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t bg-white/95 backdrop-blur px-4 py-4 space-y-3">
-            <a
-              href="#features"
-              className="block text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="block text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              How It Works
-            </a>
-            <a
-              href="#pricing"
-              className="block text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Pricing
-            </a>
-            <a
-              href="#community"
-              className="block text-gray-700 hover:text-primary px-3 py-2 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Community
-            </a>
-            <div className="pt-4 space-y-2">
-                <a
-                  href="/login"
-                  className="block text-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium"
-                >
-                  Đăng nhập
-                </a>
-                <a
-                href="/register"
-                className="block text-center bg-brand-gradient hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium"
-              >
-                Bắt đầu
-              </a>
-            </div>
-          </div>
-        )}
-      </header>
+    <div className="min-h-screen bg-white">
+      <Header />
 
       {/* Hero Section */}
-      <section className="relative px-6 py-20" id="hero">
-        <div className="mx-auto max-w-6xl grid gap-12 grid-cols-1 md:grid-cols-2 items-center">
-          <div className="text-center md:text-left">
-            <Badge className="mb-6 bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center">
-              🎉 Đã ra mắt - Tham gia Cách mạng Thời trang
-            </Badge>
+      <section id="home">
+        <HeroSection
+          subtitle="WELCOME TO CLOSETSHARE"
+          buttonText="Khám phá ngay"
+          heroImage="/landingpage_1.png"
+          scrollToId="showcase"
+        />
+      </section>
 
-            <h1 className="hero-title">
-              Tủ đồ ảo của bạn. {" "}
-              <span className="bg-brand-gradient bg-clip-text text-transparent">
-                Chia sẻ, Tạo kiểu & Thông minh.
-              </span>
-            </h1>
-
-            <p className="hero-subtitle">
-              ClosetShare là nền tảng thời trang xã hội nơi mọi người
-              trưng bày trang phục, cho thuê hoặc bán đồ, và thương hiệu
-              ra mắt bộ sưu tập với ưu tiên hiển thị. Được hỗ trợ bởi AI,
-              ClosetShare giúp bạn khám phá, tạo kiểu và mua sắm thông minh hơn.
-            </p>
-
-            <div className="flex flex-col gap-4 sm:flex-row sm:justify-start">
-              <a href="#pricing">
-                <Button
-                  size="lg"
-                  className="bg-brand-gradient text-white hover:opacity-90"
-                >
-                  Tham gia ngay — Miễn phí
-                </Button>
-              </a>
-              <a href="#features">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-primary text-primary hover:bg-primary/10 hover:text-primary"
-                >
-                  Dành cho thương hiệu: Bắt đầu
-                </Button>
-              </a>
-            </div>
-          </div>
-
-          <div className="relative flex justify-center md:justify-end">
-            {/* Decorative blobs */}
-            <div className="pointer-events-none absolute -top-8 -left-8 w-44 h-44 rounded-full bg-primary/30 blur-3xl animate-blob" />
-            <div className="pointer-events-none absolute -bottom-6 -right-10 w-56 h-56 rounded-full bg-secondary/30 blur-3xl animate-blob" />
-
-            {/* Illustration placeholder - replace with real image later */}
-            <div className="hero-illustration w-80 h-80 bg-gradient-to-br from-white to-gray-100 flex items-center justify-center">
-              <img
-                src="/abc.jpg"
-                alt="ClosetShare illustration"
-                className="w-56 h-56 object-cover rounded-lg shadow-lg"
-              />
-            </div>
-          </div>
+      {/* About Section */}
+      <section id="about" className="py-16 md:py-20 bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Về Thương Hiệu Của Chúng Tôi
+          </h2>
+          <p className="text-lg text-gray-700 leading-relaxed mb-4">
+          Chúng tôi là nền tảng thời trang thế hệ mới — nơi công nghệ gặp gỡ phong cách.
+          Sứ mệnh của chúng tôi là giúp mọi người thể hiện cá tính qua gợi ý outfit bằng AI, tủ đồ cá nhân, và cộng đồng thời trang sáng tạo.
+          </p>
+          <p className="text-lg text-gray-700 leading-relaxed">
+          Tại đây, bạn có thể khám phá, chia sẻ và kết nối để biến mỗi bộ trang phục thành một tuyên ngôn phong cách riêng.
+          </p>
         </div>
       </section>
 
-      {/* Why ClosetShare Section */}
-      <section className="px-6 py-16 bg-white" id="features">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Tại sao chọn ClosetShare?
-          </h2>
+      {/* Showcase Section */}
+      <ShowcaseSection
+        title="Những tính năng độc đáo của chúng tôi"
+        items={showcaseItems}
+      />
 
-          <div className="grid gap-8 md:grid-cols-3">
-            <Card className="border-primary/20 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  👥
-                </div>
-                <CardTitle className="text-primary">Dành cho cá nhân</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600">
-                  Xây dựng tủ đồ ảo của bạn, phối đồ, chia sẻ phong cách,
-                  và thậm chí cho thuê hoặc bán những món đồ bạn không còn dùng.
-                </CardDescription>
-              </CardContent>
-            </Card>
+      {/* Feature Banner - Collaboration */}
+      <FeatureBanner
+        backgroundImage="/coverpage.png"
+        topLabel="CỘNG TÁC"
+        title="Đối tác sáng tạo"
+        subtitle="Tham gia mạng lưới chuyên gia sáng tạo của chúng tôi và giới thiệu tác phẩm của bạn đến khán giả toàn cầu."
+        buttonText="Bắt đầu ngay"
+        buttonLink="/login"
+      />
 
-            <Card className="border-secondary/20 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4">
-                  🏢
-                </div>
-                <CardTitle className="text-secondary">Dành cho thương hiệu</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600">
-                  Tăng khả năng hiển thị trên bảng tin, chạy chiến dịch quảng cáo
-                  nhắm mục tiêu, và tiếp cận trực tiếp người dùng quan tâm thời trang.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="border-primary/20 hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                  🤖
-                </div>
-                <CardTitle className="text-primary">Dành cho mọi người</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600">
-                  Khám phá thời trang phù hợp với kích thước, ngân sách và lối sống
-                  của bạn — được gợi ý bởi AI.
-                </CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Key Features Section */}
-      <section className="px-6 py-16 bg-gray-50" id="key-features">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Tính năng chính
-          </h2>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-gradient rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">📱</span>
-              </div>
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Đăng bài & Cộng đồng
-              </h3>
-              <p className="text-gray-600">
-                Chia sẻ trang phục hằng ngày với ảnh, video và liên kết sản phẩm.
-                Nhận like, bình luận và xây dựng người theo dõi.
+      {/* Stats/Highlights Section */}
+      <section className="py-16 md:py-20 bg-gradient-to-br from-white via-blue-50/40 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Con số ấn tượng
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Hàng nghìn người dùng đang tin tưởng và sử dụng ClosetShare mỗi ngày
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-gradient rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">👗</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {/* Card 1 - Active Users */}
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
               </div>
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Tủ đồ ảo & Trình tạo outfit
-              </h3>
-              <p className="text-gray-600">
-                Tải lên món đồ thời trang, sắp xếp theo danh mục và tạo outfit chỉ
-                với vài thao tác.
-              </p>
+                <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-3 group-hover:text-blue-500 transition-colors">
+                  10K+
             </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-gradient rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🛍️</span>
+                <div className="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                  Người dùng tích cực
               </div>
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Thị trường Mua & Thuê
-              </h3>
-              <p className="text-gray-600">
-                Duyệt đồ secondhand hoặc bộ sưu tập mới. Mua hoặc thuê an toàn
-                thông qua nền tảng.
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-gradient rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🤖</span>
-              </div>
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">
-                Trợ lý AI thông minh
-              </h3>
-              <p className="text-gray-600">
-                Trợ lý AI học thói quen của bạn, phân tích tủ đồ và gợi ý những
-                cách phối hay món đồ phù hợp.
-              </p>
+                <div className="text-sm text-gray-500">
+                  Cộng đồng đang phát triển mỗi ngày
             </div>
           </div>
         </div>
-      </section>
 
-      {/* How It Works Section */}
-      <section className="px-6 py-16 bg-white" id="how-it-works">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Cách hoạt động
-          </h2>
-
-          <div className="space-y-4">
-            {[
-              {
-                step: "01",
-                title: "Bắt đầu",
-                desc: "Đăng ký với tư cách cá nhân hoặc thương hiệu.",
-              },
-              {
-                step: "02",
-                title: "Tải lên",
-                desc: "Tải lên món đồ trong tủ hoặc bộ sưu tập của cửa hàng.",
-              },
-              {
-                step: "03",
-                title: "Chia sẻ",
-                desc: "Chia sẻ bài viết, outfit hoặc chiến dịch.",
-              },
-              {
-                step: "04",
-                title: "Khám phá",
-                desc: "Khám phá gợi ý được hỗ trợ bởi AI.",
-              },
-              {
-                step: "05",
-                title: "Mua / Thuê / Bán",
-                desc: "Mua, thuê hoặc bán với sự an tâm.",
-              },
-            ].map((s) => {
-              const isFirst = s.step === "01";
-              return (
-                <div
-                  key={s.step}
-                  className={`flex items-center gap-4 rounded-lg overflow-hidden border ${
-                    isFirst ? "border-primary" : "border-gray-200"
-                  } bg-white`}
-                >
-                  <div className="w-28 shrink-0 h-full">
-                    <div
-                      className={`h-full w-full font-semibold text-lg tracking-wider flex items-center justify-center py-5 ${
-                        isFirst
-                          ? "bg-primary text-white"
-                          : "bg-white text-primary border-r border-gray-200"
-                      }`}
-                    >
-                      {s.step}
+            {/* Card 2 - Fashion Items */}
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
                     </div>
+                <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-3 group-hover:text-blue-500 transition-colors">
+                  50K+
                   </div>
-                  <div className="flex-1 px-5 py-4">
-                    <div className="font-semibold text-gray-900 mb-1">
-                      {s.title}
+                <div className="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                  Sản phẩm thời trang
                     </div>
-                    <div className="text-gray-600 text-sm">{s.desc}</div>
+                <div className="text-sm text-gray-500">
+                  Đa dạng từ áo quần đến phụ kiện
                   </div>
-                </div>
-              );
-            })}
           </div>
         </div>
-      </section>
 
-      {/* Target Audience Section */}
-      <section className="px-6 py-16 bg-brand-gradient">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-8 md:grid-cols-2">
-            <Card className="bg-white/95 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-2xl text-primary flex items-center gap-3">
-                  <span>👤</span> For Individuals
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Showcase your unique fashion sense</span>
+            {/* Card 3 - Partner Brands */}
+            <div className="group relative bg-white rounded-2xl p-8 shadow-lg border-2 border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Trade or rent your items with others</span>
+                <div className="text-5xl md:text-6xl font-bold text-gray-900 mb-3 group-hover:text-blue-500 transition-colors">
+                  100+
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>Use AI to generate personalized outfit ideas</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-primary">✓</span>
-                  <span>
-                    Grow your audience and become a fashion influencer
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white/95 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-2xl text-secondary flex items-center gap-3">
-                  <span>🏢</span> For Brands
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>Open your digital shop instantly</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>
-                    Run sponsored campaigns with geo-targeting and interest
-                    filters
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>Reach the right audience with boosted visibility</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-secondary">✓</span>
-                  <span>
-                    Access detailed analytics on impressions, clicks, and
-                    conversions
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Plans Section */}
-      <section className="px-6 py-16 bg-gray-50" id="pricing">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-            Gói dành cho Cá nhân & Thương hiệu
-          </h2>
-
-          {plansData && plansData.length > 0 ? (
-            <div className="grid gap-8 md:grid-cols-2">
-              {plansData.slice(0, 2).map((p, idx) => (
-                <Card
-                  key={p.id}
-                  className={`${
-                    idx === 0 ? "border-primary/20" : "border-secondary/20"
-                  } hover:shadow-lg transition-shadow`}
-                >
-                  <CardHeader className="text-center">
-                    <CardTitle
-                      className={`text-2xl ${
-                        idx === 0 ? "text-primary" : "text-secondary"
-                      }`}
-                    >
-                      {p.name}
-                    </CardTitle>
-                    <CardDescription className="text-lg">
-                      {p.description || "Subscription plan"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4 text-center">
-                    <div className="text-3xl font-extrabold">
-                      {new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(p.price)}
+                <div className="text-lg font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                  Đối tác thương hiệu
                     </div>
                     <div className="text-sm text-gray-500">
-                      {p.duration_days} ngày
-                    </div>
-                    <a href="/subscriptions">
-                      <Button className="w-full">Mua ngay</Button>
-                    </a>
-                  </CardContent>
-                </Card>
-              ))}
+                  Kết nối với các thương hiệu hàng đầu
+              </div>
+              </div>
             </div>
-          ) : (
-            <div className="grid gap-8 md:grid-cols-2">
-              <Card className="border-primary/20 hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                    <CardTitle className="text-2xl text-primary">
-                    Gói cá nhân
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    Tính năng nâng cao dành cho người đam mê thời trang
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-primary">✓</span>
-                    <span>Nhiều khe tủ hơn</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-primary">✓</span>
-                    <span>Gợi ý tạo kiểu AI nâng cao</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-primary">✓</span>
-                    <span>Trải nghiệm không quảng cáo</span>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-secondary/20 hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <CardTitle className="text-2xl text-secondary">
-                    Gói thương hiệu
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    Công cụ chuyên nghiệp dành cho thương hiệu thời trang
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-secondary">✓</span>
-                    <span>Ưu tiên hiển thị trên bảng tin</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-secondary">✓</span>
-                    <span>Chiến dịch được tài trợ</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-secondary">✓</span>
-                    <span>Phân tích nâng cao</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-secondary">✓</span>
-                    <span>Ưu tiên kiểm duyệt</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          </div>
         </div>
       </section>
 
-      {/* Trust & Safety Section */}
-      <section className="px-6 py-16 bg-white">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-8 text-4xl font-bold text-gray-900">
-            Trust & Safety
+      {/* Contact Section */}
+      <section id="contact" className="py-16 md:py-20 bg-gradient-to-br from-gray-50 via-blue-50/20 to-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Thông tin liên hệ
           </h2>
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <span className="text-4xl">🛡️</span>
-            <span className="text-4xl">✅</span>
-            <span className="text-4xl">🔒</span>
-          </div>
-          <p className="text-xl text-gray-600">
-            All posts and products go through moderation to keep our community
-            safe from scams, spam, or harmful content. Your safety and trust are
-            our top priorities.
+          <p className="text-lg text-gray-700 leading-relaxed mb-8">
+            Chúng tôi rất hân hạnh khi bạn sử dụng dịch vụ của chúng tôi.
           </p>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section className="px-6 py-20 bg-[#0a0e27] text-white">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-6 text-4xl font-bold md:text-5xl">
-            Fashion is more fun when it's shared.
-          </h2>
-          <p className="mb-8 text-xl opacity-90">
-            Join ClosetShare today and unlock the future of social fashion.
-          </p>
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Button
-              size="lg"
-              className="bg-brand-gradient text-white hover:opacity-90"
-            >
-              Sign Up Free
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-black border-white hover:bg-white/10"
-            >
-              Explore Brand Plans
-            </Button>
-          </div>
-
-          <div className="mt-8">
-            <div className="text-sm uppercase tracking-wide text-gray-300 mb-3">
-              Download on
-            </div>
-            <div className="flex items-center justify-center gap-6 text-gray-200">
-              <div className="flex items-center gap-2">
-                <Apple className="w-5 h-5" />
-                <span>macOS / iOS</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Grid2x2 className="w-5 h-5" />
-                <span>Windows</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-[#0a0e27] text-white">
-        <div className="mx-auto max-w-6xl px-6 py-12 grid gap-10 md:grid-cols-4">
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-brand-gradient flex items-center justify-center">
-                <Camera className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-bold text-lg">ClosetShare</span>
-            </div>
-            <p className="text-sm text-gray-300">
-              Fashion is more fun when it's shared.
-            </p>
-          </div>
-          <div>
-            <div className="font-semibold mb-3">Product</div>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <a href="#features" className="hover:text-white">
-                  Features
-                </a>
-              </li>
-              <li>
-                <a href="#key-features" className="hover:text-white">
-                  Key Features
-                </a>
-              </li>
-              <li>
-                <a href="#how-it-works" className="hover:text-white">
-                  How it works
-                </a>
-              </li>
-              <li>
-                <a href="#pricing" className="hover:text-white">
-                  Pricing
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <div className="font-semibold mb-3">Resources</div>
-            <ul className="space-y-2 text-sm text-gray-300">
-              <li>
-                <a href="#" className="hover:text-white">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Docs
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white">
-                  Status
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <div className="font-semibold mb-3">Try It Today</div>
-            <p className="text-sm text-gray-300 mb-4">
-              Join the community and start styling smarter.
-            </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="/register"
-              className="inline-block px-4 py-2 rounded-md bg-white text-[#0a0e27] font-medium"
+              href="mailto:hello@yourbrand.com"
+              className="inline-block bg-gray-900 text-white px-8 py-3 text-sm font-medium uppercase tracking-wider hover:bg-blue-500 hover:text-white transition-all duration-200 shadow-lg hover:shadow-blue-200"
             >
-              Sign up free
+              Contact Us
+            </a>
+            <a
+              href="/login"
+              className="inline-block bg-white border-2 border-gray-900 text-gray-900 px-8 py-3 text-sm font-medium uppercase tracking-wider hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200"
+            >
+              Join Platform
             </a>
           </div>
         </div>
-        <div className="border-t border-white/10">
-          <div className="mx-auto max-w-6xl px-6 py-6 text-xs text-gray-400 flex items-center justify-between">
-            <div>© 2025 ClosetShare</div>
-            <div className="flex items-center gap-4">
-              <a href="#" className="hover:text-white">
-                Privacy
-              </a>
-              <a href="#" className="hover:text-white">
-                Terms
-              </a>
-              <a href="#" className="hover:text-white">
-                Security
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      </section>
+
+      <Footer />
     </div>
   );
 }

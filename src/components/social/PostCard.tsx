@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Heart,
   MessageCircle,
@@ -7,32 +7,94 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Reply,
 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import type { Post, UpdatePostPayload } from "@/models/Social";
+import { postApi, type CreateCommentPayload } from "@/apis/post.api";
+import { toast } from "react-toastify";
+import { TipTapEditor } from "@/components/ui/tiptap-editor";
 
 interface PostCardProps {
   post: Post;
   onLike: (postId: string) => void;
-  onComment: (postId: string, text: string) => void;
   onEdit?: (postId: string, payload: UpdatePostPayload) => void;
 }
 
-export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
+export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [replyToCommentId, setReplyToCommentId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title);
   const [editContent, setEditContent] = useState(post.content);
   const [editPublished, setEditPublished] = useState(post.published);
+  const [commentPage, setCommentPage] = useState(1);
+  const queryClient = useQueryClient();
+
+  // Fetch comments when comments section is opened
+  const {
+    data: commentsData,
+    isLoading: commentsLoading,
+    refetch: refetchComments,
+  } = useQuery({
+    queryKey: ["comments", post.id, commentPage],
+    queryFn: () => postApi.getComments(post.id, { page: commentPage, limit: 10 }),
+    enabled: showComments,
+    select: (res) => res.data,
+  });
+
+  const comments = commentsData?.comments || [];
+  const totalComments = commentsData?.total || 0;
+  const hasMoreComments = comments.length < totalComments;
+
+  // Create comment mutation
+  const createCommentMutation = useMutation({
+    mutationFn: (payload: CreateCommentPayload) => postApi.createComment(payload),
+    onSuccess: () => {
+      setCommentText("");
+      setReplyText({});
+      setReplyToCommentId(null);
+      // Refetch comments
+      refetchComments();
+      // Invalidate posts to update comment count
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast.success("Đã thêm bình luận");
+    },
+    onError: () => {
+      toast.error("Không thể thêm bình luận");
+    },
+  });
 
   const handleSubmitComment = () => {
     if (commentText.trim()) {
-      onComment(post.id, commentText);
-      setCommentText("");
+      createCommentMutation.mutate({
+        post_id: post.id,
+        content: commentText.trim(),
+        quote_comment_id: replyToCommentId || undefined,
+      });
     }
+  };
+
+  const handleReply = (commentId: string) => {
+    setReplyToCommentId(commentId);
+    setCommentText("");
+  };
+
+  const handleCancelReply = () => {
+    setReplyToCommentId(null);
+    setReplyText({});
+  };
+
+  const handleLoadMoreComments = () => {
+    setCommentPage((prev) => prev + 1);
   };
 
   const handleEdit = () => {
@@ -59,18 +121,29 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
     const diffMs = now.getTime() - postDate.getTime();
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     const diffDays = Math.floor(diffHours / 24);
+    const diffMins = Math.floor(diffMs / (1000 * 60));
 
     if (diffDays > 0) return `${diffDays}d`;
     if (diffHours > 0) return `${diffHours}h`;
-    return "now";
+    if (diffMins > 0) return `${diffMins}m`;
+    return "vừa xong";
   };
 
+  // Reset comment page when closing comments
+  useEffect(() => {
+    if (!showComments) {
+      setCommentPage(1);
+      setReplyToCommentId(null);
+      setReplyText({});
+    }
+  }, [showComments]);
+
   return (
-    <article className="bg-white border-b">
+    <article className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold border-2 border-gray-200">
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold border-2 border-blue-200">
             {post.user?.username?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div>
@@ -83,27 +156,29 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
         <div className="relative">
           <button 
             onClick={() => setShowMoreMenu(!showMoreMenu)}
-            className="p-1 hover:bg-gray-100 rounded-full"
+            className="p-1.5 hover:bg-blue-50 rounded-full transition-colors"
           >
             <MoreHorizontal className="w-5 h-5 text-gray-900" />
           </button>
           
           {/* More Menu */}
           {showMoreMenu && (
-            <div className="absolute right-0 top-8 bg-white border rounded-xl shadow-lg py-1 z-10 min-w-[150px] overflow-hidden">
-              <button
-                onClick={() => {
-                  setShowEditModal(true);
-                  setShowMoreMenu(false);
-                }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-gray-900"
-              >
-                <Edit className="w-4 h-4" />
-                <span>Chỉnh sửa</span>
-              </button>
+            <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-xl py-1 z-10 min-w-[150px] overflow-hidden">
+              {onEdit && (
+                <button
+                  onClick={() => {
+                    setShowEditModal(true);
+                    setShowMoreMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-blue-50 hover:text-blue-500 transition-colors flex items-center gap-2 text-gray-900"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span>Chỉnh sửa</span>
+                </button>
+              )}
               <button
                 onClick={() => setShowMoreMenu(false)}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2 text-gray-900"
               >
                 <Trash2 className="w-4 h-4" />
                 <span>Xóa</span>
@@ -125,7 +200,7 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
           {/* Image indicators */}
           {post.images.length > 1 && (
             <>
-              <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-full">
+              <div className="absolute top-3 right-3 bg-gray-900/70 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-full font-medium">
                 {currentImageIndex + 1}/{post.images.length}
               </div>
               <div className="absolute inset-0 flex">
@@ -149,38 +224,44 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
         </div>
       )}
 
-      {/* Actions */}
+      {/* Actions - Below image */}
       <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => onLike(post.id)} 
-              className="p-0 hover:opacity-70 transition-opacity"
+              className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110"
             >
               <Heart
                 className={cn(
-                  "w-7 h-7 transition-all",
-                  post.isLiked ? "text-red-500 fill-red-500 scale-110" : "text-gray-900"
+                  "w-6 h-6 transition-all duration-200",
+                  post.isLiked ? "text-red-500 fill-red-500 scale-110" : "text-gray-900 hover:text-red-500"
                 )}
               />
             </button>
             <button
               onClick={() => setShowComments(!showComments)}
-              className="p-0 hover:opacity-70 transition-opacity"
+              className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110"
             >
-              <MessageCircle className="w-7 h-7 text-gray-900" />
+              <MessageCircle className={cn(
+                "w-6 h-6 transition-all duration-200",
+                showComments ? "text-blue-500 fill-blue-500" : "text-gray-900 hover:text-blue-500"
+              )} />
             </button>
-            <button className="p-0 hover:opacity-70 transition-opacity">
-              <Send className="w-7 h-7 text-gray-900" />
+            <button className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110">
+              <Send className="w-6 h-6 text-gray-900 hover:text-blue-500" />
             </button>
           </div>
-          <button className="p-0 hover:opacity-70 transition-opacity">
-            <Bookmark className="w-7 h-7 text-gray-900" />
+          <button className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110">
+            <Bookmark className="w-6 h-6 text-gray-900 hover:text-blue-500" />
           </button>
         </div>
+      </div>
 
+      {/* Likes and Content - Below actions */}
+      <div className="px-4 pb-2">
         {/* Likes */}
-        <p className="font-semibold text-sm mb-1">
+        <p className="font-semibold text-sm mb-2 text-gray-900">
           {(post.likes || 0).toLocaleString()} lượt thích
         </p>
 
@@ -190,54 +271,198 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
             <span className="font-semibold text-gray-900 mr-2">
               {post.user?.username || 'User'}
             </span>
-            <span className="text-gray-900">{post.content}</span>
+            <span 
+              className="text-gray-900 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
           </p>
         </div>
 
-        {/* Comments preview */}
-        {post.comments && post.comments.length > 0 && (
+        {/* Comments count preview */}
+        {totalComments > 0 && !showComments && (
           <button
-            onClick={() => setShowComments(!showComments)}
-            className="text-sm text-gray-500 mb-2 hover:text-gray-900"
+            onClick={() => setShowComments(true)}
+            className="text-sm text-gray-500 mb-2 hover:text-blue-500 transition-colors font-medium"
           >
-            Xem tất cả {post.comments.length} bình luận
+            Xem tất cả {totalComments} bình luận
           </button>
         )}
-
-        {/* Comments */}
-        {showComments && (
-          <div className="space-y-2 mb-2 max-h-48 overflow-y-auto pr-2">
-            {post.comments?.slice(0, 3).map((comment) => (
-              <div key={comment.id} className="text-sm">
-                <span className="font-semibold mr-2 text-gray-900">
-                  {comment.user.username}
-                </span>
-                <span className="text-gray-900">{comment.text}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        
       </div>
 
+      {/* Comments Section */}
+      {showComments && (
+        <div className="border-t border-gray-100 bg-gray-50/30">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-gray-900">
+                Bình luận ({totalComments})
+              </h3>
+              <button
+                onClick={() => setShowComments(false)}
+                className="text-xs text-gray-500 hover:text-gray-900 transition-colors"
+              >
+                <ChevronUp className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Comments List */}
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 mb-4">
+              {commentsLoading && commentPage === 1 ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                </div>
+              ) : comments.length === 0 ? (
+                <div className="text-center py-8 text-gray-500 text-sm">
+                  Chưa có bình luận nào
+                </div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-3 group">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                      {comment.user.username.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="bg-white rounded-xl p-3 border border-gray-200">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold text-sm text-gray-900 mr-2">
+                              {comment.user.username}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatTimeAgo(comment.createdAt)}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleReply(comment.id)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-50 rounded-lg"
+                            title="Trả lời"
+                          >
+                            <Reply className="w-3.5 h-3.5 text-gray-500 hover:text-blue-500" />
+                          </button>
+                        </div>
+                        <p 
+                          className="text-sm text-gray-900 leading-relaxed break-words prose prose-sm max-w-none"
+                          dangerouslySetInnerHTML={{ __html: comment.content || comment.text || '' }}
+                        />
+                        {comment.likes > 0 && (
+                          <div className="mt-2 flex items-center gap-1">
+                            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                            <span className="text-xs text-gray-500">{comment.likes}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Reply input */}
+                      {replyToCommentId === comment.id && (
+                        <div className="mt-2 ml-4 pl-3 border-l-2 border-blue-200">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder={`Trả lời ${comment.user.username}...`}
+                              value={replyText[comment.id] || ""}
+                              onChange={(e) => setReplyText({ ...replyText, [comment.id]: e.target.value })}
+                              className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && replyText[comment.id]?.trim()) {
+                                  createCommentMutation.mutate({
+                                    post_id: post.id,
+                                    content: replyText[comment.id].trim(),
+                                    quote_comment_id: comment.id,
+                                  });
+                                } else if (e.key === "Escape") {
+                                  handleCancelReply();
+                                }
+                              }}
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => {
+                                if (replyText[comment.id]?.trim()) {
+                                  createCommentMutation.mutate({
+                                    post_id: post.id,
+                                    content: replyText[comment.id].trim(),
+                                    quote_comment_id: comment.id,
+                                  });
+                                }
+                              }}
+                              disabled={!replyText[comment.id]?.trim() || createCommentMutation.isPending}
+                              className="px-3 py-2 text-sm font-medium text-blue-500 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Đăng
+                            </button>
+                            <button
+                              onClick={handleCancelReply}
+                              className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+                            >
+                              Hủy
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+
+              {/* Load More Comments */}
+              {hasMoreComments && (
+                <button
+                  onClick={handleLoadMoreComments}
+                  disabled={commentsLoading}
+                  className="w-full py-2 text-sm text-blue-500 hover:text-blue-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {commentsLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                      Đang tải...
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Xem thêm bình luận ({totalComments - comments.length} còn lại)
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add comment */}
-      <div className="border-t px-4 py-2">
+      <div className="border-t border-gray-100 px-4 py-2">
+        {replyToCommentId ? (
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs text-gray-500">Đang trả lời</span>
+            <button
+              onClick={handleCancelReply}
+              className="text-xs text-blue-500 hover:text-blue-600 font-medium"
+            >
+              Hủy
+            </button>
+          </div>
+        ) : null}
         <div className="flex items-center gap-3">
           <input
             type="text"
-            placeholder="Thêm bình luận..."
+            placeholder={replyToCommentId ? "Viết trả lời..." : "Thêm bình luận..."}
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            className="flex-1 text-sm placeholder-gray-400 focus:outline-none text-gray-900"
-            onKeyDown={(e) => e.key === "Enter" && handleSubmitComment()}
+            className="flex-1 text-sm placeholder-gray-400 focus:outline-none text-gray-900 bg-gray-50 rounded-lg px-3 py-2 border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && commentText.trim()) {
+                handleSubmitComment();
+              }
+            }}
+            disabled={createCommentMutation.isPending}
           />
           {commentText.trim() && (
             <button
               onClick={handleSubmitComment}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+              disabled={createCommentMutation.isPending}
+              className="text-sm font-semibold text-blue-500 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Đăng
+              {createCommentMutation.isPending ? "..." : "Đăng"}
             </button>
           )}
         </div>
@@ -246,21 +471,21 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
       {/* Edit Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-lg border">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Chỉnh sửa bài viết</h2>
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Chỉnh sửa bài viết</h2>
               <button
                 onClick={handleCancelEdit}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg p-1 transition-colors"
               >
-                ×
+                <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="p-6 space-y-4">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Tiêu đề
                 </label>
                 <input
@@ -268,21 +493,19 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   placeholder="Nhập tiêu đề..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
 
               {/* Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Nội dung
                 </label>
-                <textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
+                <TipTapEditor
+                  content={editContent}
+                  onChange={setEditContent}
                   placeholder="Nhập nội dung..."
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
                 />
               </div>
 
@@ -293,24 +516,24 @@ export function PostCard({ post, onLike, onComment, onEdit }: PostCardProps) {
                   id="published"
                   checked={editPublished}
                   onChange={(e) => setEditPublished(e.target.checked)}
-                  className="rounded"
+                  className="rounded border-gray-300 text-blue-500 focus:ring-blue-500"
                 />
-                <label htmlFor="published" className="text-sm font-medium text-gray-700">
+                <label htmlFor="published" className="text-sm font-medium text-gray-900">
                   Đã xuất bản
                 </label>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50 rounded-b-xl">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50/50 rounded-b-2xl">
               <button
                 onClick={handleCancelEdit}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Hủy
               </button>
               <button
                 onClick={handleEdit}
-                className="px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200"
               >
                 Lưu thay đổi
               </button>

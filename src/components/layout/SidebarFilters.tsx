@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { filterApi } from "@/apis/filter.api";
 import type { Filter, FilterProp } from "@/models/Filter";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 
 interface SidebarFiltersProps {
   selectedPropIds: string[];
@@ -95,28 +96,28 @@ export default function SidebarFilters({
   }> = [
     {
       id: "price",
-      title: "Price",
+      title: "Giá",
       content: (
-        <div className="flex flex-col gap-2 pt-2 text-xs">
+        <div className="flex flex-col gap-3 pt-2 text-sm">
           <div className="flex items-center gap-2">
             <input
               type="number"
-              placeholder="Min"
-              className="w-20 rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Tối thiểu"
+              className="w-24 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               value={priceMin ?? ""}
               onChange={(e) => handlePriceChange("min", e.target.value)}
             />
             <span className="text-gray-400">—</span>
             <input
               type="number"
-              placeholder="Max"
-              className="w-20 rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Tối đa"
+              className="w-24 rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               value={priceMax ?? ""}
               onChange={(e) => handlePriceChange("max", e.target.value)}
             />
           </div>
-          <p className="text-[11px] text-gray-500">
-            Set a price range to narrow results
+          <p className="text-xs text-gray-500">
+            Đặt khoảng giá để lọc kết quả
           </p>
         </div>
       ),
@@ -139,10 +140,10 @@ export default function SidebarFilters({
                   type="button"
                   onClick={() => toggleProp(p, f.name)}
                   className={cn(
-                    "border rounded px-1.5 py-1 font-medium tracking-wide",
+                    "border rounded-xl px-2 py-1.5 font-medium tracking-wide transition-all duration-200",
                     active
-                      ? "bg-primary text-white border-primary shadow-sm"
-                      : "hover:bg-primary/10"
+                      ? "bg-gray-900 text-white border-gray-900 shadow-md hover:bg-blue-500 hover:border-blue-500"
+                      : "border-gray-200 text-gray-700 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
                   )}
                   title={p.description || p.name}
                 >
@@ -157,11 +158,11 @@ export default function SidebarFilters({
   }
 
   return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex items-center justify-between pb-1">
-        <h2 className="text-sm font-semibold tracking-wide text-gray-700">
-          Filters{" "}
-          {isLoading && <span className="text-[10px] ml-1">Loading…</span>}
+    <div className={cn("space-y-3", className)}>
+      <div className="flex items-center justify-between pb-2">
+        <h2 className="text-base font-bold tracking-wide text-gray-900">
+          Bộ lọc{" "}
+          {isLoading && <span className="text-xs ml-1 text-gray-500">Đang tải…</span>}
         </h2>
         {(selectedPropIds.length > 0 ||
           priceMin != null ||
@@ -169,30 +170,34 @@ export default function SidebarFilters({
           <button
             type="button"
             onClick={onClearAll}
-            className="text-[11px] text-primary hover:underline"
+            className="text-xs text-gray-600 hover:text-blue-500 transition-colors font-medium flex items-center gap-1"
           >
-            Clear
+            <X className="w-3 h-3" />
+            Xóa
           </button>
         )}
       </div>
+      
       {sections.map((sec) => {
         const expanded = open === sec.id;
         return (
           <div
             key={sec.id}
-            className="border rounded bg-white/70 backdrop-blur-sm"
+            className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden"
           >
             <button
               onClick={() => setOpen(expanded ? null : sec.id)}
-              className="w-full flex items-center justify-between px-3 py-2 text-left text-[13px] font-medium hover:bg-primary/5"
+              className="w-full flex items-center justify-between px-4 py-3 text-left text-sm font-semibold text-gray-900 hover:bg-blue-50/50 transition-colors"
             >
               <span>{sec.title}</span>
-              <span className="text-xs text-gray-500">
-                {expanded ? "▾" : "▸"}
-              </span>
+              {expanded ? (
+                <ChevronDown className="w-4 h-4 text-gray-600" />
+              ) : (
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              )}
             </button>
             {expanded && (
-              <div className="px-3 pb-3 bg-gray-50/80 border-t text-gray-700">
+              <div className="px-4 pb-4 bg-gray-50/50 border-t border-gray-100">
                 {sec.content}
               </div>
             )}

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CreateProductInShopPayload } from "@/models/Product";
 import { toast } from "react-toastify";
@@ -155,38 +154,38 @@ export default function CreateProduct() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/products")}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Quay lại
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Tạo sản phẩm mới</h1>
-              <p className="text-gray-600 mt-1">
-                Thêm sản phẩm mới vào shop của bạn
-              </p>
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
+        <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <button
+                onClick={() => navigate("/products")}
+                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Quay lại
+              </button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Tạo sản phẩm mới</h1>
+                <p className="text-gray-600 mt-1">
+                  Thêm sản phẩm mới vào shop của bạn
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Basic Information */}
-          <Card className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <Card className="p-6 border-2 border-gray-100 shadow-lg">
             <div className="flex items-center gap-2 mb-6">
-              <Package className="w-5 h-5 text-purple-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Thông tin cơ bản</h2>
+              <Package className="w-5 h-5 text-blue-500" />
+              <h2 className="text-xl font-bold text-gray-900">Thông tin cơ bản</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Tên sản phẩm *
                 </label>
                 <Input
@@ -194,11 +193,12 @@ export default function CreateProduct() {
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Nhập tên sản phẩm"
                   required
+                  className="h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
               
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Mô tả sản phẩm
                 </label>
                 <textarea
@@ -206,19 +206,19 @@ export default function CreateProduct() {
                   onChange={(e) => handleInputChange("description", e.target.value)}
                   placeholder="Mô tả chi tiết về sản phẩm..."
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Loại sản phẩm *
                 </label>
                 <select
                   value={formData.type}
                   onChange={(e) => handleInputChange("type", e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
                   <option value="">Chọn loại sản phẩm</option>
                   <option value="Áo sơ mi">Áo sơ mi</option>
@@ -235,18 +235,18 @@ export default function CreateProduct() {
           </Card>
 
           {/* Product Images */}
-          <Card className="p-6">
+          <Card className="p-6 border-2 border-gray-100 shadow-lg">
             <div className="flex items-center gap-2 mb-6">
-              <ImageIcon className="w-5 h-5 text-purple-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Hình ảnh sản phẩm</h2>
+              <ImageIcon className="w-5 h-5 text-blue-500" />
+              <h2 className="text-xl font-bold text-gray-900">Hình ảnh sản phẩm</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Upload hình ảnh
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
                   <input
                     type="file"
                     multiple
@@ -294,44 +294,41 @@ export default function CreateProduct() {
           </Card>
 
           {/* Variants */}
-          <Card className="p-6">
+          <Card className="p-6 border-2 border-gray-100 shadow-lg">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <Hash className="w-5 h-5 text-purple-600" />
-                <h2 className="text-xl font-semibold text-gray-900">Biến thể sản phẩm</h2>
+                <Hash className="w-5 h-5 text-blue-500" />
+                <h2 className="text-xl font-bold text-gray-900">Biến thể sản phẩm</h2>
               </div>
-              <Button
+              <button
                 type="button"
-                variant="outline"
                 onClick={addVariant}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 font-medium"
               >
                 <Plus className="w-4 h-4" />
                 Thêm biến thể
-              </Button>
+              </button>
             </div>
             
             <div className="space-y-6">
               {variants.map((variant, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                <div key={index} className="border-2 border-gray-200 rounded-xl p-4 bg-gray-50/50">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-medium text-gray-900">Biến thể {index + 1}</h3>
+                    <h3 className="font-bold text-gray-900">Biến thể {index + 1}</h3>
                     {variants.length > 1 && (
-                      <Button
+                      <button
                         type="button"
-                        variant="outline"
-                        size="sm"
                         onClick={() => removeVariant(index)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                      </button>
                     )}
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Tên biến thể *
                       </label>
                       <Input
@@ -339,17 +336,18 @@ export default function CreateProduct() {
                         onChange={(e) => updateVariant(index, "name", e.target.value)}
                         placeholder="VD: Size M, Màu đỏ"
                         required
+                        className="h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Loại biến thể
                       </label>
                       <select
                         value={variant.type}
                         onChange={(e) => updateVariant(index, "type", e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       >
                         <option value="size">Kích thước</option>
                         <option value="color">Màu sắc</option>
@@ -359,7 +357,7 @@ export default function CreateProduct() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Số lượng tồn kho *
                       </label>
                       <Input
@@ -369,11 +367,12 @@ export default function CreateProduct() {
                         onChange={(e) => updateVariant(index, "stock", parseInt(e.target.value) || 0)}
                         placeholder="0"
                         required
+                        className="h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-semibold text-gray-900 mb-2">
                         Giá bán (VNĐ) *
                       </label>
                       <Input
@@ -383,16 +382,17 @@ export default function CreateProduct() {
                         onChange={(e) => updateVariant(index, "price", parseInt(e.target.value) || 0)}
                         placeholder="0"
                         required
+                        className="h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500"
                       />
                     </div>
                   </div>
                   
                   {/* Variant Images */}
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-900 mb-2">
                       Hình ảnh biến thể
                     </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-purple-400 transition-colors">
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
                       <input
                         type="file"
                         multiple
@@ -440,23 +440,24 @@ export default function CreateProduct() {
 
           {/* Submit Buttons */}
           <div className="flex justify-end gap-4">
-            <Button
+            <button
               type="button"
-              variant="outline"
               onClick={() => navigate("/products")}
+              className="px-6 py-2.5 text-sm font-medium text-gray-900 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
             >
               Hủy
-            </Button>
-            <Button
+            </button>
+            <button
               type="submit"
               disabled={isSubmitting || createProductMutation.isPending}
-              className="flex items-center gap-2"
+              className="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isSubmitting || createProductMutation.isPending ? "Đang tạo..." : "Tạo sản phẩm"}
-            </Button>
+            </button>
           </div>
         </form>
+        </div>
       </div>
     </Layout>
   );

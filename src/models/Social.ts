@@ -40,7 +40,8 @@ export interface Comment {
     username: string;
     avatar?: string;
   };
-  text: string;
+  text?: string; // Legacy field
+  content?: string; // API field
   createdAt: string;
   likes: number;
 }

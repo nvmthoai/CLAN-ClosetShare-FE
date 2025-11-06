@@ -5,12 +5,14 @@ import { outfitApi } from "@/apis/outfit.api";
 import { getUserId } from "@/lib/user";
 import type { User } from "@/models/User";
 import type { Outfit, CreateOutfitPayload } from "@/models/Outfit";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, Plus, Shirt, Sparkles, Heart, Share2, RefreshCw } from "lucide-react";
+import { ChevronDown, Plus, Shirt, Sparkles, Heart, Share2, RefreshCw, X, Edit, User as UserIcon } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [viewType, setViewType] = useState("all");
   const [activeTab, setActiveTab] = useState<'profile' | 'outfits'>('profile');
@@ -68,10 +70,10 @@ export default function Profile() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center py-20">
+        <div className="flex items-center justify-center py-20 bg-gradient-to-br from-white via-blue-50/20 to-white min-h-screen">
           <div className="text-center">
-            <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-500">Loading profile...</p>
+            <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải hồ sơ...</p>
           </div>
         </div>
       </Layout>
@@ -81,9 +83,14 @@ export default function Profile() {
   if (isError) {
     return (
       <Layout>
-        <div className="text-center py-20">
-          <div className="text-red-600 mb-4">Failed to load profile</div>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        <div className="text-center py-20 bg-gradient-to-br from-white via-blue-50/20 to-white min-h-screen">
+          <div className="text-red-600 mb-4">Không thể tải hồ sơ</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 font-medium"
+          >
+            Thử lại
+          </button>
         </div>
       </Layout>
     );
@@ -94,291 +101,306 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
-        {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200 mb-6">
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === 'profile'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Thông tin cá nhân
-          </button>
-          <button
-            onClick={() => setActiveTab('outfits')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
-              activeTab === 'outfits'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <Shirt className="w-4 h-4" />
-            Tủ đồ của tôi
-            {displayOutfits.length > 0 && (
-              <Badge variant="secondary" className="ml-1">
-                {displayOutfits.length}
-              </Badge>
-            )}
-          </button>
-        </div>
-
-        {activeTab === 'profile' && (
-          <div className="max-w-md mx-auto bg-white rounded-2xl shadow-sm border overflow-hidden">
-        {/* Header with avatar and greeting */}
-        <div className="bg-gradient-to-br from-purple-50 to-pink-50 px-6 py-8 text-center">
-          <div className="w-24 h-24 mx-auto mb-4 relative">
-            {userAvatar ? (
-              <img
-                src={userAvatar}
-                alt={userName}
-                className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
-              />
-            ) : (
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center text-white text-2xl font-semibold border-4 border-white shadow-lg">
-                {userName.charAt(0)?.toUpperCase() || "U"}
-              </div>
-            )}
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-200 mb-8">
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={cn(
+                "px-6 py-3 text-sm font-semibold transition-all duration-200 relative",
+                activeTab === 'profile'
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              Thông tin cá nhân
+              {activeTab === 'profile' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('outfits')}
+              className={cn(
+                "px-6 py-3 text-sm font-semibold transition-all duration-200 relative flex items-center gap-2",
+                activeTab === 'outfits'
+                  ? "text-gray-900"
+                  : "text-gray-500 hover:text-gray-700"
+              )}
+            >
+              <Shirt className="w-4 h-4" />
+              Tủ đồ của tôi
+              {displayOutfits.length > 0 && (
+                <Badge className="ml-1 bg-blue-500 text-white">
+                  {displayOutfits.length}
+                </Badge>
+              )}
+              {activeTab === 'outfits' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
+              )}
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-gray-800 mb-1">
-            Hello, {userName}!
-          </h1>
-          <p className="text-sm text-gray-600">{data?.email}</p>
-        </div>
 
-        {/* Recently viewed section */}
-        <div className="px-6 py-6 border-b">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            Recently viewed
-          </h2>
-          <div className="flex gap-3">
-            {recentlyViewed.map((_, i) => (
-              <div
-                key={i}
-                className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 hover:bg-gray-300 cursor-pointer transition"
-              >
-                <div className="w-6 h-6 text-gray-400">
-                  <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                  </svg>
+          {activeTab === 'profile' && (
+            <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden">
+              {/* Header with avatar and greeting */}
+              <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-6 py-8 text-center relative overflow-hidden">
+                {/* Decorative blobs */}
+                <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
+                <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
+                
+                <div className="w-24 h-24 mx-auto mb-4 relative z-10">
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt={userName}
+                      className="w-full h-full rounded-full object-cover border-4 border-white shadow-xl"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-white text-2xl font-semibold border-4 border-white shadow-xl">
+                      {userName.charAt(0)?.toUpperCase() || "U"}
+                    </div>
+                  )}
                 </div>
+                <h1 className="text-xl font-bold text-white mb-1 relative z-10">
+                  Xin chào, {userName}!
+                </h1>
+                <p className="text-sm text-white/90 relative z-10">{data?.email}</p>
+                
+                {/* Edit button */}
+                <button
+                  onClick={() => navigate("/profile/edit")}
+                  className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors backdrop-blur-sm z-10"
+                  title="Chỉnh sửa hồ sơ"
+                >
+                  <Edit className="w-4 h-4 text-white" />
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {/* My Virtual Closet section */}
-        <div className="px-6 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-gray-700">
-              My Virtual Closet
-            </h2>
-            <div className="relative">
-              <select
-                value={viewType}
-                onChange={(e) => setViewType(e.target.value)}
-                className="appearance-none bg-transparent text-sm text-gray-600 pr-6 focus:outline-none cursor-pointer hover:text-gray-800"
-              >
-                <option value="all">View</option>
-                <option value="favorites">Favorites</option>
-                <option value="recent">Recent</option>
-                <option value="sold">Sold</option>
-              </select>
-              <ChevronDown className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Virtual closet grid */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            {virtualClosetItems.map((_, i) => (
-              <div
-                key={i}
-                className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center group cursor-pointer hover:bg-gray-200 transition relative overflow-hidden"
-              >
-                {/* Placeholder clothing items */}
-                <div className="text-2xl text-gray-400 group-hover:text-gray-500 transition">
-                  {i % 3 === 0 ? "👗" : i % 3 === 1 ? "👚" : "👖"}
-                </div>
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200"></div>
-              </div>
-            ))}
-          </div>
-
-          {/* Add item button */}
-          <Button
-            variant="outline"
-            className="w-full border-dashed border-2 border-gray-300 text-gray-500 hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 transition-all"
-          >
-            <span className="text-lg mr-2">+</span>
-            Add new item
-          </Button>
-        </div>
-      </div>
-        )}
-
-        {activeTab === 'outfits' && (
-          <div className="space-y-8">
-            {/* Outfits Header */}
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-3xl font-bold text-gray-900">Tủ đồ của tôi</h2>
-                    {outfitsLoading && (
-                      <div className="flex items-center gap-2 text-sm text-blue-600">
-                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span>Đang tải...</span>
-                      </div>
-                    )}
-                    {!outfitsLoading && !outfitsError && outfits.length > 0 && (
-                      <div className="flex items-center gap-2 text-sm text-green-600">
-                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                        <span>Dữ liệu thực từ server</span>
-                      </div>
-                    )}
-                    {outfitsError && (
-                      <div className="flex items-center gap-2 text-sm text-orange-600">
-                        <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                        <span>Đang dùng dữ liệu mẫu</span>
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-gray-600 text-lg">
-                    Quản lý và chia sẻ các outfit yêu thích của bạn
-                  </p>
-                  <div className="flex items-center gap-4 mt-3">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span>Áo</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span>Quần</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                      <span>Áo khoác</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <span>Phụ kiện</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button
-                    onClick={() => queryClient.invalidateQueries({ queryKey: ["outfits"] })}
-                      variant="outline"
-                    className="flex items-center gap-2"
-                    disabled={outfitsLoading}
+              {/* Recently viewed section */}
+              <div className="px-6 py-6 border-b border-gray-100">
+                <h2 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                  <UserIcon className="w-4 h-4 text-blue-500" />
+                  Đã xem gần đây
+                </h2>
+                <div className="flex gap-3">
+                  {recentlyViewed.map((_, i) => (
+                    <div
+                      key={i}
+                      className="w-12 h-12 rounded-full bg-gray-100 hover:bg-blue-50 border-2 border-gray-200 hover:border-blue-300 flex items-center justify-center flex-shrink-0 cursor-pointer transition-all duration-200"
                     >
-                    <RefreshCw className={`w-4 h-4 ${outfitsLoading ? 'animate-spin' : ''}`} />
-                    Làm mới
-                    </Button>
-                    <Button
-                    onClick={() => setShowCreateOutfit(true)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Tạo outfit mới
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Outfits Grid */}
-            {outfitsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {Array(6).fill(0).map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-sm border overflow-hidden animate-pulse">
-                    <div className="aspect-square bg-gray-200"></div>
-                    <div className="p-4 space-y-2">
-                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      <div className="w-6 h-6 text-gray-400">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : outfitsError ? (
-              <div className="text-center py-20 bg-red-50 rounded-2xl border border-red-200">
-                <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                  <span className="text-4xl">⚠️</span>
-                </div>
-                <h3 className="text-xl font-bold text-red-900 mb-2">
-                  Lỗi tải dữ liệu
-                </h3>
-                <p className="text-red-600 mb-6">
-                  Không thể tải outfits từ server. Vui lòng thử lại sau.
-                </p>
-                <Button
-                  onClick={() => queryClient.invalidateQueries({ queryKey: ["outfits", userId] })}
-                      variant="outline"
-                  className="flex items-center gap-2"
-                    >
-                  <RefreshCw className="w-4 h-4" />
-                  Thử lại
-                    </Button>
-              </div>
-            ) : displayOutfits.length > 0 ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Tất cả outfits ({displayOutfits.length})
-                  </h3>
-                  <div className="text-sm text-gray-500">
-                    Hiển thị {displayOutfits.length} outfits
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {displayOutfits.map((outfit: Outfit) => (
-                    <OutfitCard key={outfit.id} outfit={outfit} />
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-dashed border-gray-300">
-                <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center">
-                  <Shirt className="w-16 h-16 text-purple-500" />
+
+              {/* My Virtual Closet section */}
+              <div className="px-6 py-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-500" />
+                    Tủ đồ ảo của tôi
+                  </h2>
+                  <div className="relative">
+                    <select
+                      value={viewType}
+                      onChange={(e) => setViewType(e.target.value)}
+                      className="appearance-none bg-transparent text-sm text-gray-600 pr-6 focus:outline-none cursor-pointer hover:text-gray-900 focus:ring-2 focus:ring-blue-500 rounded-lg px-2 py-1"
+                    >
+                      <option value="all">Xem tất cả</option>
+                      <option value="favorites">Yêu thích</option>
+                      <option value="recent">Gần đây</option>
+                      <option value="sold">Đã bán</option>
+                    </select>
+                    <ChevronDown className="absolute right-0 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  Chưa có outfit nào
-                </h3>
-                <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
-                  Tạo outfit đầu tiên để bắt đầu chia sẻ phong cách thời trang của bạn với cộng đồng
-                </p>
-                <Button
-                  onClick={() => setShowCreateOutfit(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg px-8 py-3 text-lg"
+
+                {/* Virtual closet grid */}
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  {virtualClosetItems.map((_, i) => (
+                    <div
+                      key={i}
+                      className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-blue-300 flex items-center justify-center group cursor-pointer hover:bg-blue-50 transition-all duration-200 relative overflow-hidden"
+                    >
+                      {/* Placeholder clothing items */}
+                      <div className="text-2xl text-gray-400 group-hover:text-blue-500 transition-colors">
+                        {i % 3 === 0 ? "👗" : i % 3 === 1 ? "👚" : "👖"}
+                      </div>
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/10 group-hover:to-blue-500/5 transition-all duration-200"></div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add item button */}
+                <button
+                  className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-300 hover:text-blue-500 hover:bg-blue-50 transition-all duration-200 font-medium flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
-                  Tạo outfit đầu tiên
-                </Button>
+                  Thêm món đồ mới
+                </button>
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+
+          {activeTab === 'outfits' && (
+            <div className="space-y-8">
+              {/* Outfits Header */}
+              <div className="relative overflow-hidden rounded-2xl p-6 md:p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 shadow-xl">
+                {/* Decorative blobs */}
+                <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
+                <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
+                
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2 className="text-2xl md:text-3xl font-bold text-white">Tủ đồ của tôi</h2>
+                      {outfitsLoading && (
+                        <div className="flex items-center gap-2 text-sm text-white/80">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Đang tải...</span>
+                        </div>
+                      )}
+                      {!outfitsLoading && !outfitsError && outfits.length > 0 && (
+                        <Badge className="bg-blue-500 text-white">
+                          {outfits.length} outfits
+                        </Badge>
+                      )}
+                      {outfitsError && (
+                        <div className="flex items-center gap-2 text-sm text-blue-300">
+                          <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                          <span>Đang dùng dữ liệu mẫu</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-white/90 text-base md:text-lg mb-4">
+                      Quản lý và chia sẻ các outfit yêu thích của bạn
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <div className="flex items-center gap-2 text-sm text-white/80">
+                        <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                        <span>Áo</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-white/80">
+                        <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                        <span>Quần</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-white/80">
+                        <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                        <span>Áo khoác</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-white/80">
+                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                        <span>Phụ kiện</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowCreateOutfit(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-gray-900 font-semibold hover:bg-blue-50 hover:text-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tạo outfit mới
+                  </button>
+                </div>
+              </div>
+
+              {/* Outfits Grid */}
+              {outfitsLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {Array(6).fill(0).map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl shadow-sm border-2 border-gray-100 overflow-hidden animate-pulse">
+                      <div className="aspect-square bg-gray-200"></div>
+                      <div className="p-4 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : outfitsError ? (
+                <div className="text-center py-20 bg-red-50 rounded-2xl border-2 border-red-200">
+                  <div className="w-24 h-24 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                    <span className="text-4xl">⚠️</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Lỗi tải dữ liệu
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Không thể tải outfits từ server. Vui lòng thử lại sau.
+                  </p>
+                  <button
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ["outfits", userId] })}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 font-medium"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    Thử lại
+                  </button>
+                </div>
+              ) : displayOutfits.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-900">
+                      Tất cả outfits ({displayOutfits.length})
+                    </h3>
+                    <div className="text-sm text-gray-500">
+                      Hiển thị {displayOutfits.length} outfits
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {displayOutfits.map((outfit: Outfit) => (
+                      <OutfitCard key={outfit.id} outfit={outfit} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-gradient-to-br from-white via-blue-50/30 to-white rounded-2xl border-2 border-dashed border-gray-200">
+                  <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                    <Shirt className="w-16 h-16 text-blue-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    Chưa có outfit nào
+                  </h3>
+                  <p className="text-gray-600 mb-8 text-lg max-w-md mx-auto">
+                    Tạo outfit đầu tiên để bắt đầu chia sẻ phong cách thời trang của bạn với cộng đồng
+                  </p>
+                  <button
+                    onClick={() => setShowCreateOutfit(true)}
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200 text-lg font-semibold"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Tạo outfit đầu tiên
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Create Outfit Modal */}
       {showCreateOutfit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-lg border">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold">Tạo outfit mới</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Tạo outfit mới</h2>
               <button
                 onClick={() => setShowCreateOutfit(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg p-1 transition-colors"
               >
-                ×
+                <X className="w-5 h-5" />
               </button>
             </div>
             
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
                   Tên outfit
                 </label>
                 <input
@@ -386,20 +408,20 @@ export default function Profile() {
                   value={outfitName}
                   onChange={(e) => setOutfitName(e.target.value)}
                   placeholder="Nhập tên outfit..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 />
               </div>
 
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 bg-gray-50 rounded-xl p-3">
                 <p>Outfit sẽ được tạo với tên "{outfitName || 'Outfit mới'}"</p>
-                <p>Bạn có thể thêm quần áo sau khi tạo.</p>
+                <p className="mt-1">Bạn có thể thêm quần áo sau khi tạo.</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 p-6 border-t bg-gray-50 rounded-b-xl">
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50/50 rounded-b-2xl">
               <button
                 onClick={() => setShowCreateOutfit(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Hủy
               </button>
@@ -410,7 +432,7 @@ export default function Profile() {
                   }
                 }}
                 disabled={!outfitName.trim() || createOutfitMutation.isPending}
-                className="px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-blue-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-200"
               >
                 {createOutfitMutation.isPending ? "Đang tạo..." : "Tạo outfit"}
               </button>
@@ -427,7 +449,7 @@ function OutfitCard({ outfit }: { outfit: Outfit }) {
   const [isLiked, setIsLiked] = useState(false);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border overflow-hidden group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+    <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 overflow-hidden group hover:shadow-xl hover:border-blue-300 transition-all duration-300 hover:-translate-y-2">
       {/* Outfit Image Grid */}
       <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center">
@@ -436,23 +458,19 @@ function OutfitCard({ outfit }: { outfit: Outfit }) {
         </div>
         
         {/* Overlay Actions */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              className="bg-white/95 hover:bg-white shadow-lg"
+            <button
+              className="p-2 bg-white/95 hover:bg-white rounded-full shadow-lg transition-all hover:scale-110"
               onClick={() => setIsLiked(!isLiked)}
             >
-              <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="bg-white/95 hover:bg-white shadow-lg"
+              <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-900'}`} />
+            </button>
+            <button
+              className="p-2 bg-white/95 hover:bg-white rounded-full shadow-lg transition-all hover:scale-110"
             >
-              <Share2 className="w-4 h-4" />
-            </Button>
+              <Share2 className="w-4 h-4 text-gray-900" />
+            </button>
           </div>
         </div>
       </div>
@@ -464,19 +482,19 @@ function OutfitCard({ outfit }: { outfit: Outfit }) {
         </div>
         
         {/* Empty state */}
-        <div className="text-center py-4 mb-4">
+        <div className="text-center py-4 mb-4 bg-gray-50 rounded-xl">
           <span className="text-gray-400 text-sm">Outfit trống</span>
         </div>
 
         {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="flex-1 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700">
-            <Sparkles className="w-3 h-3 mr-1" />
+          <button className="flex-1 px-4 py-2 text-sm font-medium border-2 border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 flex items-center justify-center gap-1">
+            <Sparkles className="w-3 h-3" />
             Styling
-          </Button>
-          <Button size="sm" variant="outline" className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700">
+          </button>
+          <button className="px-4 py-2 text-sm font-medium border-2 border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200">
             <Share2 className="w-3 h-3" />
-          </Button>
+          </button>
         </div>
       </div>
     </div>

@@ -5,8 +5,8 @@ import { subscriptionApi } from "@/apis/subscription.api";
 import { userApi } from "@/apis/user.api";
 import type { CurrentSubscription } from "@/models/CurrentSubscription";
 import type { Subscription } from "@/models/Subscription";
-import { Button } from "@/components/ui/button";
 import { toast } from "react-toastify";
+import { X, Check, Crown, Sparkles, Star } from "lucide-react";
 
 export default function Subscriptions() {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -136,173 +136,288 @@ export default function Subscriptions() {
   }
 
   const plans = data || [];
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<Subscription | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [ripples, setRipples] = useState<Array<{ id: string; key: number; x: number; y: number }>>([]);
+
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-700 border-green-300";
+      case "expired":
+        return "bg-red-100 text-red-700 border-red-300";
+      case "pending":
+        return "bg-yellow-100 text-yellow-700 border-yellow-300";
+      default:
+        return "bg-gray-100 text-gray-700 border-gray-300";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "active":
+        return "Đang hoạt động";
+      case "expired":
+        return "Đã hết hạn";
+      case "pending":
+        return "Đang chờ";
+      default:
+        return status;
+    }
+  };
+
+  const getPlanIcon = (index: number) => {
+    const icons = [Sparkles, Crown, Star];
+    return icons[index % icons.length];
+  };
 
   return (
     <Layout>
-      {/* Ripple keyframes used by card click effect */}
-      <style>{`@keyframes ripple { from { transform: scale(0); opacity: 0.36 } to { transform: scale(4); opacity: 0 } }`}</style>
-      <div className="space-y-10 flex flex-col mx-auto w-full max-w-5xl p-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Gói thành viên</h1>
-          <p className="text-sm text-gray-600">
-            Chọn gói phù hợp để trải nghiệm tốt hơn
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden py-12 md:py-16 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div className="text-xs uppercase tracking-wider text-white/90 mb-3">
+              Gói thành viên
+            </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+              Nâng cấp trải nghiệm của bạn
+            </h1>
+            <p className="text-lg text-white/90 max-w-2xl mx-auto">
+              Chọn gói phù hợp để khám phá thêm nhiều tính năng độc đáo và trải nghiệm tốt hơn
+            </p>
+          </div>
+          {/* Decorative blobs */}
+          <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
+          <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
+        </section>
 
+        {/* Current Subscription Banner */}
         {currentSubRes && (
-          <div className="mx-auto max-w-md bg-gradient-to-r from-green-50 to-emerald-50 border border-emerald-300 rounded-lg p-4 text-sm text-emerald-700 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-semibold text-emerald-900">
-                  Gói hiện tại: {currentSubRes.plan_name}
+          <section className="py-8 bg-gradient-to-br from-white via-blue-50/40 to-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 shadow-lg border-2 border-gray-100">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+                        <Check className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Gói hiện tại: {currentSubRes.plan_name}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeColor(currentSubRes.status)}`}>
+                            {getStatusText(currentSubRes.status)}
+                          </span>
+                          {currentSubRes.expires_at && (
+                            <span className="text-sm text-gray-600">
+                              • Hết hạn: {new Date(currentSubRes.expires_at).toLocaleDateString("vi-VN")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-1">
-                  Trạng thái:{" "}
-                  <span className="font-medium">{currentSubRes.status}</span>
-                  {currentSubRes.expires_at && (
-                    <>
-                      {" "}
-                      - Hết hạn:{" "}
-                      {new Date(currentSubRes.expires_at).toLocaleDateString(
-                        "vi-VN"
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Pricing Plans Section */}
+        <section className="py-16 md:py-20 bg-gradient-to-br from-white via-blue-50/40 to-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {isError && (
+              <div className="text-center py-12 bg-red-50 rounded-2xl border border-red-200 max-w-2xl mx-auto">
+                <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Không tải được danh sách gói
+                </h3>
+                <p className="text-gray-600">
+                  Vui lòng thử lại sau hoặc liên hệ hỗ trợ
+                </p>
+              </div>
+            )}
+
+            {isLoading ? (
+              <div className="flex flex-wrap justify-center gap-6 md:gap-8">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl p-8 shadow-lg border-2 border-gray-100 animate-pulse h-96 w-full max-w-sm"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className={`flex flex-wrap justify-center gap-6 md:gap-8 ${
+                plans.length === 2 ? "max-w-4xl mx-auto" : ""
+              }`}>
+                {plans.map((p, index) => {
+                  const IconComponent = getPlanIcon(index);
+                  const isCurrentPlan = currentSubRes?.subscription_plan_id === p.id;
+                  
+                  return (
+                    <div
+                      key={p.id}
+                      className={`group relative bg-white rounded-2xl p-8 shadow-lg border-2 transition-all duration-300 transform hover:-translate-y-2 w-full ${
+                        plans.length === 2 
+                          ? "max-w-md flex-1 min-w-[300px]" 
+                          : plans.length === 3
+                          ? "max-w-sm"
+                          : "max-w-sm"
+                      } ${
+                        isCurrentPlan
+                          ? "border-blue-500 shadow-blue-200"
+                          : "border-gray-100 hover:border-blue-300 hover:shadow-xl"
+                      }`}
+                    >
+                      {/* Popular Badge */}
+                      {index === 1 && (
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-blue-400 to-blue-500 text-white text-xs font-bold rounded-full shadow-lg">
+                          Phổ biến nhất
+                        </div>
                       )}
-                    </>
-                  )}
-                </div>
+
+                      <div className="flex flex-col h-full">
+                        <div className="flex flex-col items-center text-center flex-1">
+                          {/* Icon */}
+                          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                            <IconComponent className="w-8 h-8 text-white" />
+                          </div>
+
+                          {/* Plan Name */}
+                          <h3 className="text-2xl font-bold text-gray-900 mb-2 group-hover:text-blue-500 transition-colors">
+                            {p.name}
+                          </h3>
+
+                          {/* Description */}
+                          <div className="text-sm text-gray-600 mb-6 min-h-[80px] flex items-center justify-center">
+                            <p className="text-center leading-relaxed">
+                              {p.description || "Gói phù hợp cho bạn"}
+                            </p>
+                          </div>
+
+                        {/* Price */}
+                        <div className="mb-4">
+                          <div className="text-4xl md:text-5xl font-bold text-gray-900 mb-2 group-hover:text-blue-500 transition-colors">
+                            {new Intl.NumberFormat("vi-VN", {
+                              style: "currency",
+                              currency: "VND",
+                              maximumFractionDigits: 0,
+                            }).format(p.price)}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            / {p.duration_days} ngày
+                          </div>
+                        </div>
+
+                          {/* Features */}
+                          <div className="w-full space-y-3 mb-6 flex-1">
+                            <div className="flex items-start gap-2 text-sm text-gray-700">
+                              <Check className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                              <span className="text-left">Quyền truy cập đầy đủ</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-sm text-gray-700">
+                              <Check className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                              <span className="text-left">Hỗ trợ 24/7</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-sm text-gray-700">
+                              <Check className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                              <span className="text-left">Cập nhật tính năng mới</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* CTA Button */}
+                        <button
+                          onClick={() => {
+                            setSelectedPlan(p);
+                            setShowConfirm(true);
+                          }}
+                          disabled={isPending || isCurrentPlan}
+                          className={`w-full px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg mt-auto ${
+                            isCurrentPlan
+                              ? "bg-gray-300 text-gray-600 cursor-not-allowed"
+                              : "bg-gray-900 text-white hover:bg-blue-500 hover:shadow-blue-200 transform hover:scale-105"
+                          } disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100`}
+                        >
+                          {isCurrentPlan
+                            ? "Gói hiện tại"
+                            : isPending
+                            ? "Đang xử lý..."
+                            : "Chọn gói này"}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
           </div>
-        )}
-        {isError && (
-          <div className="text-red-600">Không tải được danh sách gói.</div>
-        )}
-        {isLoading ? (
-          <div className="flex flex-wrap justify-center gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div
-                key={i}
-                className="border rounded-xl p-4 bg-white animate-pulse h-40 w-full max-w-sm"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-wrap justify-center gap-6 mt-10">
-            {plans.map((p) => (
-              <div
-                key={p.id}
-                // Interactive: hover shadow and press scale implemented via JS to avoid linter issues
-                className="relative border rounded-xl bg-white p-5 shadow-sm w-full max-w-sm transform transition-transform duration-150 ease-out hover:shadow-md cursor-pointer"
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-                    e.preventDefault();
-                    // keyboard activation opens confirmation modal
-                    setSelectedPlan(p);
-                    setShowConfirm(true);
-                  }
-                }}
-                onMouseDown={() => setActiveId(p.id)}
-                onMouseUp={() => setActiveId(null)}
-                onMouseLeave={() => setActiveId(null)}
-                onTouchStart={() => setActiveId(p.id)}
-                onTouchEnd={() => setActiveId(null)}
-                style={{ transform: activeId === p.id ? "scale(0.97)" : undefined }}
-                onClick={(e) => {
-                  // create ripple
-                  try {
-                    const target = e.currentTarget as HTMLElement;
-                    const rect = target.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const key = Date.now();
-                    setRipples((r) => [...r, { id: p.id, key, x, y }]);
-                    // remove ripple after animation
-                    setTimeout(() => {
-                      setRipples((r) => r.filter((rp) => rp.key !== key));
-                    }, 600);
-                  } catch (err) {
-                    // ignore
-                  }
-                  // open confirm modal
-                  setSelectedPlan(p);
-                  setShowConfirm(true);
-                }}
-              >
-                <div className="text-lg font-semibold">{p.name}</div>
-                <div className="text-gray-600 text-sm mt-1">
-                  {p.description || ""}
-                </div>
-                {/* Ripples for this card */}
-                {ripples
-                  .filter((r) => r.id === p.id)
-                  .map((r) => (
-                    <span
-                      key={r.key}
-                      style={{
-                        position: "absolute",
-                        left: r.x,
-                        top: r.y,
-                        width: 200,
-                        height: 200,
-                        marginLeft: -100,
-                        marginTop: -100,
-                        borderRadius: "50%",
-                        background: "rgba(0,0,0,0.06)",
-                        pointerEvents: "none",
-                        animation: "ripple 600ms ease-out forwards",
-                      }}
-                    />
-                  ))}
-                <div className="text-2xl font-extrabold text-primary mt-3">
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(p.price)}
-                </div>
-                <div className="text-sm text-gray-500 mt-1">
-                  {p.duration_days} ngày
-                </div>
-                <div className="pt-4">
-                  <Button
-                    className="w-full"
-                    onClick={() => buy(p.id)}
-                    disabled={isPending}
-                  >
-                    {isPending ? "Đang xử lý..." : "Mua ngay"}
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        </section>
       </div>
-      {/* Confirm modal for purchase */}
+
+      {/* Confirm Modal */}
       {showConfirm && selectedPlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md bg-white rounded-xl shadow-lg border p-6">
-            <h3 className="text-xl font-semibold mb-2">Xác nhận mua gói</h3>
-            <div className="mb-2 text-sm text-gray-700">Bạn sắp mua gói:</div>
-            <div className="mb-4">
-              <div className="font-semibold">{selectedPlan.name}</div>
-              <div className="text-sm text-gray-500">
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(selectedPlan.price)} • {selectedPlan.duration_days} ngày
-              </div>
-            </div>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-900">Xác nhận mua gói</h3>
               <button
                 onClick={() => {
                   setShowConfirm(false);
                   setSelectedPlan(null);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg p-1 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="text-sm text-gray-600 mb-2">Bạn sắp mua gói:</div>
+              
+              <div className="bg-gradient-to-br from-blue-50/50 to-white rounded-xl p-4 border border-gray-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg text-gray-900">{selectedPlan.name}</div>
+                    <div className="text-sm text-gray-600">{selectedPlan.description || ""}</div>
+                  </div>
+                </div>
+                
+                <div className="flex items-baseline gap-2 mb-2">
+                  <span className="text-3xl font-bold text-gray-900">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                      maximumFractionDigits: 0,
+                    }).format(selectedPlan.price)}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    / {selectedPlan.duration_days} ngày
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 rounded-lg p-3 border border-blue-200">
+                <Check className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <span>Bạn sẽ được chuyển đến trang thanh toán PayOS để hoàn tất giao dịch</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50/50 rounded-b-2xl">
+              <button
+                onClick={() => {
+                  setShowConfirm(false);
+                  setSelectedPlan(null);
+                }}
+                className="px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Hủy
               </button>
@@ -315,7 +430,7 @@ export default function Subscriptions() {
                   setSelectedPlan(null);
                 }}
                 disabled={isPending}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-60"
+                className="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-blue-500 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-200"
               >
                 {isPending ? "Đang xử lý..." : "Xác nhận mua"}
               </button>
