@@ -419,7 +419,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src="/combine_logo.png" alt="CLOSETSHARE" className="h-8 w-auto" />
+              <img src="/combine_logo_1.png" alt="CLOSETSHARE" className="h-8 w-auto" />
               <span className="text-xs text-gray-600">
                 © {new Date().getFullYear()} ClosetShare. All rights reserved.
               </span>

@@ -23,6 +23,10 @@ export const outfitApi = {
     fetcher.get("/outfits/public", {
       params,
     }),
+
+  // GET /outfits/public/{id} - Get public outfit detail
+  getPublicOutfitById: (outfitId: string) =>
+    fetcher.get(`/outfits/public/${outfitId}`),
   
   // GET /outfits/{outfitId} - Get outfit details
   getById: (outfitId: string) =>

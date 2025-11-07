@@ -10,7 +10,7 @@ export default function ViewOutfitPublic() {
 
   const { data: outfitDetail, isLoading, isError } = useQuery({
     queryKey: ["outfit", "public", id],
-    queryFn: () => outfitApi.getById(id!),
+    queryFn: () => outfitApi.getPublicOutfitById(id!),
     select: (res: any) => {
       const responseData = res.data;
       if (responseData && typeof responseData === 'object' && 'id' in responseData) {
