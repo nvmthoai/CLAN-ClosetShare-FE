@@ -228,6 +228,7 @@ export default function MainRoutes() {
           }
         />
          <Route path="/outfit/:id" element={<ViewOutfitPublic />} />
+         <Route path="/outfits/:id" element={<ViewOutfitPublic />} />
       </Routes>
     </>
   );

@@ -31,6 +31,8 @@ const getEnvBaseUrl = () => {
   return null;
 };
 
+const DEFAULT_CANONICAL_URL = "https://closetshare.vercel.app";
+
 export const getAppBaseUrl = () => {
   const envBaseUrl = getEnvBaseUrl();
   if (envBaseUrl) {
@@ -38,11 +40,22 @@ export const getAppBaseUrl = () => {
   }
 
   if (typeof window !== "undefined" && window.location) {
-    return normalizeBaseUrl(`${window.location.protocol}//${window.location.host}`);
+    const host = window.location.host;
+    const protocol = window.location.protocol;
+
+    // Force canonical domain for vercel preview domains or localhost
+    const isLocalhost = /localhost|127\.0\.0\.1/.test(host);
+    const isVercelPreview = /vercel\.app$/i.test(host) && host !== new URL(DEFAULT_CANONICAL_URL).host;
+
+    if (isLocalhost || isVercelPreview) {
+      return DEFAULT_CANONICAL_URL;
+    }
+
+    return normalizeBaseUrl(`${protocol}//${host}`);
   }
 
   // Fallback to Vercel-style domain if nothing else available
-  return "https://closetshare.vercel.app";
+  return DEFAULT_CANONICAL_URL;
 };
 
 export const buildAppUrl = (path = "") => {

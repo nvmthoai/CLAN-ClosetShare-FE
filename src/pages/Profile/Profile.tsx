@@ -262,7 +262,7 @@ export default function Profile() {
 
   // Get share URL - automatically uses current domain (works on localhost, Vercel, and any domain)
   const getShareUrl = (outfitId: string) => {
-    return buildAppUrl(`/outfit/${outfitId}`);
+    return buildAppUrl(`/outfits/${outfitId}`);
   };
 
   // Handle toggle closet item selection

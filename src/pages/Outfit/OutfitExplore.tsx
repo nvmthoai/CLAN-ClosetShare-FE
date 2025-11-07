@@ -241,7 +241,7 @@ export default function OutfitExplore() {
     if (copyingId) return;
     try {
       setCopyingId(outfitId);
-      const shareUrl = buildAppUrl(`/outfit/${outfitId}`);
+      const shareUrl = buildAppUrl(`/outfits/${outfitId}`);
       await navigator.clipboard.writeText(shareUrl);
       toast.success("Đã sao chép liên kết outfit!");
     } catch (error) {
@@ -540,7 +540,7 @@ export default function OutfitExplore() {
                       </div>
                       <div className="flex gap-2">
                         <Button variant="outline" className="rounded-full" asChild>
-                          <Link to={`/outfit/${outfit.id}`} target="_blank" rel="noreferrer">
+                          <Link to={`/outfits/${outfit.id}`} target="_blank" rel="noreferrer">
                             <ExternalLink className="w-4 h-4 mr-2" />Xem chi tiết
                           </Link>
                         </Button>
