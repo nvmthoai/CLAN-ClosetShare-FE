@@ -3,6 +3,9 @@ export const normalizeBaseUrl = (url: string) => {
   return url.replace(/\/$/, "");
 };
 
+const CANONICAL_HOST = "closetshare.vercel.app";
+const DEFAULT_CANONICAL_URL = `https://${CANONICAL_HOST}`;
+
 const getEnvBaseUrl = () => {
   const candidates = [
     import.meta.env.VITE_PUBLIC_APP_URL,
@@ -19,7 +22,20 @@ const getEnvBaseUrl = () => {
     try {
       const hasProtocol = /^https?:\/\//i.test(trimmed);
       const url = hasProtocol ? new URL(trimmed) : new URL(`https://${trimmed}`);
-      return normalizeBaseUrl(`${url.protocol}//${url.host}`);
+      const host = url.host.toLowerCase();
+
+      if (host === CANONICAL_HOST) {
+        return normalizeBaseUrl(`${url.protocol}//${CANONICAL_HOST}`);
+      }
+
+      // Skip localhost or preview Vercel URLs so we can fall back to canonical
+      const isLocal = /localhost|127\.0\.0\.1/.test(host);
+      const isVercelPreview = host.endsWith("vercel.app") && host !== CANONICAL_HOST;
+      if (isLocal || isVercelPreview) {
+        continue;
+      }
+
+      return normalizeBaseUrl(`${url.protocol}//${host}`);
     } catch (error) {
       // eslint-disable-next-line no-console
       if (import.meta.env.DEV) {
@@ -30,8 +46,6 @@ const getEnvBaseUrl = () => {
 
   return null;
 };
-
-const DEFAULT_CANONICAL_URL = "https://closetshare.vercel.app";
 
 export const getAppBaseUrl = () => {
   const envBaseUrl = getEnvBaseUrl();
@@ -45,7 +59,7 @@ export const getAppBaseUrl = () => {
 
     // Force canonical domain for vercel preview domains or localhost
     const isLocalhost = /localhost|127\.0\.0\.1/.test(host);
-    const isVercelPreview = /vercel\.app$/i.test(host) && host !== new URL(DEFAULT_CANONICAL_URL).host;
+    const isVercelPreview = /vercel\.app$/i.test(host) && host !== CANONICAL_HOST;
 
     if (isLocalhost || isVercelPreview) {
       return DEFAULT_CANONICAL_URL;
