@@ -7,238 +7,17 @@ import type {
   UpdatePostPayload,
 } from "@/models/Social";
 import { postApi } from "@/apis/post.api";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Plus, X, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { TipTapEditor } from "@/components/ui/tiptap-editor";
 
-type FeedTab = "personal" | "explore";
-
-// Mock data for explore feed (Instagram style)
-const mockExplorePosts: Post[] = [
-  {
-    id: "explore-1",
-    title: "Street Style",
-    content: "Outfit của ngày hôm nay! #streetstyle #fashion",
-    author_id: "user-1",
-    created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-1",
-      username: "fashionista_vn",
-      name: "Fashion Lover",
-    },
-    images: ["https://i.pinimg.com/1200x/e9/d1/d8/e9d1d8ab8a2ac41315e327ba12ef51b3.jpg"],
-    caption: "Street Style",
-    likes: 1240,
-    isLiked: false,
-    comments: [
-      {
-        id: "c1",
-        user: { id: "u1", username: "follower1" },
-        text: "Love this outfit!",
-        createdAt: new Date().toISOString(),
-        likes: 5,
-      },
-    ],
-  },
-  {
-    id: "explore-2",
-    title: "Minimalist Chic",
-    content: "Less is more 💫",
-    author_id: "user-2",
-    created_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-2",
-      username: "minimalist_life",
-      name: "Minimalist",
-    },
-    images: ["https://i.pinimg.com/736x/51/e9/ca/51e9ca5f6f96fd93a245e6dc6e6d4e47.jpg"],
-    caption: "Minimalist Chic",
-    likes: 892,
-    isLiked: false,
-    comments: [],
-  },
-  {
-    id: "explore-3",
-    title: "Vintage Vibes",
-    content: "Thrifted và repurposed ✨",
-    author_id: "user-3",
-    created_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-3",
-      username: "vintage_collector",
-      name: "Vintage Collector",
-    },
-    images: ["https://i.pinimg.com/736x/dc/e6/a9/dce6a98701789ba3a1d5f27337a12915.jpg"],
-    caption: "Vintage Vibes",
-    likes: 2105,
-    isLiked: true,
-    comments: [
-      {
-        id: "c2",
-        user: { id: "u2", username: "follower2" },
-        text: "Where did you get this?",
-        createdAt: new Date().toISOString(),
-        likes: 12,
-      },
-    ],
-  },
-  {
-    id: "explore-4",
-    title: "Summer Fresh",
-    content: "Beach ready! 🏖️",
-    author_id: "user-4",
-    created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-4",
-      username: "summer_vibes",
-      name: "Summer Vibes",
-    },
-    images: ["https://i.pinimg.com/1200x/08/36/41/083641bf526371e2373e29648857f582.jpg"],
-    caption: "Summer Fresh",
-    likes: 567,
-    isLiked: false,
-    comments: [],
-  },
-  {
-    id: "explore-5",
-    title: "Business Casual",
-    content: "Work appropriate outfit",
-    author_id: "user-5",
-    created_at: new Date(Date.now() - 15 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-5",
-      username: "corporate_chic",
-      name: "Corporate Chic",
-    },
-    images: ["https://i.pinimg.com/1200x/75/bb/2b/75bb2be8bedacc9666c41bb4c83be9dc.jpg"],
-    caption: "Business Casual",
-    likes: 1534,
-    isLiked: false,
-    comments: [
-      {
-        id: "c3",
-        user: { id: "u3", username: "follower3" },
-        text: "Perfect for the office!",
-        createdAt: new Date().toISOString(),
-        likes: 8,
-      },
-    ],
-  },
-  {
-    id: "explore-6",
-    title: "Cozy Winter",
-    content: "Staying warm and stylish 🧣",
-    author_id: "user-6",
-    created_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-6",
-      username: "winter_cozy",
-      name: "Winter Cozy",
-    },
-    images: ["https://i.pinimg.com/1200x/43/42/15/43421589a5761575133278c27fc368b7.jpg"],
-    caption: "Cozy Winter",
-    likes: 987,
-    isLiked: true,
-    comments: [],
-  },
-  {
-    id: "explore-7",
-    title: "Boho Dreams",
-    content: "Free spirit vibes 🌸",
-    author_id: "user-7",
-    created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-7",
-      username: "boho_dreams",
-      name: "Boho Dreams",
-    },
-    images: ["https://i.pinimg.com/736x/d7/67/14/d76714dfc7906db36a1518ee39e5ef61.jpg"],
-    caption: "Boho Dreams",
-    likes: 2341,
-    isLiked: false,
-    comments: [
-      {
-        id: "c4",
-        user: { id: "u4", username: "follower4" },
-        text: "So beautiful!",
-        createdAt: new Date().toISOString(),
-        likes: 15,
-      },
-    ],
-  },
-  {
-    id: "explore-8",
-    title: "Athleisure",
-    content: "Comfort meets style",
-    author_id: "user-8",
-    created_at: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-8",
-      username: "active_life",
-      name: "Active Life",
-    },
-    images: ["https://i.pinimg.com/736x/0f/12/39/0f12396442d746cb8637b965e8449e05.jpg"],
-    caption: "Athleisure",
-    likes: 1123,
-    isLiked: false,
-    comments: [],
-  },
-  {
-    id: "explore-9",
-    title: "Evening Elegance",
-    content: "Ready for the night ✨",
-    author_id: "user-9",
-    created_at: new Date(Date.now() - 36 * 60 * 60 * 1000).toISOString(),
-    updated_at: new Date().toISOString(),
-    published: true,
-    user: {
-      id: "user-9",
-      username: "night_owl",
-      name: "Night Owl",
-    },
-    images: ["https://i.pinimg.com/736x/5f/9b/4c/5f9b4c3f43a2e2449c0923ff1ec8d976.jpg"],
-    caption: "Evening Elegance",
-    likes: 2890,
-    isLiked: true,
-    comments: [
-      {
-        id: "c5",
-        user: { id: "u5", username: "follower5" },
-        text: "Stunning!",
-        createdAt: new Date().toISOString(),
-        likes: 20,
-      },
-    ],
-  },
-];
 
 export default function Feed() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<FeedTab>("explore");
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [postTitle, setPostTitle] = useState("");
   const [postContent, setPostContent] = useState("");
 
-  // Stories removed from feed (per design request)
-
-  // Fetch posts from API (personal feed)
   const {
     data: posts,
     isLoading,
@@ -247,55 +26,24 @@ export default function Feed() {
     queryKey: ["posts"],
     queryFn: () => postApi.getPosts(),
     select: (res) => {
-      // Handle both array response and object with posts property
       if (Array.isArray(res.data)) {
-        console.log(res.data);
         return res.data;
       }
-      console.log(res.data?.posts);
       return res.data?.posts || [];
-    },
-  });
-
-  const likeMutation = useMutation({
-    mutationFn: (_postId: string) => {
-      // Mock API call
-      return Promise.resolve({ data: { success: true } });
-    },
-    onMutate: async (postId) => {
-      // Optimistic update for personal feed
-      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
-        if (!oldPosts) return [];
-        return oldPosts.map((post: Post) =>
-          post.id === postId
-            ? {
-                ...post,
-                isLiked: !post.isLiked,
-                likes: post.isLiked
-                  ? (post.likes || 0) - 1
-                  : (post.likes || 0) + 1,
-              }
-            : post
-        );
-      });
     },
   });
 
   const createPostMutation = useMutation({
     mutationFn: (payload: CreatePostPayload) => postApi.createPost(payload),
     onSuccess: () => {
-      // Reset form
       setPostTitle("");
       setPostContent("");
       setShowCreatePost(false);
-      
-      // Invalidate and refetch posts
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: () => {},
   });
 
-  // Reset form when closing modal
   const handleCloseCreatePost = () => {
     setPostTitle("");
     setPostContent("");
@@ -311,7 +59,6 @@ export default function Feed() {
       payload: UpdatePostPayload;
     }) => postApi.updatePost(postId, payload),
     onSuccess: (data, { postId }) => {
-      // Update the post in the cache
       queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
         if (!oldPosts) return [];
         return oldPosts.map((post: Post) =>
@@ -322,48 +69,23 @@ export default function Feed() {
     onError: () => {},
   });
 
-  const handleLike = (postId: string) => {
-    likeMutation.mutate(postId);
-    // For explore feed, update local state
-    if (activeTab === "explore") {
-      // This would be handled by API in real implementation
-    }
-  };
+  const handleLike = useCallback(
+    (postId: string, liked: boolean, totalLikes: number) => {
+      queryClient.setQueryData(["posts"], (oldPosts: Post[] | undefined) => {
+        if (!oldPosts) return oldPosts;
+        return oldPosts.map((post: Post) =>
+          post.id === postId
+            ? { ...post, isLiked: liked, likes: totalLikes }
+            : post
+        );
+      });
+    },
+    [queryClient]
+  );
 
   const handleEdit = (postId: string, payload: UpdatePostPayload) => {
     editPostMutation.mutate({ postId, payload });
   };
-
-  // Stories removed — no story handling needed
-
-
-
-  if (isLoading && activeTab === "personal") {
-    return (
-      <Layout>
-        <div className="space-y-6">
-          {Array(3)
-            .fill(0)
-            .map((_, i) => (
-              <div
-                key={i}
-                className="bg-white border border-gray-200 rounded-2xl p-4 animate-pulse shadow-sm"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-24"></div>
-                </div>
-                <div className="aspect-square bg-gray-200 rounded-xl mb-4"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-full"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                </div>
-              </div>
-            ))}
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -395,107 +117,15 @@ export default function Feed() {
           <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-2 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab("explore")}
-            className={cn(
-              "px-6 py-3 font-semibold text-sm transition-all duration-200 relative",
-              activeTab === "explore"
-                ? "text-gray-900"
-                : "text-gray-500 hover:text-gray-700"
-            )}
-          >
-            Khám phá
-            {activeTab === "explore" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab("personal")}
-            className={cn(
-              "px-6 py-3 font-semibold text-sm transition-all duration-200 relative",
-              activeTab === "personal"
-                ? "text-gray-900"
-                : "text-gray-500 hover:text-gray-700"
-            )}
-          >
-            Của bạn
-            {activeTab === "personal" && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"></span>
-            )}
-          </button>
-        </div>
-
-        {/* Stories removed */}
-
-        {/* Category pills - only show for personal feed */}
-       
-
         {/* Main grid with suggestions */}
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_22rem] gap-6 items-start">
           {/* Feed */}
           <div className="space-y-6 max-w-2xl">
-            {activeTab === "explore" ? (
-              // Explore Feed - List Layout
-              <>
-                {mockExplorePosts.length === 0 ? (
-                  <div className="text-center py-12 bg-gradient-to-br from-white via-blue-50/30 to-white rounded-2xl border border-gray-200">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-2xl">🔍</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Chưa có bài viết nào
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Khám phá những bài viết thời trang mới nhất từ cộng đồng!
-                    </p>
-                  </div>
-                ) : (
-                  mockExplorePosts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={handleLike}
-                    />
-                  ))
-                )}
-
-                {/* Load more indicator */}
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center gap-2 text-gray-500">
-                    <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                    Đang tải thêm bài viết...
-                  </div>
-                </div>
-              </>
-            ) : (
-              // Personal Feed - Same layout as Explore
-              <>
-                {isLoading ? (
-                  <div className="space-y-6">
-                    {Array(3)
-                      .fill(0)
-                      .map((_, i) => (
-                        <div
-                          key={i}
-                          className="bg-white border border-gray-200 rounded-2xl animate-pulse shadow-sm"
-                        >
-                          <div className="p-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                              <div className="h-4 bg-gray-200 rounded w-24"></div>
-                            </div>
-                          </div>
-                          <div className="w-full h-64 bg-gray-200"></div>
-                          <div className="p-3 space-y-2">
-                            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : postsError ? (
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                Đang tải bài viết...
+              </div>
+            ) : postsError ? (
                   <div className="text-center py-12 bg-red-50 rounded-2xl border border-red-200">
                     <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
                       <span className="text-2xl">⚠️</span>
@@ -535,107 +165,63 @@ export default function Feed() {
                       Tạo bài viết
                     </button>
                   </div>
-                ) : (
-                  (posts || []).map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={handleLike}
-                      onEdit={handleEdit}
-                    />
-                  ))
-                )}
-
-                {/* Load more indicator */}
-                <div className="text-center py-8">
-                  <div className="inline-flex items-center gap-2 text-gray-500">
-                    <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                    Đang tải thêm bài viết...
-                  </div>
-                </div>
-              </>
+            ) : (
+              (posts || []).map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={handleLike}
+                  onEdit={handleEdit}
+                />
+              ))
             )}
+
+            {/* Load more indicator */}
+            <div className="text-center py-8">
+              <div className="inline-flex items-center gap-2 text-gray-500">
+                <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                Đang tải thêm bài viết...
+              </div>
+            </div>
           </div>
 
-          {/* Suggestions - show for both feeds */}
-          {activeTab === "explore" && (
-            <aside className="hidden xl:block space-y-4 sticky top-24">
-              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
-                <h2 className="text-sm font-bold text-gray-900 mb-4">Gợi ý theo dõi</h2>
-                <div className="space-y-3">
-                  {["sophia", "kenny", "maria"].map((u) => (
-                    <div key={u} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <img
-                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                          src={`https://ui-avatars.com/api/?name=${u}`}
-                          alt={u}
-                        />
-                        <div className="text-sm">
-                          <div className="font-semibold text-gray-900">{u}</div>
-                          <div className="text-gray-500">Mới trên ClosetShare</div>
-                        </div>
+          {/* Suggestions */}
+          <aside className="hidden xl:block space-y-4 sticky top-24">
+            <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
+              <h2 className="text-sm font-bold text-gray-900 mb-4">Gợi ý theo dõi</h2>
+              <div className="space-y-3">
+                {["sophia", "kenny", "maria"].map((u) => (
+                  <div key={u} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img
+                        className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                        src={`https://ui-avatars.com/api/?name=${u}`}
+                        alt={u}
+                      />
+                      <div className="text-sm">
+                        <div className="font-semibold text-gray-900">{u}</div>
+                        <div className="text-gray-500">Mới trên ClosetShare</div>
                       </div>
-                      <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 font-medium">
-                        Theo dõi
-                      </button>
                     </div>
-                  ))}
-                </div>
+                    <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 font-medium">
+                      Theo dõi
+                    </button>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
-                <h2 className="text-sm font-bold text-gray-900 mb-3">Điểm nổi bật trong tuần</h2>
-                <div className="p-4 rounded-xl border border-gray-200 bg-gradient-to-br from-white via-blue-50/30 to-white">
-                  <div className="text-sm font-semibold text-gray-900 mb-2">Mẹo stylist AI</div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
-                    đại để tạo phom dáng tươi mới.
-                  </p>
-                </div>
+            <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
+              <h2 className="text-sm font-bold text-gray-900 mb-3">Điểm nổi bật trong tuần</h2>
+              <div className="p-4 rounded-xl border border-gray-200 bg-gradient-to-br from-white via-blue-50/30 to-white">
+                <div className="text-sm font-semibold text-gray-900 mb-2">Mẹo stylist AI</div>
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
+                  đại để tạo phom dáng tươi mới.
+                </p>
               </div>
-            </aside>
-          )}
-
-          {/* Suggestions - only show for personal feed */}
-          {activeTab === "personal" && (
-            <aside className="hidden xl:block space-y-4 sticky top-24">
-              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
-                <h2 className="text-sm font-bold text-gray-900 mb-4">Gợi ý theo dõi</h2>
-                <div className="space-y-3">
-                  {["sophia", "kenny", "maria"].map((u) => (
-                    <div key={u} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <img
-                          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                          src={`https://ui-avatars.com/api/?name=${u}`}
-                          alt={u}
-                        />
-                        <div className="text-sm">
-                          <div className="font-semibold text-gray-900">{u}</div>
-                          <div className="text-gray-500">Mới trên ClosetShare</div>
-                        </div>
-                      </div>
-                      <button className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-all duration-200 font-medium">
-                        Theo dõi
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-gray-200 bg-white/70 backdrop-blur p-5 shadow-sm">
-                <h2 className="text-sm font-bold text-gray-900 mb-3">Điểm nổi bật trong tuần</h2>
-                <div className="p-4 rounded-xl border border-gray-200 bg-gradient-to-br from-white via-blue-50/30 to-white">
-                  <div className="text-sm font-semibold text-gray-900 mb-2">Mẹo stylist AI</div>
-                  <p className="text-xs text-gray-600 leading-relaxed">
-                    Thử kết hợp áo khoác cổ điển (vintage) với giày thể thao hiện
-                    đại để tạo phom dáng tươi mới.
-                  </p>
-                </div>
-              </div>
-            </aside>
-          )}
+            </div>
+          </aside>
         </div>
       </div>
 

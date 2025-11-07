@@ -9,4 +9,8 @@ export interface UpdateMePayload {
 export const userApi = {
   getMe: () => fetcher.get("/users/me"),
   updateMe: (payload: UpdateMePayload) => fetcher.put("/users/me", payload),
+  searchUsers: (params: { page?: number; limit?: number; search?: string }) =>
+    fetcher.get("/users", {
+      params,
+    }),
 };

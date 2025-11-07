@@ -1,5 +1,17 @@
 import { fetcher } from "./fetcher";
+import { getAccessToken } from "@/lib/token";
 import type { Post, CreatePostPayload, UpdatePostPayload, Comment } from "../models/Social";
+
+const tokenConfig = () => {
+  const token = getAccessToken();
+  return token
+    ? {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    : {};
+};
 
 export interface CreateCommentPayload {
   post_id: string;
@@ -50,6 +62,18 @@ export const postApi = {
   // POST /comments - Create comment or reply
   createComment: (payload: CreateCommentPayload) =>
     fetcher.post<Comment>("/comments", payload),
+
+  // POST /posts/{postId}/reacts - React to a post (like)
+  reactPost: (postId: string) =>
+    fetcher.post(
+      `/posts/${postId}/reacts`,
+      undefined,
+      tokenConfig()
+    ),
+
+  // DELETE /posts/{postId}/reacts - Remove reaction from a post (unlike)
+  removeReact: (postId: string) =>
+    fetcher.delete(`/posts/${postId}/reacts`, tokenConfig()),
 
   // POST /upload/image - Upload image as base64 string and get URL string
   uploadImage: (imageBase64: string) =>

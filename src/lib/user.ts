@@ -32,6 +32,20 @@ export function setUserData(userData: any): void {
   }
 }
 
+export function getUserData<T = unknown>(): T | null {
+  if (typeof window === "undefined") return null;
+
+  const stored = localStorage.getItem("user_data");
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as T;
+  } catch (error) {
+    console.error("Error parsing user data:", error);
+    return null;
+  }
+}
+
 export function clearUserData(): void {
   localStorage.removeItem("user_id");
   localStorage.removeItem("user_data");

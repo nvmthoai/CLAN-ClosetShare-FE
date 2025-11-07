@@ -1,9 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { isAuthenticated } from "@/lib/token";
+import { getUserData } from "@/lib/user";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [authenticated, setAuthenticated] = useState(() => isAuthenticated());
+  const [displayName, setDisplayName] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const updateAuthState = () => {
+      const hasToken = isAuthenticated();
+      setAuthenticated(hasToken);
+
+      if (!hasToken) {
+        setDisplayName(null);
+        return;
+      }
+
+      const stored = getUserData<{ name?: string; email?: string; full_name?: string }>();
+      setDisplayName(
+        stored?.name || stored?.full_name || stored?.email || null
+      );
+    };
+
+    updateAuthState();
+    window.addEventListener("storage", updateAuthState);
+    const interval = window.setInterval(updateAuthState, 1000);
+
+    return () => {
+      window.removeEventListener("storage", updateAuthState);
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -42,23 +73,36 @@ export function Header() {
               About
             </button>
             <button
-              onClick={() => scrollToSection("showcase")}
-              className="text-sm font-medium text-gray-900 hover:text-blue-500 transition-colors"
-            >
-              Showcase
-            </button>
-            <button
               onClick={() => scrollToSection("contact")}
               className="text-sm font-medium text-gray-900 hover:text-blue-500 transition-colors"
             >
               Contact
             </button>
-            <Link
-              to="/login"
-              className="text-sm font-medium text-gray-900 hover:text-blue-500 transition-colors"
-            >
-              Login
-            </Link>
+            {authenticated ? (
+              <button
+                onClick={() => navigate("/home")}
+                className="flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-blue-500 transition-colors"
+              >
+                <span className="truncate max-w-[140px]">
+                  {displayName || "Vào ứng dụng"}
+                </span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-4">
+                <Link
+                  to="/register"
+                  className="text-sm font-medium text-gray-900 hover:text-blue-500 transition-colors"
+                >
+                  Sign up
+                </Link>
+                <Link
+                  to="/login"
+                  className="text-sm font-medium text-gray-900 hover:text-blue-500 transition-colors"
+                >
+                  Login
+                </Link>
+              </div>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -94,23 +138,37 @@ export function Header() {
               About
             </button>
             <button
-              onClick={() => scrollToSection("showcase")}
-              className="block text-sm font-medium text-gray-900 hover:text-blue-500 text-left w-full"
-            >
-              Showcase
-            </button>
-            <button
               onClick={() => scrollToSection("contact")}
               className="block text-sm font-medium text-gray-900 hover:text-blue-500 text-left w-full"
             >
               Contact
             </button>
-            <Link
-              to="/login"
-              className="block text-sm font-medium text-gray-900 hover:text-blue-500"
-            >
-              Login
-            </Link>
+            {authenticated ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate("/home");
+                }}
+                className="block text-sm font-medium text-gray-900 text-left w-full hover:text-blue-500"
+              >
+                {displayName || "Vào ứng dụng"}
+              </button>
+            ) : (
+              <div className="space-y-3">
+                <Link
+                  to="/register"
+                  className="block text-sm font-medium text-gray-900 hover:text-blue-500"
+                >
+                  Sign up
+                </Link>
+                <Link
+                  to="/login"
+                  className="block text-sm font-medium text-gray-900 hover:text-blue-500"
+                >
+                  Login
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

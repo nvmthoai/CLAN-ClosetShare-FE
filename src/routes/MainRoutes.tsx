@@ -29,6 +29,7 @@ import EditProduct from "@/pages/Products/EditProduct";
 import Policy from "@/pages/Policy/Policy";
 import TermsOfService from "@/pages/Policy/TermsOfService";
 import ViewOutfitPublic from "@/pages/Outfit/ViewOutfitPublic";
+import OutfitExplore from "@/pages/Outfit/OutfitExplore";
 
 export default function MainRoutes() {
   return (
@@ -216,6 +217,16 @@ export default function MainRoutes() {
          <Route path="/reset-password" element={<ResetPassword />} />
          <Route path="/policy" element={<Policy />} />
          <Route path="/terms" element={<TermsOfService />} />
+         <Route
+          path="/outfits/explore"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <OutfitExplore />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
          <Route path="/outfit/:id" element={<ViewOutfitPublic />} />
       </Routes>
     </>

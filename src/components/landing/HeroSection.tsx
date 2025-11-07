@@ -1,9 +1,12 @@
+import type { ReactNode } from "react";
+
 interface HeroSectionProps {
   subtitle?: string;
   buttonText?: string;
   heroImage?: string;
   scrollToId?: string;
   description?: string;
+  actions?: ReactNode;
 }
 
 export function HeroSection({
@@ -11,6 +14,7 @@ export function HeroSection({
   heroImage = "/landingpage_1.png",
   scrollToId,
   description,
+  actions,
 }: HeroSectionProps) {
   const handleClick = () => {
     if (scrollToId) {
@@ -69,16 +73,18 @@ export function HeroSection({
               </div>
               
               {/* Call to Action Button */}
-              {buttonText && (
-                <div className="pt-4 md:pt-6">
+              <div className="pt-4 md:pt-6">
+                {actions ? (
+                  actions
+                ) : buttonText ? (
                   <button
                     onClick={handleClick}
                     className="bg-gray-900 text-white px-6 py-3 md:px-8 md:py-4 text-xs md:text-sm font-bold uppercase tracking-wider hover:bg-blue-500 hover:text-white transition-all duration-200 shadow-xl hover:shadow-blue-200/50"
                   >
                     {buttonText}
                   </button>
-                </div>
-              )}
+                ) : null}
+              </div>
             </div>
           </div>
         </div>

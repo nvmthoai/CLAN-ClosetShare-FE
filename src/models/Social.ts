@@ -13,6 +13,13 @@ export interface Post {
     name: string;
     avatar?: string;
   };
+  author?: {
+    id: string;
+    name?: string;
+    email?: string;
+    avatar?: string | null;
+    username?: string;
+  };
   images?: string[];
   caption?: string;
   likes?: number;

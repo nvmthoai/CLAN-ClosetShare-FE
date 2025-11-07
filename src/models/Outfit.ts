@@ -33,7 +33,7 @@ export interface OutfitLegacy {
 }
 
 export interface GetOutfitsParams {
-  userId: string;
+  userId?: string;
 }
 
 export interface CreateOutfitPayload {

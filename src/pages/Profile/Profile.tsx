@@ -13,6 +13,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
+import { buildAppUrl } from "@/lib/url";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ export default function Profile() {
         return outfitApi.getOutfits({ userId });
       } else {
         // Call without userId - server will use token to identify user
-        return outfitApi.getOutfits({ userId: "" });
+        return outfitApi.getOutfits();
       }
     },
     select: (res: any) => {
@@ -261,14 +262,7 @@ export default function Profile() {
 
   // Get share URL - automatically uses current domain (works on localhost, Vercel, and any domain)
   const getShareUrl = (outfitId: string) => {
-    // Use window.location.origin which automatically gets:
-    // - localhost:5173 in development
-    // - your-vercel-domain.vercel.app in production
-    // - any custom domain you set up
-    const baseUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
-      : (import.meta.env.VITE_BASE_URL || 'https://closetshare.vercel.app');
-    return `${baseUrl}/outfit/${outfitId}`;
+    return buildAppUrl(`/outfit/${outfitId}`);
   };
 
   // Handle toggle closet item selection

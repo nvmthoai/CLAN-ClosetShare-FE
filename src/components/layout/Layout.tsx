@@ -1,12 +1,13 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
 import { shopApi } from "@/apis/shop.api";
 import { toast } from "react-toastify";
 import { isAuthenticated, clearTokens } from "@/lib/token";
+import ChatBot from "@/components/chat/ChatBot";
 import {
   Home,
   Menu,
@@ -19,6 +20,7 @@ import {
   Store,
   Package,
   LogOut,
+  Sparkles,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -40,8 +42,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     phone_number: "",
     email: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showSearchResults, setShowSearchResults] = useState(false);
   const navigate = useNavigate();
   const hasToken = isAuthenticated();
+  const searchContainerRef = useRef<HTMLDivElement | null>(null);
   const { data: me } = useQuery({
     queryKey: ["me"],
     queryFn: () => userApi.getMe(),
@@ -91,8 +96,56 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   const navItems = [
     { to: "/home", icon: Home, label: "Home" },
     { to: "/shop", icon: ShoppingBag, label: "Shop" },
+    { to: "/outfits/explore", icon: Sparkles, label: "Outfits" },
     { to: "/subscriptions", icon: BadgeDollarSign, label: "Plans" },
   ];
+
+  const debouncedSearchTerm = useMemo(() => searchTerm.trim(), [searchTerm]);
+
+  const { data: searchResults, isFetching: isSearching } = useQuery({
+    queryKey: ["search-users", debouncedSearchTerm],
+    queryFn: () =>
+      userApi.searchUsers({
+        page: 1,
+        limit: 10,
+        search: debouncedSearchTerm,
+      }),
+    enabled: hasToken && debouncedSearchTerm.length > 0,
+    select: (res) => res.data,
+    staleTime: 30_000,
+  });
+
+  useEffect(() => {
+    if (!showSearchResults) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [showSearchResults]);
+
+  useEffect(() => {
+    if (debouncedSearchTerm.length === 0) {
+      setShowSearchResults(false);
+    }
+  }, [debouncedSearchTerm]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-blue-50/20 to-white">
@@ -148,12 +201,69 @@ export default function Layout({ children, sidebar }: LayoutProps) {
           
           <div className="ml-auto flex items-center gap-4 relative">
             <div className="hidden md:flex items-center gap-2">
-              <div className="relative">
+              <div className="relative" ref={searchContainerRef}>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
-                  placeholder="Tìm kiếm sản phẩm..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowSearchResults(true);
+                  }}
+                  placeholder="Tìm kiếm người dùng..."
                   className="w-64 text-sm border border-gray-200 rounded-xl px-3 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/70 transition-all"
                 />
+                {showSearchResults && debouncedSearchTerm.length > 0 && (
+                  <div className="absolute top-full mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b border-gray-100">
+                      {isSearching
+                        ? "Đang tìm kiếm..."
+                        : `Kết quả cho "${debouncedSearchTerm}"`}
+                    </div>
+                    <div className="max-h-72 overflow-y-auto">
+                      {isSearching ? (
+                        <div className="px-4 py-6 text-sm text-gray-500 text-center">
+                          Đang tải người dùng...
+                        </div>
+                      ) : (searchResults?.data || searchResults)?.length ? (
+                        (searchResults?.data || searchResults).map((user: any) => (
+                          <button
+                            key={user.id}
+                            onClick={() => {
+                              setShowSearchResults(false);
+                              setSearchTerm("");
+                              navigate(`/profile/${user.id}`);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors"
+                          >
+                            <img
+                              src={
+                                user.avatarUrl
+                                  ? user.avatarUrl
+                                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                      user.name || user.email || user.username || "U"
+                                    )}`
+                              }
+                              alt={user.name || user.email || "User"}
+                              className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold text-gray-900 truncate">
+                                {user.name || user.username || user.email}
+                              </div>
+                              <div className="text-xs text-gray-500 truncate">
+                                {user.email || "Không có email"}
+                              </div>
+                            </div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-6 text-sm text-gray-500 text-center">
+                          Không tìm thấy người dùng phù hợp
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -438,6 +548,9 @@ export default function Layout({ children, sidebar }: LayoutProps) {
           </div>
         </div>
       )}
+
+      {/* ChatBot - Fixed bottom right */}
+      {hasToken && <ChatBot />}
     </div>
   );
 }

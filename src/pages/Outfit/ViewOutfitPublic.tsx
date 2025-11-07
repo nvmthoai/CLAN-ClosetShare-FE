@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { outfitApi } from "@/apis/outfit.api";
 import { Badge } from "@/components/ui/badge";
-import { Shirt, Sparkles, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Shirt, Sparkles, ArrowLeft, Calendar, Palette, MapPin } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 
 export default function ViewOutfitPublic() {
@@ -52,7 +51,7 @@ export default function ViewOutfitPublic() {
               Outfit này không tồn tại hoặc đã bị xóa
             </p>
             <Link
-              to="/"
+              to="/outfits/explore"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl hover:bg-blue-500 transition-all duration-200 font-medium"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -64,6 +63,13 @@ export default function ViewOutfitPublic() {
     );
   }
 
+  const creator = outfitDetail.user;
+  const creatorName = creator?.name || creator?.email || "Ẩn danh";
+  const creatorAvatar =
+    creator?.avatar ||
+    (creatorName ? `https://ui-avatars.com/api/?name=${encodeURIComponent(creatorName)}` : "https://ui-avatars.com/api/?name=U");
+  const creatorEmail = creator?.email;
+
   return (
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/20 to-white">
@@ -71,21 +77,89 @@ export default function ViewOutfitPublic() {
           {/* Header */}
           <div className="mb-8">
             <Link
-              to="/"
+              to="/outfits/explore"
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Về trang chủ</span>
+              <span>Quay lại khám phá</span>
             </Link>
             <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-6">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                  <Shirt className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-blue-200 bg-blue-50">
+                  <img src={creatorAvatar} alt={creatorName} className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">{outfitDetail.name}</h1>
-                  <p className="text-sm text-gray-500">Outfit được chia sẻ</p>
+                  <h1 className="text-2xl font-bold text-gray-900">{outfitDetail.name || "Outfit không tên"}</h1>
+                  <p className="text-sm text-gray-500">
+                    Được chia sẻ bởi <span className="font-semibold text-gray-700">{creatorName}</span>
+                    {creatorEmail && <span className="ml-2 text-gray-400">({creatorEmail})</span>}
+                  </p>
+                  {outfitDetail.created_at && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      Ngày tạo: {new Date(outfitDetail.created_at).toLocaleDateString("vi-VN")}
+                    </p>
+                  )}
                 </div>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <Badge className="bg-blue-100 text-blue-600">Outfit công khai</Badge>
+                {creator?.id && <span>ID người tạo: {creator.id.slice(0, 8)}...</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Creator Info */}
+          <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-6 mb-8">
+            <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Thông tin người tạo</h2>
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-14 h-14 rounded-full overflow-hidden border border-gray-200">
+                  <img src={creatorAvatar} alt={creatorName} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{creatorName}</p>
+                  {creatorEmail && <p className="text-xs text-gray-500">{creatorEmail}</p>}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-500" />
+                  <span>Đã chia sẻ vào {new Date(outfitDetail.created_at ?? Date.now()).toLocaleDateString("vi-VN")}</span>
+                </div>
+                {outfitDetail.style && (
+                  <div className="flex items-center gap-2">
+                    <Palette className="w-4 h-4 text-purple-500" />
+                    <span>Phong cách: {outfitDetail.style}</span>
+                  </div>
+                )}
+                {outfitDetail.occasion && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-green-500" />
+                    <span>Dịp: {outfitDetail.occasion}</span>
+                  </div>
+                )}
+                {outfitDetail.season && (
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-yellow-500" />
+                    <span>Mùa: {outfitDetail.season}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-100 rounded-2xl p-6 flex flex-col gap-3 text-sm text-gray-700">
+              <h3 className="text-base font-semibold text-blue-900">Thông tin Outfit</h3>
+              <div className="flex items-center gap-2">
+                <Palette className="w-4 h-4 text-blue-500" />
+                <span>Tông màu: {outfitDetail.color_theme || "Chưa cập nhật"}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-500" />
+                <span>Số phụ kiện: {outfitDetail.accessories?.length || 0}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                <span>Cập nhật lần cuối: {new Date(outfitDetail.updated_at ?? outfitDetail.created_at ?? Date.now()).toLocaleDateString("vi-VN")}</span>
               </div>
             </div>
           </div>

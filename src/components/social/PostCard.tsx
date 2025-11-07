@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Heart,
   MessageCircle,
@@ -21,7 +21,7 @@ import { TipTapEditor } from "@/components/ui/tiptap-editor";
 
 interface PostCardProps {
   post: Post;
-  onLike: (postId: string) => void;
+  onLike?: (postId: string, liked: boolean, totalLikes: number) => void;
   onEdit?: (postId: string, payload: UpdatePostPayload) => void;
 }
 
@@ -37,7 +37,41 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const [editContent, setEditContent] = useState(post.content);
   const [editPublished, setEditPublished] = useState(post.published);
   const [commentPage, setCommentPage] = useState(1);
+  const [liked, setLiked] = useState<boolean>(!!post.isLiked);
+  const [likeCount, setLikeCount] = useState<number>(post.likes ?? 0);
   const queryClient = useQueryClient();
+
+  const displayUser = useMemo(() => {
+    const fromUser = post.user;
+    const fromAuthor = post.author;
+    return {
+      name:
+        fromAuthor?.name ||
+        fromUser?.name ||
+        fromUser?.username ||
+        fromAuthor?.email ||
+        post.author_id,
+      username: fromUser?.username,
+      email: fromAuthor?.email || fromUser?.name,
+      avatar:
+        fromAuthor?.avatar ||
+        fromUser?.avatar ||
+        (fromAuthor?.name || fromAuthor?.email || fromUser?.username
+          ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              fromAuthor?.name ||
+                fromUser?.name ||
+                fromUser?.username ||
+                fromAuthor?.email ||
+                "U"
+            )}`
+          : `https://ui-avatars.com/api/?name=U`),
+    };
+  }, [post.author, post.author_id, post.user]);
+
+  useEffect(() => {
+    setLiked(!!post.isLiked);
+    setLikeCount(post.likes ?? 0);
+  }, [post.id, post.isLiked, post.likes]);
 
   // Fetch comments when comments section is opened
   const {
@@ -54,6 +88,40 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const comments = commentsData?.comments || [];
   const totalComments = commentsData?.total || 0;
   const hasMoreComments = comments.length < totalComments;
+
+  const toggleReactMutation = useMutation({
+    mutationFn: (shouldLike: boolean) =>
+      shouldLike ? postApi.reactPost(post.id) : postApi.removeReact(post.id),
+    onMutate: async (shouldLike) => {
+      const previousState = { liked, likeCount };
+      const nextLikeCount = Math.max(
+        0,
+        previousState.likeCount + (shouldLike ? 1 : -1)
+      );
+
+      setLiked(shouldLike);
+      setLikeCount(nextLikeCount);
+
+      return { previousState, nextLikeCount };
+    },
+    onError: (_error, _shouldLike, context) => {
+      if (context?.previousState) {
+        setLiked(context.previousState.liked);
+        setLikeCount(context.previousState.likeCount);
+      }
+      toast.error("Không thể cập nhật lượt thích");
+    },
+    onSuccess: (_data, shouldLike, context) => {
+      if (context) {
+        onLike?.(post.id, shouldLike, context.nextLikeCount);
+      }
+    },
+  });
+
+  const handleToggleLike = () => {
+    if (toggleReactMutation.isPending) return;
+    toggleReactMutation.mutate(!liked);
+  };
 
   // Create comment mutation
   const createCommentMutation = useMutation({
@@ -143,12 +211,16 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold border-2 border-blue-200">
-            {post.user?.username?.charAt(0)?.toUpperCase() || 'U'}
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold border-2 border-blue-200 overflow-hidden">
+            <img
+              src={displayUser.avatar}
+              alt={displayUser.name || "User"}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div>
             <h3 className="font-semibold text-sm text-gray-900">
-              {post.user?.username || 'User'}
+              {displayUser.name || "User"}
             </h3>
             <span className="text-xs text-gray-500">{formatTimeAgo(post.created_at)}</span>
           </div>
@@ -228,14 +300,15 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
       <div className="px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => onLike(post.id)} 
+            <button
+              onClick={handleToggleLike}
               className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110"
+              disabled={toggleReactMutation.isPending}
             >
               <Heart
                 className={cn(
                   "w-6 h-6 transition-all duration-200",
-                  post.isLiked ? "text-red-500 fill-red-500 scale-110" : "text-gray-900 hover:text-red-500"
+                  liked ? "text-red-500 fill-red-500 scale-110" : "text-gray-900 hover:text-red-500"
                 )}
               />
             </button>
@@ -262,14 +335,14 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
       <div className="px-4 pb-2">
         {/* Likes */}
         <p className="font-semibold text-sm mb-2 text-gray-900">
-          {(post.likes || 0).toLocaleString()} lượt thích
+          {likeCount.toLocaleString()} lượt thích
         </p>
 
         {/* Post Content */}
         <div className="mb-2">
           <p className="text-sm leading-relaxed">
             <span className="font-semibold text-gray-900 mr-2">
-              {post.user?.username || 'User'}
+              {displayUser.name || "User"}
             </span>
             <span 
               className="text-gray-900 prose prose-sm max-w-none"

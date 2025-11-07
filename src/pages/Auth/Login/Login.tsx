@@ -18,7 +18,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const from =
-    (location.state as { from?: Location })?.from?.pathname || "/shop";
+    (location.state as { from?: Location })?.from?.pathname || "/home";
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginRequest) => authApi.login(data),
