@@ -347,7 +347,7 @@ export default function Profile() {
   }
 
   const userName = data?.name || "Shop/Business";
-  const userAvatar = data?.avatarUrl;
+  const userAvatar = data?.avatar || data?.avatarUrl;
 
   return (
     <Layout>

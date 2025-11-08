@@ -24,12 +24,31 @@ export default function Feed() {
     isError: postsError,
   } = useQuery({
     queryKey: ["posts"],
-    queryFn: () => postApi.getPosts(),
-    select: (res) => {
-      if (Array.isArray(res.data)) {
-        return res.data;
-      }
-      return res.data?.posts || [];
+    queryFn: async () => {
+      const res = await postApi.getPosts();
+      const rawPosts = Array.isArray(res.data)
+        ? res.data
+        : res.data?.posts || [];
+
+      const postsWithComments = await Promise.all(
+        rawPosts.map(async (post) => {
+          try {
+            const commentsRes = await postApi.getComments(post.id);
+            return {
+              ...post,
+              comments: commentsRes.data.comments || [],
+            };
+          } catch (error) {
+            console.error("Failed to fetch comments for post", post.id, error);
+            return {
+              ...post,
+              comments: [],
+            };
+          }
+        })
+      );
+
+      return postsWithComments;
     },
   });
 

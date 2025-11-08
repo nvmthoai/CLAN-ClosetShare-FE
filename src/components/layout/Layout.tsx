@@ -51,7 +51,12 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     queryKey: ["me"],
     queryFn: () => userApi.getMe(),
     select: (res) =>
-      res.data as { name?: string; email?: string; avatarUrl?: string },
+      res.data as {
+        name?: string;
+        email?: string;
+        avatar?: string;
+        avatarUrl?: string;
+      },
     staleTime: 60_000,
     enabled: hasToken, // Only fetch if we have a token
     retry: false, // Don't retry on failure to prevent multiple 401s
@@ -237,11 +242,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                           >
                             <img
                               src={
-                                user.avatarUrl
-                                  ? user.avatarUrl
-                                  : `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                      user.name || user.email || user.username || "U"
-                                    )}`
+                                user.avatar ||
+                                user.avatarUrl ||
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  user.name || user.email || user.username || "U"
+                                )}`
                               }
                               alt={user.name || user.email || "User"}
                               className="w-10 h-10 rounded-full object-cover border border-gray-200"
@@ -277,6 +282,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               >
                 <img
                   src={
+                    me?.avatar ||
                     me?.avatarUrl ||
                     (me?.name || me?.email
                       ? `https://ui-avatars.com/api/?name=${encodeURIComponent(

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
 import { User as UserIcon, Phone, Camera, Save, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -15,6 +16,22 @@ export default function EditProfile() {
     queryFn: () => userApi.getMe(),
     select: (res) => res.data as User,
   });
+
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(undefined);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (data) {
+      setName(data.name || "");
+      setPhone(data.phone || data.phone_number || "");
+      setBio(data.bio || "");
+      setAvatarPreview(data.avatar || data.avatarUrl);
+      setAvatarFile(null);
+    }
+  }, [data]);
 
   const mutation = useMutation({
     mutationFn: (payload: UpdateMePayload) => userApi.updateMe(payload),
@@ -28,14 +45,31 @@ export default function EditProfile() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = e.currentTarget;
     const payload: UpdateMePayload = {
-      name: (form.elements.namedItem("name") as HTMLInputElement)?.value,
-      phone: (form.elements.namedItem("phone") as HTMLInputElement)?.value,
-      avatarUrl: (form.elements.namedItem("avatarUrl") as HTMLInputElement)
-        ?.value,
+      name: name.trim() || undefined,
+      bio: bio.trim() || undefined,
+      phoneNumber: phone.trim() || undefined,
+      avatar: avatarFile ?? undefined,
     };
     mutation.mutate(payload);
+  };
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setAvatarFile(null);
+      setAvatarPreview(data?.avatar || data?.avatarUrl);
+      return;
+    }
+
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setAvatarPreview(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   if (isLoading) {
@@ -92,7 +126,10 @@ export default function EditProfile() {
               <div className="flex items-center gap-4 relative z-10">
                 <div className="relative">
                   <img
-                    src={data?.avatarUrl || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"}
+                    src={
+                      avatarPreview ||
+                      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"
+                    }
                     alt="Avatar"
                     className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-xl"
                   />
@@ -101,7 +138,7 @@ export default function EditProfile() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white">{data?.name || "Chưa có tên"}</h2>
+                  <h2 className="text-xl font-semibold text-white">{name || "Chưa có tên"}</h2>
                   <p className="text-white/80">Thành viên từ {new Date().getFullYear()}</p>
                 </div>
               </div>
@@ -118,7 +155,8 @@ export default function EditProfile() {
                   </label>
                   <Input
                     name="name"
-                    defaultValue={data?.name || ""}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
                     placeholder="Nhập họ và tên của bạn"
                     className="h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
                   />
@@ -132,9 +170,25 @@ export default function EditProfile() {
                   </label>
                   <Input
                     name="phone"
-                    defaultValue={data?.phone || ""}
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
                     placeholder="Nhập số điện thoại của bạn"
                     className="h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
+                  />
+                </div>
+
+                {/* Bio Field */}
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                    <UserIcon className="w-4 h-4 text-blue-500" />
+                    Giới thiệu
+                  </label>
+                  <textarea
+                    name="bio"
+                    value={bio}
+                    onChange={(event) => setBio(event.target.value)}
+                    placeholder="Giới thiệu ngắn gọn về bản thân bạn"
+                    className="w-full min-h-[120px] rounded-xl border border-gray-200 px-4 py-3 text-base focus:border-blue-500 focus:ring-blue-500 resize-none"
                   />
                 </div>
 
@@ -142,16 +196,29 @@ export default function EditProfile() {
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-900">
                     <Camera className="w-4 h-4 text-blue-500" />
-                    URL ảnh đại diện
+                    Ảnh đại diện
                   </label>
-                  <Input
-                    name="avatarUrl"
-                    defaultValue={data?.avatarUrl || ""}
-                    placeholder="Nhập URL ảnh đại diện"
-                    className="h-12 text-base border-gray-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
-                  />
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <label className="px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 cursor-pointer hover:border-blue-300 hover:text-blue-500 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                      />
+                      Chọn ảnh từ thiết bị
+                    </label>
+                    {avatarFile && (
+                      <span className="text-xs text-gray-500">
+                        {avatarFile.name} ({Math.round(avatarFile.size / 1024)} KB)
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500">
-                    Bạn có thể sử dụng link ảnh từ internet hoặc tải lên từ máy tính
+                    Hỗ trợ định dạng JPG, PNG. Dung lượng tối đa 5MB.
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Ảnh sẽ được tải trực tiếp lên server thông qua form-data.
                   </p>
                 </div>
 

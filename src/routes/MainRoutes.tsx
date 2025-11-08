@@ -11,6 +11,7 @@ import Products from "@/pages/Products/Products";
 import ProductDetail from "@/pages/Products/ProductDetail";
 import Profile from "@/pages/Profile/Profile";
 import EditProfile from "@/pages/Profile/EditProfile";
+import ProfileDetail from "@/pages/Profile/ProfileDetail";
 import Layout from "@/components/layout/Layout";
 
 import Feed from "@/pages/Feed/Feed";
@@ -89,6 +90,14 @@ export default function MainRoutes() {
           element={
             <ProtectedRoute>
               <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <ProfileDetail />
             </ProtectedRoute>
           }
         />

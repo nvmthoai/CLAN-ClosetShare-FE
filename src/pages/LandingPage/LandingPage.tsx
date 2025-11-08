@@ -104,7 +104,7 @@ function LandingPage() {
                 to="/home"
                 className="inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 md:px-8 md:py-4 text-xs md:text-sm font-bold uppercase tracking-wider hover:bg-blue-500 transition-all duration-200 shadow-xl hover:shadow-blue-200/50"
               >
-                {authState.displayName || "Đến bảng tin"}
+                Khám phá ngay
               </Link>
             ) : (
               <div className="flex flex-wrap justify-center gap-3">
