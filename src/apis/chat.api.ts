@@ -42,9 +42,20 @@ export const chatApi = {
     const isDevelopment = import.meta.env.DEV;
     
     if (isDevelopment) {
-      // Use proxy endpoint (Vite will handle CORS and add auth headers)
-      const response = await axios.post<ChatResponse>("/api/chat", payload, { headers: buildHeaders() });
-      return response;
+      // In local dev call through the Vite proxy '/api/n8n' which rewrites to the working n8n webhook
+      const res = await fetch("/api/n8n", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(`n8n webhook error ${res.status}: ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await res.json();
+      return { data } as any;
     } else {
       // In production, use direct URL or Vercel serverless function
       const response = await axios.post<ChatResponse>(
@@ -63,9 +74,21 @@ export const chatApi = {
     const isDevelopment = import.meta.env.DEV;
     
     if (isDevelopment) {
-      // Use proxy endpoint (Vite will handle CORS and add auth headers)
-      const response = await axios.post<RecommendOutfitResponse>("/api/recommend-outfit", payload, { headers: buildHeaders() });
-      return response;
+      // In local dev call the known working n8n webhook directly to avoid proxy 500 errors
+      const WEBHOOK_URL = "https://nvmthoai1.app.n8n.cloud/webhook/recommend-outfit";
+      const res = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "(no body)");
+        throw new Error(`n8n webhook error ${res.status}: ${body}`);
+      }
+
+      const data = await res.json();
+      return { data } as any;
     } else {
       // In production, use direct URL
       const response = await axios.post<RecommendOutfitResponse>(
