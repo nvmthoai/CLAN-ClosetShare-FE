@@ -47,25 +47,48 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   const navigate = useNavigate();
   const hasToken = isAuthenticated();
   const searchContainerRef = useRef<HTMLDivElement | null>(null);
-  const { data: me } = useQuery({
+  const { data: meResp, isFetched: meFetched } = useQuery({
     queryKey: ["me"],
     queryFn: () => userApi.getMe(),
-    select: (res) =>
-      res.data as {
-        name?: string;
-        email?: string;
-        avatar?: string;
-        avatarUrl?: string;
-      },
+    // Keep the full response so different consumers don't get differing selects.
     staleTime: 60_000,
     enabled: hasToken, // Only fetch if we have a token
     retry: false, // Don't retry on failure to prevent multiple 401s
   });
 
+  // Normalize the user object from response: backend returns { user: { ... } }
+  const me = (meResp?.data?.user as {
+    name?: string;
+    email?: string;
+    avatar?: string;
+    avatarUrl?: string;
+    shopCreated?: boolean;
+  }) || undefined;
+
+  // Determine whether the current user is allowed to create a shop.
+  // Some APIs return `shopCreated: true` on the user object after creating a shop.
+  // Respect that flag (or an existing `shop_id` in localStorage) to hide the "Tạo shop" action.
+  // Also check localStorage as a fallback: some login flows persist `user_data`.
+  let storedShopCreated = false;
+  try {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      storedShopCreated = parsed?.shopCreated === true || parsed?.user?.shopCreated === true;
+    }
+  } catch (e) {
+    // ignore parse errors
+  }
+
+  // Final decision: hide Create Shop if we have a shop id, or if either the fetched
+  // user object or persisted user data indicate `shopCreated: true`.
+  const canCreateShop = !shopId && !(((me as any)?.shopCreated === true) || storedShopCreated);
+
   const createShopMutation = useMutation({
     mutationFn: () => shopApi.create(shopForm),
     onSuccess: (res) => {
-      const id = (res.data as any)?.id;
+      // Save returned shop id (if any) and update local state
+      const id = res?.data?.id as string | undefined;
       if (id) {
         localStorage.setItem("shop_id", id);
         setShopId(id);
@@ -97,6 +120,37 @@ export default function Layout({ children, sidebar }: LayoutProps) {
     localStorage.removeItem("user_data");
     navigate("/login");
   };
+
+  // Debugging: log user/shop state when the menu opens to help diagnose
+  // why the "Tạo shop" button may still render.
+  useEffect(() => {
+    if (!menuOpen) return;
+    // eslint-disable-next-line no-console
+    console.debug(
+      "[Layout] menuOpen: showing menu. me:",
+      me,
+      "meFetched:",
+      meFetched,
+      "shopId:",
+      shopId,
+      "storedShopCreated:",
+      // recompute stored flag for clearer runtime debugging
+      (() => {
+        try {
+          const s = typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
+          if (s) {
+            const p = JSON.parse(s);
+            return p?.shopCreated === true || p?.user?.shopCreated === true;
+          }
+        } catch (e) {
+          /* ignore */
+        }
+        return false;
+      })(),
+      "canCreateShop:",
+      canCreateShop
+    );
+  }, [menuOpen, me, meFetched, shopId, canCreateShop]);
 
   const navItems = [
     { to: "/home", icon: Home, label: "Home" },
@@ -344,7 +398,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                       <Settings className="w-4 h-4" />
                       Cập nhật thông tin
                     </button>
-                    {!shopId && (
+                    {canCreateShop && (
                       <button
                         className="w-full text-left px-3 py-2 text-sm text-gray-900 hover:bg-blue-50 hover:text-blue-500 rounded-lg transition-colors flex items-center gap-2"
                         onClick={() => {

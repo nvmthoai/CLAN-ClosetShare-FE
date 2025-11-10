@@ -5,8 +5,9 @@ import { shopApi } from "@/apis/shop.api";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "react-toastify";
-import { ArrowLeft, Upload, Store } from "lucide-react";
+import { ArrowLeft, Store } from "lucide-react";
 import type { CreateShopPayload } from "@/models/Shop";
+import { getAccessToken } from "@/lib/token";
 
 export default function CreateShop() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ export default function CreateShop() {
     email: "",
   });
   const [errors, setErrors] = useState<Partial<CreateShopPayload>>({});
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
 
   const createShopMutation = useMutation({
     mutationFn: (payload: CreateShopPayload) => shopApi.create(payload),
@@ -61,7 +64,37 @@ export default function CreateShop() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      createShopMutation.mutate(formData);
+      // If user uploaded files, send multipart/form-data to match backend expectations
+      if (avatarFile || backgroundFile) {
+        const fd = new FormData();
+        fd.append("name", formData.name);
+        if (formData.description) fd.append("description", formData.description);
+        if (formData.address) fd.append("address", formData.address);
+        if (formData.phone_number) fd.append("phone_number", formData.phone_number);
+        if (formData.email) fd.append("email", formData.email);
+        if (avatarFile) fd.append("avatar", avatarFile);
+        if (backgroundFile) fd.append("background", backgroundFile);
+
+        // Send via fetch so browser sets correct multipart boundary
+        const token = getAccessToken();
+        fetch("/api/shops", {
+          method: "POST",
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          body: fd,
+        })
+          .then(async (res) => {
+            if (!res.ok) throw new Error(`Create shop failed: ${res.status}`);
+            const data = await res.json().catch(() => null);
+            toast.success("Tạo shop thành công! Đang chờ xác minh.");
+            navigate("/profile/shops");
+          })
+          .catch((err) => {
+            console.error("Create shop (form-data) error:", err);
+            toast.error("Tạo shop thất bại");
+          });
+      } else {
+        createShopMutation.mutate(formData);
+      }
     }
   };
 
@@ -164,21 +197,35 @@ export default function CreateShop() {
                 </div>
               </div>
 
-              {/* Image Upload Placeholder */}
+              {/* Image Uploads: avatar and background (multipart/form-data) */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Hình ảnh shop
+                  Hình ảnh shop (avatar & background)
                 </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
-                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-2 font-medium">Tải lên hình ảnh cho shop</p>
-                  <p className="text-sm text-gray-500">
-                    Hỗ trợ JPG, PNG. Tối đa 5MB
-                  </p>
-                  <button type="button" className="mt-4 px-4 py-2 border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 font-medium">
-                    Chọn ảnh
-                  </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center bg-gray-50/50">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Avatar (logo)</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)}
+                      className="mx-auto"
+                    />
+                    {avatarFile && <p className="text-xs text-gray-500 mt-2">{avatarFile.name}</p>}
+                  </div>
+
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center bg-gray-50/50">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Background (banner)</p>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setBackgroundFile(e.target.files?.[0] ?? null)}
+                      className="mx-auto"
+                    />
+                    {backgroundFile && <p className="text-xs text-gray-500 mt-2">{backgroundFile.name}</p>}
+                  </div>
                 </div>
+                <p className="text-sm text-gray-500 mt-2">Hỗ trợ JPG, PNG. Tối đa 5MB mỗi ảnh.</p>
               </div>
 
               {/* Info Box */}
