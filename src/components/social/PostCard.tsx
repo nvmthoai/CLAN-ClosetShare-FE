@@ -296,7 +296,41 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
         </div>
       )}
 
-      {/* Actions - Below image */}
+      
+
+      {/* Likes and Content - Below actions */}
+      <div className="px-4 pb-2">
+        {/* Likes */}
+        
+
+        {/* Comments count preview */}
+        {totalComments > 0 && !showComments && (
+          <button
+            onClick={() => setShowComments(true)}
+            className="text-sm text-gray-500 mb-2 hover:text-blue-500 transition-colors font-medium"
+          >
+            Xem tất cả {totalComments} bình luận
+          </button>
+        )}
+        
+
+        {/* Post Content */}
+        <div className="mb-2">
+          <p className="text-sm leading-relaxed">
+            <span className="font-semibold text-gray-900 mr-2">
+              {displayUser.name || "User"}
+            </span>
+            <span 
+              className="text-gray-900 prose prose-sm max-w-none"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+          </p>
+        </div>
+        <p className="font-semibold text-sm mb-2 text-gray-900">
+          {likeCount.toLocaleString()} lượt thích
+        </p>
+      </div>
+        {/* Actions - Below image */}
       <div className="px-4 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -330,38 +364,6 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
           </button>
         </div>
       </div>
-
-      {/* Likes and Content - Below actions */}
-      <div className="px-4 pb-2">
-        {/* Likes */}
-        <p className="font-semibold text-sm mb-2 text-gray-900">
-          {likeCount.toLocaleString()} lượt thích
-        </p>
-
-        {/* Post Content */}
-        <div className="mb-2">
-          <p className="text-sm leading-relaxed">
-            <span className="font-semibold text-gray-900 mr-2">
-              {displayUser.name || "User"}
-            </span>
-            <span 
-              className="text-gray-900 prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-          </p>
-        </div>
-
-        {/* Comments count preview */}
-        {totalComments > 0 && !showComments && (
-          <button
-            onClick={() => setShowComments(true)}
-            className="text-sm text-gray-500 mb-2 hover:text-blue-500 transition-colors font-medium"
-          >
-            Xem tất cả {totalComments} bình luận
-          </button>
-        )}
-      </div>
-
       {/* Comments Section */}
       {showComments && (
         <div className="border-t border-gray-100 bg-gray-50/30">

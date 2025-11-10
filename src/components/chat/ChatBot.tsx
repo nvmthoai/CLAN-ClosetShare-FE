@@ -6,7 +6,7 @@ import {
   Bot,
   User as UserIcon,
   Minimize2,
-  Sparkles,
+  
 } from "lucide-react";
 import { getUserId } from "@/lib/user";
 import { cn } from "@/lib/utils";
@@ -106,53 +106,7 @@ export default function ChatBot() {
     }
   };
 
-  const handleRecommendOutfit = async () => {
-    if (isLoading) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: "Hôm nay nên mặc gì ra đường?",
-      sender: "user",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await chatApi.recommendOutfit({
-        chatInput: "Hôm nay nên mặc gì ra đường?",
-        sessionId: userId,
-      });
-
-      const payload = (response && (response.data ?? response)) ?? response;
-      const botText =
-        payload?.chatOutput ||
-        payload?.message ||
-        payload?.output ||
-        "Tôi đang phân tích tủ đồ của bạn để đưa ra gợi ý phù hợp...";
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: botText,
-        sender: "bot",
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error("Recommend outfit error:", error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Xin lỗi, đã có lỗi xảy ra khi tư vấn phối đồ. Vui lòng thử lại sau.",
-        sender: "bot",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -303,8 +257,7 @@ export default function ChatBot() {
 
               {/* Input Area */}
               <div className="p-4 border-t border-gray-200 bg-white rounded-b-2xl">
-                {/* Quick Action Button */}     
-
+                {/* Quick Action Button */}
                 <div className="flex gap-2">
                   <input
                     ref={inputRef}
