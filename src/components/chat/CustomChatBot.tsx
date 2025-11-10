@@ -30,16 +30,12 @@ export default function CustomChatBot({
   maxWidth = "500px",
   height = 600,
   currentUserId,
-  debug = false,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const sessionIdRef = useRef<string>(generateSessionId());
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const [lastPayload, setLastPayload] = useState<string | null>(null);
-  const [lastResponse, setLastResponse] = useState<string | null>(null);
-  const [showDebug, setShowDebug] = useState<boolean>(!!debug);
 
   useEffect(() => {
     // optional: initial greeting
@@ -83,9 +79,8 @@ export default function CustomChatBot({
 
       if (providedUserId) payload.userId = providedUserId;
 
-      // Debug: log payload to console and save to state
-      console.info("CustomChatBot -> Sending payload:", payload);
-      setLastPayload(JSON.stringify(payload, null, 2));
+  // Debug: log payload to console
+  console.info("CustomChatBot -> Sending payload:", payload);
 
       // In development use chatApi (axios + proxy) to avoid CORS and include auth headers
       if (import.meta.env.DEV) {
@@ -93,9 +88,8 @@ export default function CustomChatBot({
         // axios response: axiosRes.data
         console.info("CustomChatBot <- axios response:", axiosRes.data);
         const data = axiosRes.data as any;
-        // Debug: show structured response and bot output
-        console.info("Bot response:", data?.output);
-        setLastResponse(JSON.stringify(data, null, 2));
+  // Debug: show structured response and bot output
+  console.info("Bot response:", data?.output);
         const botText = data?.chatOutput || data?.message || data?.output || "Xin lỗi, tôi không thể trả lời ngay.";
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -128,13 +122,8 @@ export default function CustomChatBot({
           throw new Error(`HTTP ${status} - ${raw}`);
         }
 
-        // Debug: log and show structured response when possible
+        // Debug: log structured response when possible
         console.info("Bot response:", data?.output ?? data);
-        try {
-          setLastResponse(`status: ${status}\n\n${JSON.stringify(data, null, 2)}`);
-        } catch (e) {
-          setLastResponse(`status: ${status}\n\n${String(data)}`);
-        }
 
         const botText = data?.output || data?.message || (typeof data === "string" ? data : "Xin lỗi, tôi không thể trả lời ngay.");
         const botMessage: Message = {
@@ -149,9 +138,9 @@ export default function CustomChatBot({
       // note: botMessage already appended inside each branch above
     } catch (err: any) {
       console.error("CustomChatBot error:", err);
-      // show error details in debug panel for easier troubleshooting
-      const errText = err?.message ? `${err.message}` : String(err);
-      setLastResponse(`(error) ${errText}`);
+  // Log error for troubleshooting
+  const errText = err?.message ? `${err.message}` : String(err);
+  console.error("CustomChatBot error detail:", errText);
 
       setMessages((prev) => [
         ...prev,
@@ -176,15 +165,7 @@ export default function CustomChatBot({
           <div className="font-semibold">{title}</div>
           <div className="text-xs text-blue-100">ClosetShare Chat</div>
         </div>
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowDebug((s) => !s)}
-            className="ml-2 inline-flex items-center px-2 py-1 text-sm bg-white/20 rounded"
-          >
-            {showDebug ? "Hide debug" : "Show debug"}
-          </button>
-        </div>
+        {/* control area (no debug button) */}
       </div>
 
       <div style={{ height: typeof height === "number" ? `${height}px` : height }} className="bg-gray-50 p-4 overflow-y-auto">
@@ -213,19 +194,7 @@ export default function CustomChatBot({
         <div ref={messagesEndRef} />
       </div>
 
-      {showDebug && (
-        <div className="p-3 bg-gray-100 border-t border-gray-200 text-sm text-gray-800">
-          <div className="mb-2 font-medium">Debug</div>
-          <div className="mb-2">
-            <div className="text-xs text-gray-500 mb-1">Last payload:</div>
-            <pre className="whitespace-pre-wrap bg-white p-2 rounded border text-xs">{lastPayload ?? "(none)"}</pre>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500 mb-1">Last response:</div>
-            <pre className="whitespace-pre-wrap bg-white p-2 rounded border text-xs">{lastResponse ?? "(none)"}</pre>
-          </div>
-        </div>
-      )}
+      {/* Debug panel removed for production-style UI */}
 
       <form onSubmit={sendMessage} className="p-3 bg-white border-t border-gray-200">
         <div className="flex gap-2">

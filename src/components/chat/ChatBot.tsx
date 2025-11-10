@@ -1,5 +1,13 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User as UserIcon, Minimize2, Sparkles } from "lucide-react";
+import {
+  MessageCircle,
+  X,
+  Send,
+  Bot,
+  User as UserIcon,
+  Minimize2,
+  Sparkles,
+} from "lucide-react";
 import { getUserId } from "@/lib/user";
 import { cn } from "@/lib/utils";
 import { chatApi } from "@/apis/chat.api";
@@ -61,24 +69,34 @@ export default function ChatBot() {
     try {
       // Use API endpoint through backend proxy to avoid CORS
       const response = await chatApi.sendMessage({
-        chatInput: messageText, // ✅ Message từ user
-        sessionId: userId, // ✅ Truyền id user vào đây
-        userId: userId, // ✅ Hoặc thêm field riêng
+        chatInput: messageText,
+        sessionId: userId,
+        userId: userId,
       });
+
+      // Normalise response shape: chatApi may return { data: parsed } (fetch) or axios response
+      const payload = (response && (response.data ?? response)) ?? response;
+
+      const botText =
+        payload?.chatOutput ||
+        payload?.message ||
+        payload?.output ||
+        (typeof payload === "string" ? payload : JSON.stringify(payload ?? ""));
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: response.data.chatOutput || "Xin lỗi, tôi không thể trả lời ngay bây giờ. Vui lòng thử lại sau.",
+        text: botText,
         sender: "bot",
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat error:", error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
+        text:
+          error?.message || "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.",
         sender: "bot",
         timestamp: new Date(),
       };
@@ -107,9 +125,16 @@ export default function ChatBot() {
         sessionId: userId,
       });
 
+      const payload = (response && (response.data ?? response)) ?? response;
+      const botText =
+        payload?.chatOutput ||
+        payload?.message ||
+        payload?.output ||
+        "Tôi đang phân tích tủ đồ của bạn để đưa ra gợi ý phù hợp...";
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: response.data.chatOutput || response.data.message || "Tôi đang phân tích tủ đồ của bạn để đưa ra gợi ý phù hợp...",
+        text: botText,
         sender: "bot",
         timestamp: new Date(),
       };
@@ -165,9 +190,7 @@ export default function ChatBot() {
         <div
           className={cn(
             "fixed bottom-6 right-6 z-50 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 flex flex-col transition-all duration-300",
-            isMinimized
-              ? "w-80 h-16"
-              : "w-96 h-[600px] max-h-[85vh]"
+            isMinimized ? "w-80 h-16" : "w-96 h-[600px] max-h-[85vh]"
           )}
         >
           {/* Header */}
@@ -216,7 +239,9 @@ export default function ChatBot() {
                     key={message.id}
                     className={cn(
                       "flex gap-3 animate-fade-in",
-                      message.sender === "user" ? "justify-end" : "justify-start"
+                      message.sender === "user"
+                        ? "justify-end"
+                        : "justify-start"
                     )}
                   >
                     {message.sender === "bot" && (
@@ -261,8 +286,14 @@ export default function ChatBot() {
                     <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
                       <div className="flex gap-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -272,16 +303,8 @@ export default function ChatBot() {
 
               {/* Input Area */}
               <div className="p-4 border-t border-gray-200 bg-white rounded-b-2xl">
-                {/* Quick Action Button */}
-                <button
-                  onClick={handleRecommendOutfit}
-                  disabled={isLoading}
-                  className="w-full mb-3 px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm font-medium"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Gợi ý phối đồ hôm nay</span>
-                </button>
-                
+                {/* Quick Action Button */}     
+
                 <div className="flex gap-2">
                   <input
                     ref={inputRef}
@@ -312,4 +335,3 @@ export default function ChatBot() {
     </>
   );
 }
-

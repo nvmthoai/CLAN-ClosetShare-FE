@@ -22,8 +22,6 @@ import {
   Ghost,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import CustomChatBot from "@/components/chat/CustomChatBot";
-import { getUserId } from "@/lib/user";
 
 interface CommunityOutfit extends OutfitLegacy {
   created_at?: string;
@@ -576,10 +574,7 @@ export default function OutfitExplore() {
           </div>
         )}
       </div>
-      {/* Debug chat widget for testing n8n webhook */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <CustomChatBot currentUserId={getUserId()} debug={true} />
-      </div>
+      {/* Chat widget is mounted globally in the layout to avoid duplicates */}
 
     </div>
   );

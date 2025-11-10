@@ -555,7 +555,8 @@ export default function Layout({ children, sidebar }: LayoutProps) {
         </div>
       )}
 
-      {/* ChatBot - Fixed bottom right */}
+  {/* ChatBot is mounted per-page when needed. Removed global mount to avoid duplicate widgets. */}
+      {/* Global chat widget (floating). Mount when user is authenticated so it appears across screens. */}
       {hasToken && <ChatBot />}
     </div>
   );

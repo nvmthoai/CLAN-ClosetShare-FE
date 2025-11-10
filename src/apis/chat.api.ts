@@ -42,20 +42,30 @@ export const chatApi = {
     const isDevelopment = import.meta.env.DEV;
     
     if (isDevelopment) {
-      // In local dev call through the Vite proxy '/api/n8n' which rewrites to the working n8n webhook
-      const res = await fetch("/api/n8n", {
+      // In local dev call the exact n8n webhook URL you tested in Postman.
+      // This avoids issues if the local Vite proxy is misconfigured and returning 500s.
+      const WEBHOOK_URL = "https://nvmthoai1.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
+      const res = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(`n8n webhook error ${res.status}: ${JSON.stringify(errorData)}`);
+      const raw = await res.text().catch(() => "");
+      // Try to parse JSON, otherwise keep raw text
+      let parsed: any = undefined;
+      try {
+        parsed = raw ? JSON.parse(raw) : undefined;
+      } catch (e) {
+        parsed = raw;
       }
 
-      const data = await res.json();
-      return { data } as any;
+      if (!res.ok) {
+        // include raw body for easier debugging
+        throw new Error(`n8n webhook error ${res.status}: ${raw || JSON.stringify(parsed)}`);
+      }
+
+      return { data: parsed } as any;
     } else {
       // In production, use direct URL or Vercel serverless function
       const response = await axios.post<ChatResponse>(
@@ -82,12 +92,22 @@ export const chatApi = {
         body: JSON.stringify(payload),
       });
 
+      const status = res.status;
+      const raw = await res.text().catch(() => "");
+
       if (!res.ok) {
-        const body = await res.text().catch(() => "(no body)");
-        throw new Error(`n8n webhook error ${res.status}: ${body}`);
+        // Include raw body for easier debugging
+        throw new Error(`n8n webhook error ${status}: ${raw || "(no body)"}`);
       }
 
-      const data = await res.json();
+      // Try to parse JSON, fall back to raw text
+      let data: any = undefined;
+      try {
+        data = raw ? JSON.parse(raw) : undefined;
+      } catch (e) {
+        data = raw;
+      }
+
       return { data } as any;
     } else {
       // In production, use direct URL
