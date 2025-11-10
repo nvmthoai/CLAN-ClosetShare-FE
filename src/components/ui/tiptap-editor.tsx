@@ -2,21 +2,20 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Image from "@tiptap/extension-image";
-import { 
-  Bold, 
-  Italic, 
-  Heading2, 
-  List, 
+import {
+  Bold,
+  Italic,
+  Heading2,
+  List,
   ListOrdered,
   Quote,
   Undo,
   Redo,
   Image as ImageIcon,
-  X
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { postApi } from "@/apis/post.api";
 
 interface TipTapEditorProps {
   content: string;
@@ -59,7 +58,7 @@ export function TipTapEditor({
         inline: true,
         allowBase64: true,
         HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg',
+          class: "max-w-full h-auto rounded-lg",
         },
       }),
     ],
@@ -70,7 +69,8 @@ export function TipTapEditor({
     },
     editorProps: {
       attributes: {
-        class: "prose prose-sm sm:prose-base lg:prose-lg max-w-none focus:outline-none min-h-[120px] px-4 py-2.5",
+        class:
+          "prose prose-sm sm:prose-base lg:prose-lg max-w-none focus:outline-none min-h-[120px] px-4 py-2.5",
       },
     },
   });
@@ -80,13 +80,18 @@ export function TipTapEditor({
   }
 
   // Function to compress and resize image
-  const compressImage = (file: File, maxWidth: number = 1920, maxHeight: number = 1920, quality: number = 0.8): Promise<string> => {
+  const compressImage = (
+    file: File,
+    maxWidth: number = 1920,
+    maxHeight: number = 1920,
+    quality: number = 0.8
+  ): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new window.Image();
         img.onload = () => {
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           let width = img.width;
           let height = img.height;
 
@@ -106,9 +111,9 @@ export function TipTapEditor({
           canvas.width = width;
           canvas.height = height;
 
-          const ctx = canvas.getContext('2d');
+          const ctx = canvas.getContext("2d");
           if (!ctx) {
-            reject(new Error('Could not get canvas context'));
+            reject(new Error("Could not get canvas context"));
             return;
           }
 
@@ -116,33 +121,35 @@ export function TipTapEditor({
           ctx.drawImage(img, 0, 0, width, height);
 
           // Determine output format - keep PNG for transparency, use JPEG for photos
-          const isPNG = file.type === 'image/png';
-          const outputFormat = isPNG ? 'image/png' : 'image/jpeg';
+          const isPNG = file.type === "image/png";
+          const outputFormat = isPNG ? "image/png" : "image/jpeg";
 
           // Convert to base64 with compression
           // PNG doesn't support quality parameter, so we conditionally call toDataURL
-          const compressedDataUrl = isPNG 
+          const compressedDataUrl = isPNG
             ? canvas.toDataURL(outputFormat)
             : canvas.toDataURL(outputFormat, quality);
           resolve(compressedDataUrl);
         };
         img.onerror = () => {
-          reject(new Error('Failed to load image'));
+          reject(new Error("Failed to load image"));
         };
         img.src = e.target?.result as string;
       };
       reader.onerror = () => {
-        reject(new Error('Failed to read file'));
+        reject(new Error("Failed to read file"));
       };
       reader.readAsDataURL(file);
     });
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       alert("Vui lòng chọn file ảnh");
       return;
     }
@@ -156,55 +163,88 @@ export function TipTapEditor({
 
     setIsUploading(true);
     try {
-      // Compress and resize image, then convert to base64 string
-      const compressedDataUrl = await compressImage(file, 1920, 1920, 0.8);
-      
-      // Check if compressed size is still too large (4MB limit for base64)
-      if (compressedDataUrl.length > 4 * 1024 * 1024) {
-        // Try more aggressive compression
-        const moreCompressed = await compressImage(file, 1280, 1280, 0.7);
-        
-        // Send base64 string to server
-        const uploadResponse = await postApi.uploadImage(moreCompressed);
-        const imageUrl = uploadResponse.data?.url || (typeof uploadResponse.data === 'string' ? uploadResponse.data : null);
-        
-        if (!imageUrl) {
-          throw new Error('Không nhận được URL ảnh từ server');
+      // Helper function to calculate actual binary size from base64 string
+      // Base64 encoding increases size by ~33%, so actual size ≈ length * 3/4
+      const getBase64Size = (base64String: string): number => {
+        // Remove data URL prefix if present (e.g., "data:image/jpeg;base64,")
+        const base64Data = base64String.includes(",")
+          ? base64String.split(",")[1]
+          : base64String;
+        // Calculate actual binary size: base64 length * 3/4 minus padding
+        return Math.floor((base64Data.length * 3) / 4);
+      };
+
+      // Maximum allowed binary size (4MB)
+      const maxBinarySize = 4 * 1024 * 1024; // 4MB
+
+      // Try compression levels: [maxWidth, maxHeight, quality]
+      const compressionLevels = [
+        [1920, 1920, 0.8],
+        [1280, 1280, 0.7],
+        [1024, 1024, 0.6],
+        [800, 800, 0.5],
+      ];
+
+      let compressedDataUrl: string | null = null;
+
+      // Try each compression level until we get one under the size limit
+      for (const [maxWidth, maxHeight, quality] of compressionLevels) {
+        compressedDataUrl = await compressImage(
+          file,
+          maxWidth,
+          maxHeight,
+          quality
+        );
+
+        // Check if compressed size is acceptable
+        const actualSize = getBase64Size(compressedDataUrl);
+        if (actualSize <= maxBinarySize) {
+          break; // Found acceptable compression level
         }
-        
-        // Insert image URL into editor
-        editor.chain().focus().setImage({ src: imageUrl }).run();
-      } else {
-        // Send base64 string to server
-        const uploadResponse = await postApi.uploadImage(compressedDataUrl);
-        const imageUrl = uploadResponse.data?.url || (typeof uploadResponse.data === 'string' ? uploadResponse.data : null);
-        
-        if (!imageUrl) {
-          throw new Error('Không nhận được URL ảnh từ server');
-        }
-        
-        // Insert image URL into editor
-        editor.chain().focus().setImage({ src: imageUrl }).run();
       }
-      
+
+      // If still too large after all compression attempts, use the last one anyway
+      if (!compressedDataUrl) {
+        throw new Error("Không thể nén ảnh");
+      }
+
+      // Insert base64 image directly into editor (no server upload)
+      // TipTap Image extension supports base64 with allowBase64: true
+      editor.chain().focus().setImage({ src: compressedDataUrl }).run();
+
       setShowImageModal(false);
       setImageUrl("");
-    } catch (error: any) {
-      console.error("Error uploading image:", error);
-      const errorMessage = error?.response?.data?.message || error?.message || "Lỗi khi upload ảnh. Vui lòng thử lại.";
+    } catch (error: unknown) {
+      console.error("Error processing image:", error);
+      const errorMessage =
+        (error &&
+        typeof error === "object" &&
+        "message" in error &&
+        typeof error.message === "string"
+          ? error.message
+          : null) || "Lỗi khi xử lý ảnh. Vui lòng thử lại.";
       alert(errorMessage);
     } finally {
       setIsUploading(false);
       // Reset file input
-      event.target.value = '';
+      event.target.value = "";
     }
   };
 
   const handleInsertImageUrl = () => {
-    if (imageUrl.trim()) {
-      editor.chain().focus().setImage({ src: imageUrl.trim() }).run();
+    const trimmedUrl = imageUrl.trim();
+    if (!trimmedUrl) return;
+
+    // Basic URL validation
+    try {
+      new URL(trimmedUrl);
+      editor.chain().focus().setImage({ src: trimmedUrl }).run();
       setShowImageModal(false);
       setImageUrl("");
+    } catch {
+      alert(
+        "URL không hợp lệ. Vui lòng nhập URL đầy đủ (ví dụ: https://example.com/image.jpg)"
+      );
     }
   };
 
@@ -268,7 +308,12 @@ export function TipTapEditor({
   ];
 
   return (
-    <div className={cn("border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all", className)}>
+    <div
+      className={cn(
+        "border border-gray-200 rounded-xl focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 transition-all",
+        className
+      )}
+    >
       {/* Toolbar */}
       {editable && (
         <div className="flex items-center gap-1 p-2 border-b border-gray-200 bg-gray-50/50 rounded-t-xl">
@@ -276,7 +321,7 @@ export function TipTapEditor({
             const Icon = button.icon;
             const isActive = button.isActive();
             const isDisabled = button.disabled?.() ?? false;
-            
+
             return (
               <button
                 key={index}
@@ -297,12 +342,9 @@ export function TipTapEditor({
           })}
         </div>
       )}
-      
+
       {/* Editor Content */}
-      <EditorContent 
-        editor={editor} 
-        className="min-h-[120px]"
-      />
+      <EditorContent editor={editor} className="min-h-[120px]" />
 
       {/* Image Insert Modal */}
       {showImageModal && (
@@ -335,7 +377,8 @@ export function TipTapEditor({
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <p className="text-xs text-gray-500 mt-2">
-                  Hỗ trợ: JPG, PNG. Tối đa 5MB. Ảnh sẽ tự động được resize và nén.
+                  Hỗ trợ: JPG, PNG. Tối đa 5MB. Ảnh sẽ tự động được resize và
+                  nén thành base64 để lưu trong content.
                 </p>
                 {isUploading && (
                   <div className="mt-3 flex items-center gap-2 text-sm text-blue-600">
@@ -400,4 +443,3 @@ export function TipTapEditor({
     </div>
   );
 }
-
