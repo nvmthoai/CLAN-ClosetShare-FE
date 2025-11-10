@@ -16,7 +16,11 @@ export default defineConfig({
         target: "https://nvmthoai3.app.n8n.cloud",
         changeOrigin: true,
         secure: true,
-        rewrite: (path) => path.replace(/^\/api\/chat/, "/webhook/fb7bf781-87a8-4368-885d-555fd67390d7/chat"),
+        rewrite: (path) =>
+          path.replace(
+            /^\/api\/chat/,
+            "/webhook/fb7bf781-87a8-4368-885d-555fd67390d7/chat"
+          ),
         configure: (proxy, _options) => {
           proxy.on("proxyReq", (proxyReq, _req, _res) => {
             // Add Basic Auth header
@@ -30,7 +34,8 @@ export default defineConfig({
         target: "https://nvmthoai3.app.n8n.cloud",
         changeOrigin: true,
         secure: true,
-        rewrite: (path) => path.replace(/^\/api\/recommend-outfit/, "/webhook/recommend-outfit"),
+        rewrite: (path) =>
+          path.replace(/^\/api\/recommend-outfit/, "/webhook/recommend-outfit"),
         configure: (proxy, _options) => {
           proxy.on("proxyReq", (proxyReq, _req, _res) => {
             // Add Basic Auth header
@@ -44,7 +49,11 @@ export default defineConfig({
         target: "https://nvmthoai1.app.n8n.cloud",
         changeOrigin: true,
         secure: true,
-        rewrite: (path) => path.replace(/^\/api\/n8n/, "/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8"),
+        rewrite: (path) =>
+          path.replace(
+            /^\/api\/n8n/,
+            "/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8"
+          ),
         configure: (proxy, _options) => {
           proxy.on("proxyReq", (proxyReq, _req, _res) => {
             // Add Basic Auth header if n8n requires it and ensure JSON content-type
@@ -57,7 +66,9 @@ export default defineConfig({
             try {
               // Log method/url and upstream status code. Avoid accessing proxyRes.req which isn't typed.
               // eslint-disable-next-line no-console
-              console.debug(`[proxy] ${req.method} ${req.url} -> ${proxyRes.statusCode}`);
+              console.debug(
+                `[proxy] ${req.method} ${req.url} -> ${proxyRes.statusCode}`
+              );
             } catch (e) {
               // ignore logging errors
             }

@@ -1,6 +1,6 @@
 // src/api/chat.api.ts
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -22,13 +22,13 @@ export const sendMessage = async (
   sessionId: string
 ): Promise<ChatResponse> => {
   try {
-    const response = await fetch('/api/n8n', {
-      method: 'POST',
+    const response = await fetch("/api/n8n", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        action: 'sendMessage',
+        action: "sendMessage",
         sessionId: sessionId,
         chatInput: message,
         userId: userId,
@@ -45,7 +45,7 @@ export const sendMessage = async (
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error calling n8n webhook:', error);
+    console.error("Error calling n8n webhook:", error);
     throw error;
   }
 };

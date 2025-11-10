@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { shopApi } from "@/apis/shop.api";
+import { getUserId } from "@/lib/user";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +26,13 @@ export default function EditShop() {
   const [errors, setErrors] = useState<Partial<UpdateShopPayload>>({});
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Fetch shop data
+  // Fetch shop data (use userId from auth if available)
+  const userId = getUserId();
   const { data: shop, isLoading, isError } = useQuery({
-    queryKey: ["my-shop"],
-    queryFn: () => shopApi.getMyShop(),
-    select: (res) => res.data,
+    queryKey: ["my-shop", userId],
+    queryFn: () => (userId ? shopApi.getByUser(userId) : shopApi.getMyShop()),
+    // Extract the shop object from response.data.shop
+    select: (res: any) => res.data?.shop || null,
   });
 
   // Update form data when shop data is loaded

@@ -52,8 +52,9 @@ export default function ShopManagement() {
   const shopId = userId || "e928f1fe-4f7f-40ba-8532-82c8f78519ed"; // Fallback nếu không có user ID
   const { data: shop, isLoading } = useQuery({
     queryKey: ["my-shop", shopId],
-    queryFn: () => shopApi.getMyShop(),
-    select: (res) => res.data as Shop,
+    queryFn: () => (userId ? shopApi.getByUser(userId) : shopApi.getMyShop()),
+    // Backend returns { shop: { ... }, products: {...} }
+    select: (res: any) => (res.data?.shop as Shop) || null,
     retry: false, // Không retry khi lỗi
     enabled: !!shopId, // Chỉ fetch khi có shop ID
   });

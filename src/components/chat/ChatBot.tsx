@@ -6,7 +6,6 @@ import {
   Bot,
   User as UserIcon,
   Minimize2,
-  
 } from "lucide-react";
 import { getUserId } from "@/lib/user";
 import { cn } from "@/lib/utils";
@@ -105,8 +104,6 @@ export default function ChatBot() {
       setIsLoading(false);
     }
   };
-
-  
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {

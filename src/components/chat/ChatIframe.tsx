@@ -22,7 +22,10 @@ const ChatIframe: React.FC<Props> = ({
   const widthValue = typeof width === "number" ? `${width}px` : width;
 
   return (
-    <div style={{ width: widthValue, height: heightValue }} className={className}>
+    <div
+      style={{ width: widthValue, height: heightValue }}
+      className={className}
+    >
       <iframe
         src={webhookUrl}
         width="100%"

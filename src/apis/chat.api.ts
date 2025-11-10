@@ -40,11 +40,12 @@ export const chatApi = {
     // In development: use /api/chat which is proxied by Vite
     // In production: can use direct URL or Vercel serverless function
     const isDevelopment = import.meta.env.DEV;
-    
+
     if (isDevelopment) {
       // In local dev call the exact n8n webhook URL you tested in Postman.
       // This avoids issues if the local Vite proxy is misconfigured and returning 500s.
-      const WEBHOOK_URL = "https://nvmthoai1.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
+      const WEBHOOK_URL =
+        "https://nvmthoai1.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -62,7 +63,9 @@ export const chatApi = {
 
       if (!res.ok) {
         // include raw body for easier debugging
-        throw new Error(`n8n webhook error ${res.status}: ${raw || JSON.stringify(parsed)}`);
+        throw new Error(
+          `n8n webhook error ${res.status}: ${raw || JSON.stringify(parsed)}`
+        );
       }
 
       return { data: parsed } as any;
@@ -82,10 +85,11 @@ export const chatApi = {
   // Recommend outfit - uses proxy in development, direct call in production
   recommendOutfit: async (payload: RecommendOutfitRequest) => {
     const isDevelopment = import.meta.env.DEV;
-    
+
     if (isDevelopment) {
       // In local dev call the known working n8n webhook directly to avoid proxy 500 errors
-      const WEBHOOK_URL = "https://nvmthoai1.app.n8n.cloud/webhook/recommend-outfit";
+      const WEBHOOK_URL =
+        "https://nvmthoai1.app.n8n.cloud/webhook/recommend-outfit";
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,4 +126,3 @@ export const chatApi = {
     }
   },
 };
-

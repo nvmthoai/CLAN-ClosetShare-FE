@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "@/apis/user.api";
 import { shopApi } from "@/apis/shop.api";
+import { getUserId } from "@/lib/user";
 import { toast } from "react-toastify";
 import { isAuthenticated, clearTokens } from "@/lib/token";
 import ChatBot from "@/components/chat/ChatBot";
@@ -57,13 +58,28 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   });
 
   // Normalize the user object from response: backend returns { user: { ... } }
-  const me = (meResp?.data?.user as {
-    name?: string;
-    email?: string;
-    avatar?: string;
-    avatarUrl?: string;
-    shopCreated?: boolean;
-  }) || undefined;
+  const me =
+    (meResp?.data?.user as {
+      name?: string;
+      email?: string;
+      avatar?: string;
+      avatarUrl?: string;
+      shopCreated?: boolean;
+    }) || undefined;
+
+  // Optionally fetch shop by user id so we can hide Create Shop immediately when a shop exists.
+  const userId = getUserId();
+  const { data: shopByUserResp, isFetched: shopByUserFetched } = useQuery({
+    queryKey: ["shop-by-user", userId],
+    queryFn: () => (userId ? shopApi.getByUser(userId) : Promise.resolve(null)),
+    // backend returns { shop: { ... }, products: ... }
+    select: (res: any) => res?.data?.shop || null,
+    enabled: !!userId && hasToken,
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const shopExistsForUser = !!(shopByUserResp && shopByUserResp.id);
 
   // Determine whether the current user is allowed to create a shop.
   // Some APIs return `shopCreated: true` on the user object after creating a shop.
@@ -71,18 +87,26 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   // Also check localStorage as a fallback: some login flows persist `user_data`.
   let storedShopCreated = false;
   try {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
+    const stored =
+      typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
     if (stored) {
       const parsed = JSON.parse(stored);
-      storedShopCreated = parsed?.shopCreated === true || parsed?.user?.shopCreated === true;
+      storedShopCreated =
+        parsed?.shopCreated === true || parsed?.user?.shopCreated === true;
     }
   } catch (e) {
     // ignore parse errors
   }
 
-  // Final decision: hide Create Shop if we have a shop id, or if either the fetched
-  // user object or persisted user data indicate `shopCreated: true`.
-  const canCreateShop = !shopId && !(((me as any)?.shopCreated === true) || storedShopCreated);
+  // Final decision: hide Create Shop if we have a shop id, if a shop exists for the user
+  // (queried via /shops/user/:userId), or if either the fetched user object or persisted
+  // user data indicate `shopCreated: true`.
+  const canCreateShop = !shopId &&
+    !(
+      (me as any)?.shopCreated === true ||
+      storedShopCreated ||
+      shopExistsForUser
+    );
 
   const createShopMutation = useMutation({
     mutationFn: () => shopApi.create(shopForm),
@@ -137,7 +161,10 @@ export default function Layout({ children, sidebar }: LayoutProps) {
       // recompute stored flag for clearer runtime debugging
       (() => {
         try {
-          const s = typeof window !== "undefined" ? localStorage.getItem("user_data") : null;
+          const s =
+            typeof window !== "undefined"
+              ? localStorage.getItem("user_data")
+              : null;
           if (s) {
             const p = JSON.parse(s);
             return p?.shopCreated === true || p?.user?.shopCreated === true;
@@ -232,10 +259,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               to="/home"
               className="flex items-center gap-2 font-bold text-lg tracking-tight hover:opacity-80 transition-opacity"
             >
-              <img 
-                src="/combine_logo.png" 
-                className="h-12 w-auto"
-              />
+              <img src="/combine_logo.png" className="h-12 w-auto" />
             </Link>
           </div>
 
@@ -257,7 +281,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               </NavLink>
             ))}
           </nav>
-          
+
           <div className="ml-auto flex items-center gap-4 relative">
             <div className="hidden md:flex items-center gap-2">
               <div className="relative" ref={searchContainerRef}>
@@ -284,37 +308,42 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                           Đang tải người dùng...
                         </div>
                       ) : (searchResults?.data || searchResults)?.length ? (
-                        (searchResults?.data || searchResults).map((user: any) => (
-                          <button
-                            key={user.id}
-                            onClick={() => {
-                              setShowSearchResults(false);
-                              setSearchTerm("");
-                              navigate(`/profile/${user.id}`);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors"
-                          >
-                            <img
-                              src={
-                                user.avatar ||
-                                user.avatarUrl ||
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  user.name || user.email || user.username || "U"
-                                )}`
-                              }
-                              alt={user.name || user.email || "User"}
-                              className="w-10 h-10 rounded-full object-cover border border-gray-200"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold text-gray-900 truncate">
-                                {user.name || user.username || user.email}
+                        (searchResults?.data || searchResults).map(
+                          (user: any) => (
+                            <button
+                              key={user.id}
+                              onClick={() => {
+                                setShowSearchResults(false);
+                                setSearchTerm("");
+                                navigate(`/profile/${user.id}`);
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors"
+                            >
+                              <img
+                                src={
+                                  user.avatar ||
+                                  user.avatarUrl ||
+                                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                    user.name ||
+                                      user.email ||
+                                      user.username ||
+                                      "U"
+                                  )}`
+                                }
+                                alt={user.name || user.email || "User"}
+                                className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold text-gray-900 truncate">
+                                  {user.name || user.username || user.email}
+                                </div>
+                                <div className="text-xs text-gray-500 truncate">
+                                  {user.email || "Không có email"}
+                                </div>
                               </div>
-                              <div className="text-xs text-gray-500 truncate">
-                                {user.email || "Không có email"}
-                              </div>
-                            </div>
-                          </button>
-                        ))
+                            </button>
+                          )
+                        )
                       ) : (
                         <div className="px-4 py-6 text-sm text-gray-500 text-center">
                           Không tìm thấy người dùng phù hợp
@@ -325,8 +354,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 )}
               </div>
             </div>
-            
-            
+
             <div className="relative">
               <button
                 className="flex items-center gap-2 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
@@ -440,7 +468,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
             </div>
           </div>
         </div>
-        
+
         {mobileOpen && (
           <div className="md:hidden border-t border-gray-200 bg-white/95 backdrop-blur px-4 py-4 space-y-2">
             {navItems.map((n) => (
@@ -462,7 +490,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
           </div>
         )}
       </header>
-      
+
       <main
         id="main"
         className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex gap-6"
@@ -474,12 +502,16 @@ export default function Layout({ children, sidebar }: LayoutProps) {
         )}
         <div className="flex-1 min-w-0">{children}</div>
       </main>
-      
+
       <footer className="border-t border-gray-200 bg-white/50 backdrop-blur py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <img src="/combine_logo_1.png" alt="CLOSETSHARE" className="h-8 w-auto" />
+              <img
+                src="/combine_logo_1.png"
+                alt="CLOSETSHARE"
+                className="h-8 w-auto"
+              />
               <span className="text-xs text-gray-600">
                 © {new Date().getFullYear()} ClosetShare. All rights reserved.
               </span>
@@ -517,10 +549,12 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="space-y-4 text-sm">
               <div>
-                <label className="block mb-2 font-medium text-gray-900">Tên shop *</label>
+                <label className="block mb-2 font-medium text-gray-900">
+                  Tên shop *
+                </label>
                 <input
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   value={shopForm.name}
@@ -530,9 +564,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                   placeholder="Ví dụ: Cửa hàng Vintage"
                 />
               </div>
-              
+
               <div>
-                <label className="block mb-2 font-medium text-gray-900">Mô tả</label>
+                <label className="block mb-2 font-medium text-gray-900">
+                  Mô tả
+                </label>
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 h-24 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   value={shopForm.description}
@@ -542,10 +578,12 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                   placeholder="Mô tả ngắn về shop"
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block mb-2 font-medium text-gray-900">Địa chỉ</label>
+                  <label className="block mb-2 font-medium text-gray-900">
+                    Địa chỉ
+                  </label>
                   <input
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     value={shopForm.address}
@@ -556,7 +594,9 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                   />
                 </div>
                 <div>
-                  <label className="block mb-2 font-medium text-gray-900">Số điện thoại</label>
+                  <label className="block mb-2 font-medium text-gray-900">
+                    Số điện thoại
+                  </label>
                   <input
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     value={shopForm.phone_number}
@@ -570,9 +610,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                   />
                 </div>
               </div>
-              
+
               <div>
-                <label className="block mb-2 font-medium text-gray-900">Email</label>
+                <label className="block mb-2 font-medium text-gray-900">
+                  Email
+                </label>
                 <input
                   className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   value={shopForm.email}
@@ -584,7 +626,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end gap-3 pt-2">
               <button
                 className="px-5 py-2.5 text-sm rounded-xl border border-gray-200 text-gray-900 hover:bg-gray-50 transition-colors font-medium"
@@ -601,7 +643,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 {createShopMutation.isPending ? "Đang lưu..." : "Tạo shop"}
               </button>
             </div>
-            
+
             <p className="text-xs text-gray-500 text-center">
               Sau khi tạo, shop cần được xác minh trước khi hiển thị công khai.
             </p>
@@ -609,7 +651,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
         </div>
       )}
 
-  {/* ChatBot is mounted per-page when needed. Removed global mount to avoid duplicate widgets. */}
+      {/* ChatBot is mounted per-page when needed. Removed global mount to avoid duplicate widgets. */}
       {/* Global chat widget (floating). Mount when user is authenticated so it appears across screens. */}
       {hasToken && <ChatBot />}
     </div>

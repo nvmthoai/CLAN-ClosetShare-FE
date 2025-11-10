@@ -79,8 +79,8 @@ export default function CustomChatBot({
 
       if (providedUserId) payload.userId = providedUserId;
 
-  // Debug: log payload to console
-  console.info("CustomChatBot -> Sending payload:", payload);
+      // Debug: log payload to console
+      console.info("CustomChatBot -> Sending payload:", payload);
 
       // In development use chatApi (axios + proxy) to avoid CORS and include auth headers
       if (import.meta.env.DEV) {
@@ -88,9 +88,13 @@ export default function CustomChatBot({
         // axios response: axiosRes.data
         console.info("CustomChatBot <- axios response:", axiosRes.data);
         const data = axiosRes.data as any;
-  // Debug: show structured response and bot output
-  console.info("Bot response:", data?.output);
-        const botText = data?.chatOutput || data?.message || data?.output || "Xin lỗi, tôi không thể trả lời ngay.";
+        // Debug: show structured response and bot output
+        console.info("Bot response:", data?.output);
+        const botText =
+          data?.chatOutput ||
+          data?.message ||
+          data?.output ||
+          "Xin lỗi, tôi không thể trả lời ngay.";
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
@@ -107,7 +111,11 @@ export default function CustomChatBot({
         // Read raw text first so we can handle empty/non-JSON responses gracefully
         const status = res.status;
         const raw = await res.text();
-        console.info("CustomChatBot <- Raw response (status, body):", status, raw);
+        console.info(
+          "CustomChatBot <- Raw response (status, body):",
+          status,
+          raw
+        );
 
         // Try parse JSON, fall back to raw text
         let data: any = undefined;
@@ -125,7 +133,12 @@ export default function CustomChatBot({
         // Debug: log structured response when possible
         console.info("Bot response:", data?.output ?? data);
 
-        const botText = data?.output || data?.message || (typeof data === "string" ? data : "Xin lỗi, tôi không thể trả lời ngay.");
+        const botText =
+          data?.output ||
+          data?.message ||
+          (typeof data === "string"
+            ? data
+            : "Xin lỗi, tôi không thể trả lời ngay.");
         const botMessage: Message = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
@@ -138,16 +151,17 @@ export default function CustomChatBot({
       // note: botMessage already appended inside each branch above
     } catch (err: any) {
       console.error("CustomChatBot error:", err);
-  // Log error for troubleshooting
-  const errText = err?.message ? `${err.message}` : String(err);
-  console.error("CustomChatBot error detail:", errText);
+      // Log error for troubleshooting
+      const errText = err?.message ? `${err.message}` : String(err);
+      console.error("CustomChatBot error detail:", errText);
 
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 2).toString(),
           role: "assistant",
-          content: "Xin lỗi, có lỗi khi kết nối với chatbot. Vui lòng thử lại sau.",
+          content:
+            "Xin lỗi, có lỗi khi kết nối với chatbot. Vui lòng thử lại sau.",
         },
       ]);
     } finally {
@@ -157,7 +171,9 @@ export default function CustomChatBot({
 
   return (
     <div
-      style={{ maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth }}
+      style={{
+        maxWidth: typeof maxWidth === "number" ? `${maxWidth}px` : maxWidth,
+      }}
       className="border rounded-xl overflow-hidden shadow-lg"
     >
       <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white px-4 py-3 flex items-center justify-between">
@@ -168,13 +184,29 @@ export default function CustomChatBot({
         {/* control area (no debug button) */}
       </div>
 
-      <div style={{ height: typeof height === "number" ? `${height}px` : height }} className="bg-gray-50 p-4 overflow-y-auto">
+      <div
+        style={{ height: typeof height === "number" ? `${height}px` : height }}
+        className="bg-gray-50 p-4 overflow-y-auto"
+      >
         {messages.map((m) => (
-          <div key={m.id} className={`mb-3 max-w-[80%] ${m.role === "user" ? "ml-auto text-right" : "mr-auto text-left"}`}>
-            <div className={`${m.role === "user" ? "bg-blue-500 text-white rounded-2xl px-4 py-2 inline-block" : "bg-white border border-gray-200 rounded-2xl px-4 py-2 inline-block"}`}>
+          <div
+            key={m.id}
+            className={`mb-3 max-w-[80%] ${
+              m.role === "user" ? "ml-auto text-right" : "mr-auto text-left"
+            }`}
+          >
+            <div
+              className={`${
+                m.role === "user"
+                  ? "bg-blue-500 text-white rounded-2xl px-4 py-2 inline-block"
+                  : "bg-white border border-gray-200 rounded-2xl px-4 py-2 inline-block"
+              }`}
+            >
               <div dangerouslySetInnerHTML={{ __html: m.content }} />
             </div>
-            <div className="text-[11px] text-gray-400 mt-1">{m.role === "user" ? "Bạn" : "Bot"}</div>
+            <div className="text-[11px] text-gray-400 mt-1">
+              {m.role === "user" ? "Bạn" : "Bot"}
+            </div>
           </div>
         ))}
 
@@ -183,20 +215,28 @@ export default function CustomChatBot({
             <div className="bg-white border border-gray-200 rounded-2xl px-4 py-2 inline-block">
               <div className="flex gap-1">
                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                <div
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                />
+                <div
+                  className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                />
               </div>
             </div>
           </div>
         )}
-
 
         <div ref={messagesEndRef} />
       </div>
 
       {/* Debug panel removed for production-style UI */}
 
-      <form onSubmit={sendMessage} className="p-3 bg-white border-t border-gray-200">
+      <form
+        onSubmit={sendMessage}
+        className="p-3 bg-white border-t border-gray-200"
+      >
         <div className="flex gap-2">
           <input
             type="text"
@@ -211,7 +251,9 @@ export default function CustomChatBot({
             type="submit"
             className={
               "px-4 py-2 rounded-lg bg-blue-600 text-white " +
-              (isLoading || !input.trim() ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-700")
+              (isLoading || !input.trim()
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:bg-blue-700")
             }
             disabled={isLoading || !input.trim()}
             aria-label="Send message"
@@ -219,7 +261,9 @@ export default function CustomChatBot({
             {isLoading ? "Đang gửi..." : "Gửi"}
           </button>
         </div>
-        <p className="text-xs text-gray-400 mt-2 text-center">Nhấn Enter để gửi</p>
+        <p className="text-xs text-gray-400 mt-2 text-center">
+          Nhấn Enter để gửi
+        </p>
       </form>
     </div>
   );

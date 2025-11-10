@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import ChatBot from './ChatBot';
+import React, { useState } from "react";
+import ChatBot from "./ChatBot";
 
 interface FloatingChatWidgetProps {
   userId: string;
@@ -28,7 +28,7 @@ const FloatingChatWidget: React.FC<FloatingChatWidgetProps> = ({ userId }) => {
         onClick={() => setIsOpen(!isOpen)}
         className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all z-40 flex items-center justify-center text-2xl"
       >
-        {isOpen ? '✕' : '💬'}
+        {isOpen ? "✕" : "💬"}
       </button>
     </>
   );

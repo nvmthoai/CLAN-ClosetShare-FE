@@ -53,7 +53,8 @@ const sortOptions = [
   { value: "name", label: "Tên A-Z" },
 ];
 
-const emptyMessage = "Chưa có outfit nào phù hợp với bộ lọc hiện tại. Hãy thử thay đổi tiêu chí!";
+const emptyMessage =
+  "Chưa có outfit nào phù hợp với bộ lọc hiện tại. Hãy thử thay đổi tiêu chí!";
 
 const extractOutfits = (payload: any): CommunityOutfit[] => {
   if (!payload) return [];
@@ -183,9 +184,10 @@ export default function OutfitExplore() {
     let result = Array.isArray(outfits) ? [...outfits] : [];
 
     if (normalizedSearch) {
-      result = result.filter((outfit) =>
-        outfit.name?.toLowerCase().includes(normalizedSearch) ||
-        outfit.user_id?.toLowerCase().includes(normalizedSearch)
+      result = result.filter(
+        (outfit) =>
+          outfit.name?.toLowerCase().includes(normalizedSearch) ||
+          outfit.user_id?.toLowerCase().includes(normalizedSearch)
       );
     }
 
@@ -227,8 +229,12 @@ export default function OutfitExplore() {
 
   const stats = useMemo(() => {
     const total = outfits.length;
-    const completed = outfits.filter((item) => item.top && item.bottom && item.outwear).length;
-    const accessorieLovers = outfits.filter((item) => (item.accessories?.length ?? 0) >= 2).length;
+    const completed = outfits.filter(
+      (item) => item.top && item.bottom && item.outwear
+    ).length;
+    const accessorieLovers = outfits.filter(
+      (item) => (item.accessories?.length ?? 0) >= 2
+    ).length;
 
     return {
       total,
@@ -266,7 +272,9 @@ export default function OutfitExplore() {
               Lấy cảm hứng phối đồ từ cộng đồng ClosetShare
             </h1>
             <p className="text-white/90 text-lg max-w-2xl">
-              Duyệt qua các outfit được mix & match từ những fashionista khác. Học hỏi cách phối màu, lựa chọn chất liệu và tích hợp phụ kiện để nâng cấp phong cách riêng của bạn.
+              Duyệt qua các outfit được mix & match từ những fashionista khác.
+              Học hỏi cách phối màu, lựa chọn chất liệu và tích hợp phụ kiện để
+              nâng cấp phong cách riêng của bạn.
             </p>
             <div className="flex flex-wrap gap-4 text-sm">
               <div className="rounded-2xl bg-white/10 backdrop-blur px-5 py-3">
@@ -274,7 +282,9 @@ export default function OutfitExplore() {
                 <p className="text-2xl font-semibold">{stats.total}</p>
               </div>
               <div className="rounded-2xl bg-white/10 backdrop-blur px-5 py-3">
-                <p className="uppercase text-xs text-white/60">Outfit hoàn chỉnh</p>
+                <p className="uppercase text-xs text-white/60">
+                  Outfit hoàn chỉnh
+                </p>
                 <p className="text-2xl font-semibold">{stats.completed}</p>
               </div>
               <div className="rounded-2xl bg-white/10 backdrop-blur px-5 py-3">
@@ -292,7 +302,9 @@ export default function OutfitExplore() {
                 <div className="col-span-2 rounded-2xl overflow-hidden bg-white/10 border border-white/20 h-44">
                   <div className="w-full h-full bg-gradient-to-br from-white/80 to-transparent flex flex-col justify-end p-4 text-blue-900">
                     <p className="text-sm font-semibold">Outfit Highstreet</p>
-                    <p className="text-xs">Vintage denim • Moto jacket • Silver hoops</p>
+                    <p className="text-xs">
+                      Vintage denim • Moto jacket • Silver hoops
+                    </p>
                   </div>
                 </div>
                 <div className="rounded-2xl bg-white/15 border border-white/20 p-4 h-32 flex flex-col justify-between">
@@ -345,7 +357,8 @@ export default function OutfitExplore() {
                 refetch();
               }}
             >
-              <RefreshCcw className="w-4 h-4 mr-2" />Làm mới
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Làm mới
             </Button>
           </div>
         </div>
@@ -389,17 +402,25 @@ export default function OutfitExplore() {
               Không thể tải dữ liệu outfit
             </h3>
             <p className="text-sm text-red-500">
-              Đã có lỗi xảy ra khi kết nối tới máy chủ. Vui lòng kiểm tra lại mạng hoặc thử tải lại sau.
+              Đã có lỗi xảy ra khi kết nối tới máy chủ. Vui lòng kiểm tra lại
+              mạng hoặc thử tải lại sau.
             </p>
-            <Button onClick={() => refetch()} className="bg-red-500 hover:bg-red-600">
+            <Button
+              onClick={() => refetch()}
+              className="bg-red-500 hover:bg-red-600"
+            >
               Thử lại
             </Button>
           </div>
         ) : filteredOutfits.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-16 text-center space-y-4">
             <Sparkles className="w-10 h-10 mx-auto text-purple-400" />
-            <h3 className="text-xl font-semibold text-gray-800">Không tìm thấy outfit phù hợp</h3>
-            <p className="text-sm text-gray-500 max-w-xl mx-auto">{emptyMessage}</p>
+            <h3 className="text-xl font-semibold text-gray-800">
+              Không tìm thấy outfit phù hợp
+            </h3>
+            <p className="text-sm text-gray-500 max-w-xl mx-auto">
+              {emptyMessage}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -472,7 +493,11 @@ export default function OutfitExplore() {
                                 )}`
                               : "https://ui-avatars.com/api/?name=U")
                           }
-                          alt={outfit.user?.name || outfit.user?.email || "Người tạo"}
+                          alt={
+                            outfit.user?.name ||
+                            outfit.user?.email ||
+                            "Người tạo"
+                          }
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -494,7 +519,10 @@ export default function OutfitExplore() {
                         <p className="text-sm text-gray-500 flex items-center gap-2 mt-1">
                           <UserIcon className="w-4 h-4" />
                           <span>
-                            Người tạo: {outfit.user?.name || outfit.user?.email || "Ẩn danh"}
+                            Người tạo:{" "}
+                            {outfit.user?.name ||
+                              outfit.user?.email ||
+                              "Ẩn danh"}
                           </span>
                         </p>
                       </div>
@@ -509,20 +537,28 @@ export default function OutfitExplore() {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-3">
                         <p className="text-gray-500">Áo</p>
-                        <p className="font-medium text-gray-800 truncate">{outfit.top?.name || "Chưa có"}</p>
+                        <p className="font-medium text-gray-800 truncate">
+                          {outfit.top?.name || "Chưa có"}
+                        </p>
                       </div>
                       <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-3">
                         <p className="text-gray-500">Quần/Váy</p>
-                        <p className="font-medium text-gray-800 truncate">{outfit.bottom?.name || "Chưa có"}</p>
+                        <p className="font-medium text-gray-800 truncate">
+                          {outfit.bottom?.name || "Chưa có"}
+                        </p>
                       </div>
                       <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-3">
                         <p className="text-gray-500">Áo khoác</p>
-                        <p className="font-medium text-gray-800 truncate">{outfit.outwear?.name || "Chưa có"}</p>
+                        <p className="font-medium text-gray-800 truncate">
+                          {outfit.outwear?.name || "Chưa có"}
+                        </p>
                       </div>
                       <div className="rounded-2xl border border-gray-100 bg-gray-50/60 p-3">
                         <p className="text-gray-500">Phụ kiện</p>
                         <p className="font-medium text-gray-800 truncate">
-                          {accessoryCount > 0 ? `${accessoryCount} món` : "Chưa có"}
+                          {accessoryCount > 0
+                            ? `${accessoryCount} món`
+                            : "Chưa có"}
                         </p>
                       </div>
                     </div>
@@ -531,17 +567,33 @@ export default function OutfitExplore() {
                   <div className="px-6 pb-6">
                     <div className="flex items-center justify-between">
                       <div className="flex gap-2 flex-wrap">
-                        {filter !== "complete" && outfit.top && outfit.bottom && outfit.outwear && (
-                          <Badge className="bg-blue-100 text-blue-600">Full set</Badge>
-                        )}
+                        {filter !== "complete" &&
+                          outfit.top &&
+                          outfit.bottom &&
+                          outfit.outwear && (
+                            <Badge className="bg-blue-100 text-blue-600">
+                              Full set
+                            </Badge>
+                          )}
                         {(outfit.accessories?.length ?? 0) >= 2 && (
-                          <Badge className="bg-purple-100 text-purple-600">Nhiều phụ kiện</Badge>
+                          <Badge className="bg-purple-100 text-purple-600">
+                            Nhiều phụ kiện
+                          </Badge>
                         )}
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="outline" className="rounded-full" asChild>
-                          <Link to={`/outfits/${outfit.id}`} target="_blank" rel="noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-2" />Xem chi tiết
+                        <Button
+                          variant="outline"
+                          className="rounded-full"
+                          asChild
+                        >
+                          <Link
+                            to={`/outfits/${outfit.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Xem chi tiết
                           </Link>
                         </Button>
                         <Button
@@ -553,7 +605,8 @@ export default function OutfitExplore() {
                             <Loader2 className="w-4 h-4 animate-spin" />
                           ) : (
                             <>
-                              <Share2 className="w-4 h-4 mr-2" />Chia sẻ
+                              <Share2 className="w-4 h-4 mr-2" />
+                              Chia sẻ
                             </>
                           )}
                         </Button>
@@ -575,7 +628,6 @@ export default function OutfitExplore() {
         )}
       </div>
       {/* Chat widget is mounted globally in the layout to avoid duplicates */}
-
     </div>
   );
 }

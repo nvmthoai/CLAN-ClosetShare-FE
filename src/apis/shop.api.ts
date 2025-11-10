@@ -10,6 +10,8 @@ export const shopApi = {
   
   // Get shop by ID (public view)
   getById: (id: string) => fetcher.get<Shop>(`/shops/${id}`),
+  // Get shop by user id (server endpoint: /shops/user/:userId)
+  getByUser: (userId: string) => fetcher.get<Shop>(`/shops/user/${userId}`),
   
   // Admin operations (if needed)
   getAll: (params?: { page?: number; limit?: number; search?: string }) => 
