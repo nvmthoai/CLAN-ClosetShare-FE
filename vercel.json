@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/chat", "destination": "/api/chat.ts" },
+    { "source": "/api/chat", "destination": "/api/chat.js" },
     { "source": "/api/(.*)", "destination": "http://103.163.24.150:3000/$1" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
