@@ -67,6 +67,24 @@ export default function Layout({ children, sidebar }: LayoutProps) {
       shopCreated?: boolean;
     }) || undefined;
 
+  // Fallback: if `me` is not yet available (e.g., query not returned), try reading
+  // persisted user data from localStorage so the header can show name/avatar.
+  let persistedUser: any = undefined;
+  try {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("user_data");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // `user_data` may be the user object itself or an object with `user` key
+        persistedUser = parsed?.user ? parsed.user : parsed;
+      }
+    }
+  } catch (e) {
+    /* ignore parse errors */
+  }
+
+  const displayUser = me || persistedUser;
+
   // Optionally fetch shop by user id so we can hide Create Shop immediately when a shop exists.
   const userId = getUserId();
   const { data: shopByUserResp } = useQuery({
@@ -364,19 +382,19 @@ export default function Layout({ children, sidebar }: LayoutProps) {
               >
                 <img
                   src={
-                    me?.avatar ||
-                    me?.avatarUrl ||
-                    (me?.name || me?.email
+                    displayUser?.avatar ||
+                    displayUser?.avatarUrl ||
+                    (displayUser?.name || displayUser?.email
                       ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          me?.name || me?.email || "U"
+                          displayUser?.name || displayUser?.email || "U"
                         )}`
                       : "https://ui-avatars.com/api/?name=U")
                   }
-                  alt={me?.name || "User"}
+                  alt={displayUser?.name || "User"}
                   className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
                 />
                 <span className="hidden sm:block text-sm font-medium text-gray-900 max-w-[140px] truncate">
-                  {me?.name || me?.email || "User"}
+                  {displayUser?.name || displayUser?.email || "User"}
                 </span>
                 <span className="text-xs text-gray-600">▾</span>
               </button>
