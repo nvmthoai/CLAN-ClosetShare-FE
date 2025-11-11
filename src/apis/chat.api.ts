@@ -71,13 +71,11 @@ export const chatApi = {
       return { data: parsed } as any;
     } else {
       // In production, use direct URL or Vercel serverless function
-      const response = await axios.post<ChatResponse>(
-        "https://nvmthoai3.app.n8n.cloud/webhook/fb7bf781-87a8-4368-885d-555fd67390d7/chat",
-        payload,
-        {
-          headers: buildHeaders(),
-        }
-      );
+      // Production: call the Vercel serverless proxy on the same origin so the browser
+      // doesn't make a cross-origin request directly to n8n (which triggers CORS).
+      const response = await axios.post<ChatResponse>("/api/chat", payload, {
+        headers: buildHeaders(),
+      });
       return response;
     }
   },
@@ -115,8 +113,9 @@ export const chatApi = {
       return { data } as any;
     } else {
       // In production, use direct URL
+      // Production: call the serverless proxy endpoint which forwards to n8n.
       const response = await axios.post<RecommendOutfitResponse>(
-        "https://nvmthoai3.app.n8n.cloud/webhook/recommend-outfit",
+        "/api/recommend-outfit",
         payload,
         {
           headers: buildHeaders(),
