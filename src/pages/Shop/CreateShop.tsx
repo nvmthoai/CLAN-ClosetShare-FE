@@ -89,7 +89,7 @@ export default function CreateShop() {
         })
           .then(async (res) => {
             if (!res.ok) throw new Error(`Create shop failed: ${res.status}`);
-            const data = await res.json().catch(() => null);
+            await res.json().catch(() => null);
             toast.success("Tạo shop thành công! Đang chờ xác minh.");
             navigate("/profile/shops");
           })

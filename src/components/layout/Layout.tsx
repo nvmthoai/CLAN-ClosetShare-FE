@@ -69,7 +69,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
 
   // Optionally fetch shop by user id so we can hide Create Shop immediately when a shop exists.
   const userId = getUserId();
-  const { data: shopByUserResp, isFetched: shopByUserFetched } = useQuery({
+  const { data: shopByUserResp } = useQuery({
     queryKey: ["shop-by-user", userId],
     queryFn: () => (userId ? shopApi.getByUser(userId) : Promise.resolve(null)),
     // backend returns { shop: { ... }, products: ... }
