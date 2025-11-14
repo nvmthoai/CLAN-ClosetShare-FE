@@ -22,7 +22,7 @@ import {
   Users,
   Package,
   TrendingUp,
-  ArrowLeft
+  ArrowLeft,
 } from "lucide-react";
 import type { Shop } from "@/models/Shop";
 
@@ -35,7 +35,8 @@ export default function ShopManagement() {
   const mockShop: Shop = {
     id: "e928f1fe-4f7f-40ba-8532-82c8f78519ed",
     name: "Fashion Boutique",
-    description: "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại. Chúng tôi cam kết mang đến cho khách hàng những trải nghiệm mua sắm tuyệt vời nhất.",
+    description:
+      "Chuyên cung cấp các sản phẩm thời trang cao cấp, từ quần áo vintage đến các mẫu thiết kế hiện đại. Chúng tôi cam kết mang đến cho khách hàng những trải nghiệm mua sắm tuyệt vời nhất.",
     address: "123 Nguyễn Huệ, Quận 1, TP.HCM",
     phone_number: "0901 234 567",
     email: "contact@fashionboutique.com",
@@ -83,13 +84,29 @@ export default function ShopManagement() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            Hoạt động
+          </Badge>
+        );
       case "UNVERIFIED":
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Chờ xác minh</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            Chờ xác minh
+          </Badge>
+        );
       case "SUSPENDED":
-        return <Badge className="bg-red-100 text-red-800 border-red-200">Tạm dừng</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200">
+            Tạm dừng
+          </Badge>
+        );
       default:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+            Không xác định
+          </Badge>
+        );
     }
   };
 
@@ -126,10 +143,10 @@ export default function ShopManagement() {
                 Quay lại
               </button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Quản lý Shop</h1>
-                <p className="text-gray-600 mt-1">
-                  Quản lý shop của bạn
-                </p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Quản lý Shop
+                </h1>
+                <p className="text-gray-600 mt-1">Quản lý shop của bạn</p>
               </div>
             </div>
             {!shop && (
@@ -151,16 +168,19 @@ export default function ShopManagement() {
                 {/* Shop Header with Background */}
                 <div className="relative h-48 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
                   <img
-                    src={shopData.background || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center"}
+                    src={
+                      shopData.background ||
+                      "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=200&fit=crop&crop=center"
+                    }
                     alt={shopData.name}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-black/40" />
-                  
+
                   {/* Decorative blobs */}
                   <span className="pointer-events-none absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-blue-500/20 blur-2xl" />
                   <span className="pointer-events-none absolute -top-12 -right-12 w-40 h-40 rounded-full bg-blue-400/20 blur-2xl" />
-                  
+
                   {/* Status Badge */}
                   <div className="absolute top-4 right-4 z-10">
                     {getStatusBadge(shopData.status)}
@@ -171,7 +191,10 @@ export default function ShopManagement() {
                     <div className="flex items-end gap-4">
                       <div className="relative">
                         <img
-                          src={shopData.avatar || "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center"}
+                          src={
+                            shopData.avatar ||
+                            "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100&h=100&fit=crop&crop=center"
+                          }
                           alt={shopData.name}
                           className="w-20 h-20 rounded-full border-4 border-white object-cover shadow-xl"
                         />
@@ -180,14 +203,18 @@ export default function ShopManagement() {
                         </button>
                       </div>
                       <div className="flex-1 text-white">
-                        <h2 className="text-2xl font-bold mb-1">{shopData.name}</h2>
+                        <h2 className="text-2xl font-bold mb-1">
+                          {shopData.name}
+                        </h2>
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <Star className="w-4 h-4 text-yellow-400 fill-current" />
                             <span>{shopData.rating || 0}</span>
                           </div>
                           <span>•</span>
-                          <span>Tạo: {formatDate(shopData.created_at || "")}</span>
+                          <span>
+                            Tạo: {formatDate(shopData.created_at || "")}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -200,7 +227,9 @@ export default function ShopManagement() {
                     {/* Left Column - Description */}
                     <div className="lg:col-span-2 space-y-4">
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">Mô tả shop</h3>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          Mô tả shop
+                        </h3>
                         <p className="text-gray-700 leading-relaxed">
                           {shopData.description}
                         </p>
@@ -212,8 +241,12 @@ export default function ShopManagement() {
                           <div className="flex items-start gap-3">
                             <MapPin className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
-                              <p className="text-sm font-semibold text-gray-900">Địa chỉ</p>
-                              <p className="text-sm text-gray-600">{shopData.address}</p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                Địa chỉ
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {shopData.address}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -221,8 +254,12 @@ export default function ShopManagement() {
                           <div className="flex items-start gap-3">
                             <Phone className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
-                              <p className="text-sm font-semibold text-gray-900">Số điện thoại</p>
-                              <p className="text-sm text-gray-600">{shopData.phone_number}</p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                Số điện thoại
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {shopData.phone_number}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -230,8 +267,12 @@ export default function ShopManagement() {
                           <div className="flex items-start gap-3">
                             <Mail className="w-5 h-5 text-blue-500 mt-0.5" />
                             <div>
-                              <p className="text-sm font-semibold text-gray-900">Email</p>
-                              <p className="text-sm text-gray-600">{shopData.email}</p>
+                              <p className="text-sm font-semibold text-gray-900">
+                                Email
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {shopData.email}
+                              </p>
                             </div>
                           </div>
                         )}
@@ -242,28 +283,38 @@ export default function ShopManagement() {
                     <div className="space-y-4">
                       {/* Quick Stats */}
                       <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-4 border-2 border-gray-100">
-                        <h4 className="font-bold text-gray-900 mb-3">Thống kê nhanh</h4>
+                        <h4 className="font-bold text-gray-900 mb-3">
+                          Thống kê nhanh
+                        </h4>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Package className="w-4 h-4 text-blue-500" />
-                              <span className="text-sm text-gray-600">Sản phẩm</span>
+                              <span className="text-sm text-gray-600">
+                                Sản phẩm
+                              </span>
                             </div>
                             <span className="font-bold text-gray-900">24</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Users className="w-4 h-4 text-blue-500" />
-                              <span className="text-sm text-gray-600">Người theo dõi</span>
+                              <span className="text-sm text-gray-600">
+                                Người theo dõi
+                              </span>
                             </div>
                             <span className="font-bold text-gray-900">156</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <TrendingUp className="w-4 h-4 text-blue-500" />
-                              <span className="text-sm text-gray-600">Doanh thu tháng</span>
+                              <span className="text-sm text-gray-600">
+                                Doanh thu tháng
+                              </span>
                             </div>
-                            <span className="font-bold text-gray-900">2.5M</span>
+                            <span className="font-bold text-gray-900">
+                              2.5M
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -299,13 +350,18 @@ export default function ShopManagement() {
 
               {/* Quick Actions Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card className="p-4 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1" onClick={() => navigate("/products")}>
+                <Card
+                  className="p-4 hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-100 hover:border-blue-300 hover:-translate-y-1"
+                  onClick={() => navigate("/products")}
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
                       <Package className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-900">Quản lý sản phẩm</p>
+                      <p className="font-bold text-gray-900">
+                        Quản lý sản phẩm
+                      </p>
                       <p className="text-sm text-gray-600">24 sản phẩm</p>
                     </div>
                   </div>
@@ -330,7 +386,9 @@ export default function ShopManagement() {
                     </div>
                     <div>
                       <p className="font-bold text-gray-900">Khách hàng</p>
-                      <p className="text-sm text-gray-600">156 người theo dõi</p>
+                      <p className="text-sm text-gray-600">
+                        156 người theo dõi
+                      </p>
                     </div>
                   </div>
                 </Card>
@@ -381,8 +439,9 @@ export default function ShopManagement() {
                     Xác nhận xóa shop
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    Bạn có chắc chắn muốn xóa shop <strong>"{shopData.name}"</strong>? 
-                    Hành động này không thể hoàn tác.
+                    Bạn có chắc chắn muốn xóa shop{" "}
+                    <strong>"{shopData.name}"</strong>? Hành động này không thể
+                    hoàn tác.
                   </p>
                   <div className="flex gap-3">
                     <button

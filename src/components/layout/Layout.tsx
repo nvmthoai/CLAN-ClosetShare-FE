@@ -119,7 +119,8 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   // Final decision: hide Create Shop if we have a shop id, if a shop exists for the user
   // (queried via /shops/user/:userId), or if either the fetched user object or persisted
   // user data indicate `shopCreated: true`.
-  const canCreateShop = !shopId &&
+  const canCreateShop =
+    !shopId &&
     !(
       (me as any)?.shopCreated === true ||
       storedShopCreated ||

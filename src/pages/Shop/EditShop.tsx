@@ -13,7 +13,7 @@ import type { UpdateShopPayload } from "@/models/Shop";
 export default function EditShop() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [formData, setFormData] = useState<UpdateShopPayload>({
     name: "",
     description: "",
@@ -28,7 +28,11 @@ export default function EditShop() {
 
   // Fetch shop data (use userId from auth if available)
   const userId = getUserId();
-  const { data: shop, isLoading, isError } = useQuery({
+  const {
+    data: shop,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["my-shop", userId],
     queryFn: () => (userId ? shopApi.getByUser(userId) : shopApi.getMyShop()),
     // Extract the shop object from response.data.shop
@@ -64,12 +68,12 @@ export default function EditShop() {
   });
 
   const handleInputChange = (field: keyof UpdateShopPayload, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     setHasChanges(true);
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -84,7 +88,10 @@ export default function EditShop() {
       newErrors.email = "Email không hợp lệ";
     }
 
-    if (formData.phone_number && !/^[0-9+\-\s()]+$/.test(formData.phone_number)) {
+    if (
+      formData.phone_number &&
+      !/^[0-9+\-\s()]+$/.test(formData.phone_number)
+    ) {
       newErrors.phone_number = "Số điện thoại không hợp lệ";
     }
 
@@ -101,7 +108,9 @@ export default function EditShop() {
 
   const handleCancel = () => {
     if (hasChanges) {
-      if (window.confirm("Bạn có chắc chắn muốn hủy? Các thay đổi sẽ bị mất.")) {
+      if (
+        window.confirm("Bạn có chắc chắn muốn hủy? Các thay đổi sẽ bị mất.")
+      ) {
         navigate("/profile/shops");
       }
     } else {
@@ -112,13 +121,29 @@ export default function EditShop() {
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case "ACTIVE":
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            Hoạt động
+          </Badge>
+        );
       case "UNVERIFIED":
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Chờ xác minh</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            Chờ xác minh
+          </Badge>
+        );
       case "SUSPENDED":
-        return <Badge className="bg-red-100 text-red-800 border-red-200">Tạm dừng</Badge>;
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200">
+            Tạm dừng
+          </Badge>
+        );
       default:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>;
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+            Không xác định
+          </Badge>
+        );
     }
   };
 
@@ -164,7 +189,9 @@ export default function EditShop() {
                 Quay lại
               </button>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Chỉnh sửa Shop</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Chỉnh sửa Shop
+                </h1>
                 <p className="text-gray-600 mt-1">
                   Cập nhật thông tin cho shop "{shop.name}"
                 </p>
@@ -191,7 +218,9 @@ export default function EditShop() {
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   placeholder="Nhập tên shop của bạn"
-                  className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${errors.name ? "border-red-500" : ""}`}
+                  className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${
+                    errors.name ? "border-red-500" : ""
+                  }`}
                 />
                 {errors.name && (
                   <p className="text-red-500 text-sm mt-1">{errors.name}</p>
@@ -205,7 +234,9 @@ export default function EditShop() {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("description", e.target.value)
+                  }
                   placeholder="Mô tả ngắn về shop của bạn..."
                   rows={4}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
@@ -233,12 +264,18 @@ export default function EditShop() {
                   </label>
                   <Input
                     value={formData.phone_number}
-                    onChange={(e) => handleInputChange("phone_number", e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("phone_number", e.target.value)
+                    }
                     placeholder="0901 234 567"
-                    className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${errors.phone_number ? "border-red-500" : ""}`}
+                    className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${
+                      errors.phone_number ? "border-red-500" : ""
+                    }`}
                   />
                   {errors.phone_number && (
-                    <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.phone_number}
+                    </p>
                   )}
                 </div>
                 <div>
@@ -250,7 +287,9 @@ export default function EditShop() {
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     placeholder="shop@example.com"
-                    className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${errors.email ? "border-red-500" : ""}`}
+                    className={`h-12 rounded-xl border-gray-200 focus:border-blue-500 focus:ring-blue-500 ${
+                      errors.email ? "border-red-500" : ""
+                    }`}
                   />
                   {errors.email && (
                     <p className="text-red-500 text-sm mt-1">{errors.email}</p>
@@ -297,15 +336,25 @@ export default function EditShop() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2 font-medium">Avatar</p>
-                    <button type="button" className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 font-medium">
+                    <p className="text-sm text-gray-600 mb-2 font-medium">
+                      Avatar
+                    </p>
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 font-medium"
+                    >
                       Chọn ảnh
                     </button>
                   </div>
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2 font-medium">Background</p>
-                    <button type="button" className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 font-medium">
+                    <p className="text-sm text-gray-600 mb-2 font-medium">
+                      Background
+                    </p>
+                    <button
+                      type="button"
+                      className="px-3 py-1.5 text-sm border-2 border-gray-200 rounded-xl text-gray-900 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-500 transition-all duration-200 font-medium"
+                    >
                       Chọn ảnh
                     </button>
                   </div>
@@ -314,20 +363,36 @@ export default function EditShop() {
 
               {/* Shop Info */}
               <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 rounded-xl p-4">
-                <h4 className="text-sm font-bold text-gray-900 mb-2">Thông tin shop</h4>
+                <h4 className="text-sm font-bold text-gray-900 mb-2">
+                  Thông tin shop
+                </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                   <div>
-                    <span className="font-semibold text-gray-900">ID:</span> {shop.id}
+                    <span className="font-semibold text-gray-900">ID:</span>{" "}
+                    {shop.id}
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-900">Tạo lúc:</span> {new Date(shop.created_at || "").toLocaleDateString("vi-VN")}
+                    <span className="font-semibold text-gray-900">
+                      Tạo lúc:
+                    </span>{" "}
+                    {new Date(shop.created_at || "").toLocaleDateString(
+                      "vi-VN"
+                    )}
                   </div>
                   <div>
-                    <span className="font-semibold text-gray-900">Cập nhật:</span> {new Date(shop.updated_at || "").toLocaleDateString("vi-VN")}
+                    <span className="font-semibold text-gray-900">
+                      Cập nhật:
+                    </span>{" "}
+                    {new Date(shop.updated_at || "").toLocaleDateString(
+                      "vi-VN"
+                    )}
                   </div>
                   {shop.rating && (
                     <div>
-                      <span className="font-semibold text-gray-900">Đánh giá:</span> {shop.rating}/5
+                      <span className="font-semibold text-gray-900">
+                        Đánh giá:
+                      </span>{" "}
+                      {shop.rating}/5
                     </div>
                   )}
                 </div>
@@ -350,7 +415,9 @@ export default function EditShop() {
                   disabled={updateShopMutation.isPending || !hasChanges}
                 >
                   <Save className="w-4 h-4" />
-                  {updateShopMutation.isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                  {updateShopMutation.isPending
+                    ? "Đang lưu..."
+                    : "Lưu thay đổi"}
                 </button>
               </div>
             </form>
