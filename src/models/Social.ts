@@ -50,7 +50,10 @@ export interface Comment {
   text?: string; // Legacy field
   content?: string; // API field
   createdAt: string;
+  created_at?: string; // Backend field
   likes: number;
+  replies?: Comment[]; // Nested replies
+  quote_comment_id?: string; // If this is a reply
 }
 
 export interface Story {

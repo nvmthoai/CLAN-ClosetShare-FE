@@ -19,9 +19,9 @@ export default function ProductDetail() {
   });
 
   const product = data;
-  const heroImg = product?.images?.[0] || product?.variants?.[0]?.imgs?.[0];
+  const heroImg = product?.variants?.[0]?.images?.[0];
   const firstVariant: Variant | undefined = product?.variants?.[0];
-  const price = firstVariant?.pricings?.[0]?.price;
+  const price = firstVariant?.pricing?.price;
 
   const [receiverName, setReceiverName] = useState("");
   const [phone, setPhone] = useState("");
@@ -95,7 +95,7 @@ export default function ProductDetail() {
               {product?.variants && product.variants.length > 0 && (
                 <div className="p-3 grid grid-cols-6 gap-2 border-t border-gray-200 bg-gray-50">
                   {product.variants.flatMap((v, idx) =>
-                    (v.imgs || [])
+                    (v.images || [])
                       .slice(0, 6 - idx)
                       .map((img, i) => (
                         <img
@@ -205,16 +205,12 @@ export default function ProductDetail() {
                 <h2 className="font-bold text-gray-900 mb-4">Chi tiết sản phẩm</h2>
                 <ul className="text-sm text-gray-700 space-y-2">
                   <li className="flex justify-between">
-                    <span className="font-semibold text-gray-900">Trạng thái:</span>
-                    <span>{product?.status || "N/A"}</span>
-                  </li>
-                  <li className="flex justify-between">
                     <span className="font-semibold text-gray-900">Loại:</span>
-                    <span>{product?.type || "N/A"}</span>
+                    <span>{product?.type === "SALE" ? "Bán" : "Thuê"}</span>
                   </li>
                   <li className="flex justify-between">
-                    <span className="font-semibold text-gray-900">Shop:</span>
-                    <span>{product?.shop_id || "N/A"}</span>
+                    <span className="font-semibold text-gray-900">Số biến thể:</span>
+                    <span>{product?.variants?.length || 0}</span>
                   </li>
                 </ul>
               </div>

@@ -10,8 +10,8 @@ interface ProductCardProps {
 export const ProductCard = memo(function ProductCard({
   product,
 }: ProductCardProps) {
-  const firstImg = product.images?.[0] || product.variants?.[0]?.imgs?.[0];
-  const price = product.variants?.[0]?.pricings?.[0]?.price;
+  const firstImg = product.variants?.[0]?.images?.[0];
+  const price = product.variants?.[0]?.pricing?.price;
   return (
     <Link
       to={`/products/${product.id}`}

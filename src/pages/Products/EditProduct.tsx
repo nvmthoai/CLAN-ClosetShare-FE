@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import type { UpdateProductPayload, Product } from "@/models/Product";
+import type { UpdateProductPayload } from "@/models/Product";
+import { productApi } from "@/apis/product.api";
 import { toast } from "react-toastify";
 import {
   ArrowLeft,
@@ -14,8 +15,7 @@ import {
   Plus,
   Trash2,
   Package,
-  Hash,
-  Image as ImageIcon
+  Hash
 } from "lucide-react";
 
 interface VariantForm {
@@ -24,57 +24,11 @@ interface VariantForm {
   type: string;
   stock: number;
   price: number;
-  images: string[];
+  images: string[]; // URLs from backend
+  newImageFiles?: File[]; // New files to upload
   status: string;
 }
 
-// Mock product data
-const mockProduct: Product = {
-  id: "1",
-  name: "Áo sơ mi vintage trắng",
-  description: "Áo sơ mi vintage chất liệu cotton cao cấp, thiết kế cổ điển phù hợp cho mọi dịp.",
-  status: "ACTIVE",
-  type: "Áo sơ mi",
-  shop_id: "1",
-  images: [
-    "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop",
-    "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop"
-  ],
-  variants: [
-    {
-      id: "1",
-      product_id: "1",
-      name: "Size M",
-      type: "size",
-      stock: 15,
-      status: "ACTIVE",
-      imgs: ["https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=200&fit=crop"],
-      pricings: [
-        {
-          id: "1",
-          variant_id: "1",
-          price: 250000
-        }
-      ]
-    },
-    {
-      id: "2",
-      product_id: "1",
-      name: "Size L",
-      type: "size",
-      stock: 8,
-      status: "ACTIVE",
-      imgs: ["https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=200&fit=crop"],
-      pricings: [
-        {
-          id: "2",
-          variant_id: "2",
-          price: 250000
-        }
-      ]
-    }
-  ]
-};
 
 export default function EditProduct() {
   const { id } = useParams<{ id: string }>();
@@ -84,10 +38,7 @@ export default function EditProduct() {
   const [formData, setFormData] = useState<UpdateProductPayload>({
     name: "",
     description: "",
-    type: "",
-    status: "ACTIVE",
-    images: [],
-    variants: []
+    type: "SALE",
   });
   
   const [variants, setVariants] = useState<VariantForm[]>([]);
@@ -96,33 +47,23 @@ export default function EditProduct() {
   // Fetch product data
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["product", id],
-    queryFn: () => Promise.resolve({ data: mockProduct }),
+    queryFn: () => productApi.getProductById(id!),
+    enabled: !!id,
     select: (res) => res.data,
-    // Uncomment below when you have real API
-    // queryFn: () => productApi.getProductById(id!),
-    // select: (res) => res.data,
   });
 
   // Update product mutation
   const updateProductMutation = useMutation({
-    mutationFn: (payload: UpdateProductPayload) => {
-      // Mock update - in real app, this would call productApi.updateProduct(id!, payload)
-      return Promise.resolve({ 
-        data: { 
-          id: id!, 
-          ...payload, 
-          shop_id: "1"
-        } 
-      });
-    },
+    mutationFn: (payload: UpdateProductPayload) => productApi.updateProduct(id!, payload),
     onSuccess: () => {
       toast.success("Cập nhật sản phẩm thành công!");
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", id] });
       navigate("/products");
     },
-    onError: () => {
-      toast.error("Có lỗi xảy ra khi cập nhật sản phẩm!");
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || "Có lỗi xảy ra khi cập nhật sản phẩm!";
+      toast.error(message);
     },
   });
 
@@ -132,10 +73,7 @@ export default function EditProduct() {
       setFormData({
         name: product.name,
         description: product.description || "",
-        type: product.type || "",
-        status: product.status || "ACTIVE",
-        images: product.images || [],
-        variants: []
+        type: product.type || "SALE",
       });
 
       // Convert variants to form format
@@ -144,9 +82,9 @@ export default function EditProduct() {
         name: variant.name,
         type: variant.type,
         stock: variant.stock,
-        price: variant.pricings?.[0]?.price || 0,
-        images: variant.imgs || [],
-        status: variant.status
+        price: variant.pricing?.price || 0,
+        images: variant.images || [],
+        status: "ACTIVE" // Backend only returns active variants
       })) || [];
 
       setVariants(formattedVariants);
@@ -160,23 +98,6 @@ export default function EditProduct() {
     }));
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files;
-    if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      setFormData(prev => ({
-        ...prev,
-        images: [...(prev.images || []), ...newImages]
-      }));
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images?.filter((_, i) => i !== index) || []
-    }));
-  };
 
   const addVariant = () => {
     setVariants(prev => [...prev, { 
@@ -202,17 +123,23 @@ export default function EditProduct() {
   const handleVariantImageUpload = (variantIndex: number, event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
-      updateVariant(variantIndex, "images", newImages);
+      const newFiles = Array.from(files);
+      const variant = variants[variantIndex];
+      updateVariant(variantIndex, "newImageFiles", [...(variant.newImageFiles || []), ...newFiles]);
     }
   };
 
-  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
-    setVariants(prev => prev.map((variant, i) => 
-      i === variantIndex 
-        ? { ...variant, images: variant.images.filter((_, j) => j !== imageIndex) }
-        : variant
-    ));
+  const removeVariantImage = (variantIndex: number, imageIndex: number, isNew: boolean = false) => {
+    setVariants(prev => prev.map((variant, i) => {
+      if (i === variantIndex) {
+        if (isNew && variant.newImageFiles) {
+          return { ...variant, newImageFiles: variant.newImageFiles.filter((_, j) => j !== imageIndex) };
+        } else {
+          return { ...variant, images: variant.images.filter((_, j) => j !== imageIndex) };
+        }
+      }
+      return variant;
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -220,24 +147,19 @@ export default function EditProduct() {
     setIsSubmitting(true);
 
     try {
-      // Convert variants to the correct format
-      const formattedVariants = variants.map(variant => ({
-        name: variant.name,
-        type: variant.type,
-        stock: variant.stock,
-        status: variant.status,
-        imgs: variant.images,
-        pricings: [{
-          price: variant.price
-        }]
-      }));
-
+      // Update product basic info
       const payload: UpdateProductPayload = {
-        ...formData,
-        variants: formattedVariants
+        name: formData.name,
+        description: formData.description,
+        type: formData.type as "SALE" | "RENT",
       };
 
       await updateProductMutation.mutateAsync(payload);
+
+      // Update variants if needed (this would require separate API calls for each variant)
+      // For now, we only update the product basic info
+      // Variant updates should be done separately via variant update endpoints
+      
     } catch (error) {
       console.error("Error updating product:", error);
     } finally {
@@ -344,93 +266,14 @@ export default function EditProduct() {
                   required
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
-                  <option value="">Chọn loại sản phẩm</option>
-                  <option value="Áo sơ mi">Áo sơ mi</option>
-                  <option value="Quần jean">Quần jean</option>
-                  <option value="Đầm">Đầm</option>
-                  <option value="Áo khoác">Áo khoác</option>
-                  <option value="Váy">Váy</option>
-                  <option value="Quần short">Quần short</option>
-                  <option value="Áo thun">Áo thun</option>
-                  <option value="Khác">Khác</option>
+                  <option value="SALE">Bán</option>
+                  <option value="RENT">Thuê</option>
                 </select>
               </div>
               
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Trạng thái
-                </label>
-                <select
-                  value={formData.status}
-                  onChange={(e) => handleInputChange("status", e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                >
-                  <option value="ACTIVE">Đang bán</option>
-                  <option value="DRAFT">Bản nháp</option>
-                  <option value="INACTIVE">Tạm dừng</option>
-                </select>
-              </div>
             </div>
           </Card>
 
-          {/* Product Images */}
-          <Card className="p-6 border-2 border-gray-100 shadow-lg">
-            <div className="flex items-center gap-2 mb-6">
-              <ImageIcon className="w-5 h-5 text-blue-500" />
-              <h2 className="text-xl font-bold text-gray-900">Hình ảnh sản phẩm</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Upload hình ảnh
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors bg-gray-50/50">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="product-images"
-                  />
-                  <label
-                    htmlFor="product-images"
-                    className="cursor-pointer flex flex-col items-center gap-2"
-                  >
-                    <Upload className="w-8 h-8 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      Click để chọn hình ảnh hoặc kéo thả vào đây
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      PNG, JPG, GIF tối đa 10MB
-                    </span>
-                  </label>
-                </div>
-              </div>
-              
-              {formData.images && formData.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {formData.images.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image}
-                        alt={`Product ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Card>
 
           {/* Variants */}
           <Card className="p-6 border-2 border-gray-100 shadow-lg">
@@ -551,10 +394,11 @@ export default function EditProduct() {
                       </label>
                     </div>
                     
-                    {variant.images.length > 0 && (
+                    {(variant.images.length > 0 || variant.newImageFiles?.length) && (
                       <div className="grid grid-cols-4 gap-2 mt-4">
+                        {/* Existing images from backend */}
                         {variant.images.map((image, imageIndex) => (
-                          <div key={imageIndex} className="relative group">
+                          <div key={`existing-${imageIndex}`} className="relative group">
                             <img
                               src={image}
                               alt={`Variant ${index + 1} - ${imageIndex + 1}`}
@@ -562,7 +406,24 @@ export default function EditProduct() {
                             />
                             <button
                               type="button"
-                              onClick={() => removeVariantImage(index, imageIndex)}
+                              onClick={() => removeVariantImage(index, imageIndex, false)}
+                              className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-2 h-2" />
+                            </button>
+                          </div>
+                        ))}
+                        {/* New images to upload */}
+                        {variant.newImageFiles?.map((file, imageIndex) => (
+                          <div key={`new-${imageIndex}`} className="relative group">
+                            <img
+                              src={URL.createObjectURL(file)}
+                              alt={`New ${imageIndex + 1}`}
+                              className="w-full h-16 object-cover rounded"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeVariantImage(index, imageIndex, true)}
                               className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <X className="w-2 h-2" />

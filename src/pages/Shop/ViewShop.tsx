@@ -74,7 +74,7 @@ export default function ViewShop() {
       if (responseData && typeof responseData === 'object' && 'data' in responseData && Array.isArray(responseData.data)) {
         return { 
           products: responseData.data, 
-          total: responseData.total || responseData.data.length 
+          total: responseData.pagination?.total || responseData.data.length 
         };
       }
       if (responseData && typeof responseData === 'object' && 'products' in responseData) {

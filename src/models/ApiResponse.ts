@@ -1,15 +1,14 @@
-import type { AxiosResponse } from "axios";
+import type { AxiosResponse } from 'axios'
 
-// Generic API response type aliasing AxiosResponse with a typed payload
-export type ApiResponse<T = unknown> = AxiosResponse<T>;
-
-// Auth-specific payload returned by auth endpoints
-export interface AuthPayload {
-  user: any;
-  data: any;
-  access_token?: string;
-  refresh_token?: string;
+export interface AuthApiResponse extends Partial<AxiosResponse> {
+  message?: string
+  errors?: {
+    email?: {
+      type?: string
+      value?: string
+      msg?: string
+      path?: string
+      location?: string
+    }
+  }
 }
-
-// Auth API response
-export type AuthApiResponse = ApiResponse<AuthPayload>;
