@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Heart,
   MessageCircle,
@@ -40,6 +40,18 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const [liked, setLiked] = useState<boolean>(!!post.isLiked);
   const [likeCount, setLikeCount] = useState<number>(post.likes ?? 0);
   const queryClient = useQueryClient();
+  
+  // Initialize liked state from post.isLiked on mount
+  // This ensures we read the correct value from server after F5
+  useEffect(() => {
+    const initialLiked = !!post.isLiked;
+    const initialLikeCount = post.likes ?? 0;
+    setLiked(initialLiked);
+    setLikeCount(initialLikeCount);
+    lastKnownLikedRef.current = initialLiked;
+    // Reset hasLocalLikeState on mount to allow sync from server
+    setHasLocalLikeState(false);
+  }, []);
 
   const displayUser = useMemo(() => {
     const fromUser = post.user;
@@ -72,23 +84,34 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const [isReactPending, setIsReactPending] = useState(false);
   // Track if we have a local like state that should override server value
   const [hasLocalLikeState, setHasLocalLikeState] = useState(false);
+  // Track the last known liked state to prevent unnecessary updates
+  const lastKnownLikedRef = React.useRef<boolean | null>(null);
 
   // Reset local state when post changes (new post loaded)
   useEffect(() => {
     setHasLocalLikeState(false);
+    lastKnownLikedRef.current = null;
     setLiked(!!post.isLiked);
     setLikeCount(post.likes ?? 0);
   }, [post.id]);
 
-  // Only update from post props if we don't have local state
-  // This prevents race condition where refetch overwrites optimistic update
+  // Sync from server when post.isLiked changes (e.g., after refetch or F5)
+  // Only update if we don't have local state (user hasn't clicked like recently)
   useEffect(() => {
-    // Only sync from server if we don't have local state
-    if (!hasLocalLikeState && !isReactPending && post.id) {
-      setLiked(!!post.isLiked);
-      setLikeCount(post.likes ?? 0);
+    // Always sync from server if we don't have local state
+    // This ensures F5 will restore the correct state from server
+    if (!hasLocalLikeState && !isReactPending) {
+      const serverLiked = !!post.isLiked;
+      const serverLikeCount = post.likes ?? 0;
+      
+      // Update if server value is different from current state
+      if (liked !== serverLiked || likeCount !== serverLikeCount) {
+        setLiked(serverLiked);
+        setLikeCount(serverLikeCount);
+        lastKnownLikedRef.current = serverLiked;
+      }
     }
-  }, [post.isLiked, post.likes, hasLocalLikeState, isReactPending, post.id]);
+  }, [post.isLiked, post.likes, hasLocalLikeState, isReactPending, liked, likeCount]);
 
   // Fetch comments when comments section is opened
   const {
@@ -145,6 +168,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
       // Optimistic update - update UI immediately
       setLiked(shouldLike);
       setLikeCount(nextLikeCount);
+      lastKnownLikedRef.current = shouldLike;
 
       return { previousState, nextLikeCount, intendedLike: shouldLike };
     },
@@ -175,11 +199,13 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
         );
         setLiked(actualLike);
         setLikeCount(actualCount);
+        lastKnownLikedRef.current = actualLike;
         // Keep hasLocalLikeState = true to prevent server from overriding
         onLike?.(post.id, actualLike, actualCount);
       } else if (context) {
         // Normal case - state already updated in onMutate
         // Keep the optimistic update, just confirm it
+        lastKnownLikedRef.current = shouldLike;
         // Keep hasLocalLikeState = true to prevent server from overriding
         onLike?.(post.id, shouldLike, context.nextLikeCount);
       }
@@ -187,8 +213,8 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
       setIsReactPending(false);
       
       // Invalidate and refetch posts query to sync with server
-      // But keep hasLocalLikeState = true so server won't override our state
-      // Only reset it when post.id changes (new post loaded)
+      // Don't reset hasLocalLikeState - keep it to preserve the like state
+      // It will only reset when post.id changes (new post loaded)
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["posts"] });
       }, 300);
@@ -480,8 +506,16 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
                   <div key={comment.id} className="space-y-3">
                     {/* Parent Comment */}
                     <div className="flex gap-3 group">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-                        {comment.user.username.charAt(0).toUpperCase()}
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0 overflow-hidden border-2 border-blue-200">
+                        {comment.user.avatar ? (
+                          <img 
+                            src={comment.user.avatar} 
+                            alt={comment.user.username}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          comment.user.username.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="bg-white rounded-xl p-3 border border-gray-200">
@@ -569,8 +603,16 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
                       <div className="ml-11 space-y-2">
                         {comment.replies.map((reply) => (
                           <div key={reply.id} className="flex gap-3">
-                            <div className="w-6 h-6 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                              {reply.user.username.charAt(0).toUpperCase()}
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0 overflow-hidden border-2 border-blue-100">
+                              {reply.user.avatar ? (
+                                <img 
+                                  src={reply.user.avatar} 
+                                  alt={reply.user.username}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                reply.user.username.charAt(0).toUpperCase()
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
