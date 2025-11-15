@@ -22,3 +22,16 @@ export interface ResetPasswordRequest {
   token: string; // reset token from email/otp
   password: string;
 }
+
+export interface AuthPayload {
+  access_token: string;
+  refresh_token: string;
+  user?: any;
+  data?: {
+    user?: any;
+  };
+}
+
+export interface AuthResponse {
+  data: AuthPayload;
+}

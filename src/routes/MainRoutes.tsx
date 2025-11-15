@@ -2,10 +2,35 @@ import { ToastContainer } from "react-toastify";
 import ScrollToTop from "../components/ui/autoScroll";
 import { Route, Routes } from "react-router-dom";
 import LandingPage from "@/pages/LandingPage/LandingPage";
+import ProtectedRoute from "./ProtectedRoute";
 import Login from "@/pages/Auth/Login/Login";
 import Register from "@/pages/Auth/Register/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword/ResetPassword";
+import Products from "@/pages/Products/Products";
+import ProductDetail from "@/pages/Products/ProductDetail";
+import Profile from "@/pages/Profile/Profile";
+import EditProfile from "@/pages/Profile/EditProfile";
+import ProfileDetail from "@/pages/Profile/ProfileDetail";
+import Layout from "@/components/layout/Layout";
+
+import Feed from "@/pages/Feed/Feed";
+import Subscriptions from "@/pages/Subscription/Subscriptions";
+import PaymentCallback from "@/pages/Payment/PaymentCallback";
+import PaymentSuccess from "@/pages/Payment/PaymentSuccess";
+import PaymentFailure from "@/pages/Payment/PaymentFailure";
+import ViewShop from "@/pages/Shop/ViewShop";
+import ShopManagement from "@/pages/Shop/ShopManagement";
+import CreateShop from "@/pages/Shop/CreateShop";
+import EditShop from "@/pages/Shop/EditShop";
+import ProductDemo from "@/pages/Shop/ProductDemo";
+import ProductManagement from "@/pages/Products/ProductManagement";
+import CreateProduct from "@/pages/Products/CreateProduct";
+import EditProduct from "@/pages/Products/EditProduct";
+import Policy from "@/pages/Policy/Policy";
+import TermsOfService from "@/pages/Policy/TermsOfService";
+import ViewOutfitPublic from "@/pages/Outfit/ViewOutfitPublic";
+import OutfitExplore from "@/pages/Outfit/OutfitExplore";
 
 export default function MainRoutes() {
   return (
@@ -23,12 +48,196 @@ export default function MainRoutes() {
         theme="colored"
       />
       <ScrollToTop />
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Feed />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/shop"
+          element={
+            <ProtectedRoute>
+              <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/products/:id"
+          element={
+            <ProtectedRoute>
+              <ProductDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/edit"
+          element={
+            <ProtectedRoute>
+              <EditProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:id"
+          element={
+            <ProtectedRoute>
+              <ProfileDetail />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/subscriptions"
+          element={
+            <ProtectedRoute>
+              <Subscriptions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/callback"
+          element={
+            <ProtectedRoute>
+              <PaymentCallback />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/success"
+          element={
+            <ProtectedRoute>
+              <PaymentSuccess />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment/failure"
+          element={
+            <ProtectedRoute>
+              <PaymentFailure />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/view-shop/:id"
+          element={
+            <ProtectedRoute>
+              <ViewShop />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/shops"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ShopManagement />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/shop/create"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <CreateShop />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+         <Route
+           path="/shop/edit"
+           element={
+             <ProtectedRoute>
+               <Layout>
+                 <EditShop />
+               </Layout>
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/shop/demo"
+           element={
+             <ProtectedRoute>
+               <Layout>
+                 <ProductDemo />
+               </Layout>
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/products"
+           element={
+             <ProtectedRoute>
+               <ProductManagement />
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/products/create"
+           element={
+             <ProtectedRoute>
+               <CreateProduct />
+             </ProtectedRoute>
+           }
+         />
+         <Route
+           path="/products/edit/:id"
+           element={
+             <ProtectedRoute>
+               <EditProduct />
+             </ProtectedRoute>
+           }
+         />
+        <Route
+          path="/create"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <div className="p-6">
+                  <h1 className="text-2xl font-bold mb-4">Tạo bài viết</h1>
+                  <p className="text-gray-600">
+                    Tải nội dung thời trang của bạn lên ở đây...
+                  </p>
+                </div>
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+         <Route path="/login" element={<Login />} />
+         <Route path="/register" element={<Register />} />
+         <Route path="/forgot-password" element={<ForgotPassword />} />
+         <Route path="/reset-password" element={<ResetPassword />} />
+         <Route path="/policy" element={<Policy />} />
+         <Route path="/terms" element={<TermsOfService />} />
+         <Route
+          path="/outfits/explore"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <OutfitExplore />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+         <Route path="/outfit/:id" element={<ViewOutfitPublic />} />
+         <Route path="/outfits/:id" element={<ViewOutfitPublic />} />
       </Routes>
     </>
   );
