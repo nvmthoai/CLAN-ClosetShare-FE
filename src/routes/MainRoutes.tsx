@@ -8,6 +8,7 @@ import Register from "@/pages/Auth/Register/Register";
 import ForgotPassword from "@/pages/Auth/ForgotPassword/ForgotPassword";
 import ResetPassword from "@/pages/Auth/ResetPassword/ResetPassword";
 import Products from "@/pages/Products/Products";
+import BrowseProducts from "@/pages/Products/BrowseProducts";
 import ProductDetail from "@/pages/Products/ProductDetail";
 import Profile from "@/pages/Profile/Profile";
 import EditProfile from "@/pages/Profile/EditProfile";
@@ -66,6 +67,14 @@ export default function MainRoutes() {
           element={
             <ProtectedRoute>
               <Products />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/browse"
+          element={
+            <ProtectedRoute>
+              <BrowseProducts />
             </ProtectedRoute>
           }
         />

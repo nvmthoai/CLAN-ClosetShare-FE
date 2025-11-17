@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/models/Product";
 import { productApi } from "@/apis/product.api";
+import { shopApi } from "@/apis/shop.api";
+import { getUserId } from "@/lib/user";
 import { toast } from "react-toastify";
 import {
   Plus,
@@ -36,6 +38,18 @@ export default function ProductManagement() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
+  // Get current user's shop
+  const userId = getUserId();
+  const { data: shopData } = useQuery({
+    queryKey: ["shop-by-user", userId],
+    queryFn: () => (userId ? shopApi.getByUser(userId) : Promise.resolve(null)),
+    select: (res: any) => res?.data?.shop || null,
+    enabled: !!userId,
+    staleTime: 60_000,
+  });
+
+  const shopId = shopData?.id;
+
   // Update URL when search or filter changes
   useEffect(() => {
     const params = new URLSearchParams();
@@ -48,16 +62,23 @@ export default function ProductManagement() {
     setSearchParams(params, { replace: true });
   }, [searchTerm, typeFilter, setSearchParams]);
 
-  // Fetch products from API
+  // Fetch products from API - only for current user's shop
   const { data: productsData, isLoading, isError } = useQuery({
-    queryKey: ["products", { search: searchTerm, type: typeFilter }],
-    queryFn: () => productApi.getProducts({ 
-      search: searchTerm || undefined,
-      type: typeFilter !== "all" ? (typeFilter as "SALE" | "RENT") : undefined,
-      page: 1,
-      limit: 100,
-    }),
+    queryKey: ["products", { shopId, search: searchTerm, type: typeFilter }],
+    queryFn: async () => {
+      if (!shopId) {
+        return { data: { data: [], pagination: { total: 0, total_pages: 0, page: 1, limit: 100 } } };
+      }
+      return productApi.getProducts({ 
+        shopId,
+        search: searchTerm || undefined,
+        type: typeFilter !== "all" ? (typeFilter as "SALE" | "RENT") : undefined,
+        page: 1,
+        limit: 100,
+      });
+    },
     select: (res) => res.data,
+    enabled: !!shopId, // Only fetch when we have shopId
   });
 
   // Delete product mutation

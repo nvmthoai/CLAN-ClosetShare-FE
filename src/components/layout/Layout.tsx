@@ -201,6 +201,7 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   const navItems = [
     { to: "/home", icon: Home, label: "Home" },
     { to: "/shop", icon: ShoppingBag, label: "Shop" },
+    { to: "/browse", icon: Package, label: "Sản phẩm" },
     { to: "/outfits/explore", icon: Sparkles, label: "Outfits" },
     { to: "/subscriptions", icon: BadgeDollarSign, label: "Plans" },
   ];

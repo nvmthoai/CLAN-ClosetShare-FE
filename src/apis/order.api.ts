@@ -23,7 +23,11 @@ export const orderApi = {
     const { items, ...rest } = payload;
     return fetcher.post("/orders", {
       ...rest,
-      item: items, // Backend expects 'item' not 'items'
+      // Backend expects 'item' and quantity as string
+      item: items.map((it) => ({
+        variant_id: it.variant_id,
+        quantity: String(it.quantity),
+      })),
     });
   },
 };
