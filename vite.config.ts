@@ -46,7 +46,7 @@ export default defineConfig({
         },
       },
       "/api/n8n": {
-        target: "https://nvmthoai1.app.n8n.cloud",
+        target: "https://nvmthoai123.app.n8n.cloud",
         changeOrigin: true,
         secure: true,
         rewrite: (path) =>
