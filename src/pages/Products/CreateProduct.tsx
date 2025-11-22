@@ -180,14 +180,15 @@ export default function CreateProduct() {
       let productId: string | undefined;
       
       if (createResp?.data) {
+        const respData = createResp.data as any;
         // If data is an object with id
-        if (typeof createResp.data === 'object' && createResp.data !== null) {
-          productId = (createResp.data as any)?.id;
+        if (typeof respData === "object" && respData !== null) {
+          productId = respData?.id;
         }
         // If data is a string (JSON stringified)
-        if (typeof createResp.data === 'string' && createResp.data.trim() !== '') {
+        if (typeof respData === "string" && respData.trim() !== "") {
           try {
-            const parsed = JSON.parse(createResp.data);
+            const parsed = JSON.parse(respData);
             productId = parsed?.id;
           } catch (e) {
             // Not JSON, ignore

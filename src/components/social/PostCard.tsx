@@ -203,7 +203,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   // Create comment mutation
   const createCommentMutation = useMutation({
     mutationFn: (payload: CreateCommentPayload) => postApi.createComment(payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Clear the specific reply text that was submitted
       if (variables.quote_comment_id) {
         setReplyText((prev) => {
