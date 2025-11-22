@@ -45,7 +45,7 @@ export const chatApi = {
       // In local dev call the exact n8n webhook URL you tested in Postman.
       // This avoids issues if the local Vite proxy is misconfigured and returning 500s.
       const WEBHOOK_URL =
-        "https://nvmthoai1.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
+        "https://nvmthoai123.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
       const res = await fetch(WEBHOOK_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

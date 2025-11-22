@@ -9,7 +9,7 @@ type Props = {
 };
 
 const DEFAULT_URL =
-  "https://nvmthoai1.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
+  "https://nvmthoai123.app.n8n.cloud/webhook/fc1aa0bb-d14d-4ba3-859e-e69fc31a22c8/chat";
 
 const ChatIframe: React.FC<Props> = ({
   webhookUrl = DEFAULT_URL,
