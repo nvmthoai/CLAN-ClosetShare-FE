@@ -1,7 +1,7 @@
 export type Pricing = {
-  id?: string;
-  variant_id?: string;
   price: number;
+  start_date?: string;
+  end_date?: string | null;
 };
 
 export type Variant = {
@@ -10,60 +10,54 @@ export type Variant = {
   name: string;
   type: string;
   stock: number;
-  status: string;
-  imgs: string[];
-  pricings?: Pricing[];
+  images: string[]; // Backend returns signed URLs
+  pricing: Pricing | null; // Backend transforms pricings array to single pricing object
 };
 
 export type Product = {
   id: string;
   name: string;
-  description?: string;
-  status?: string;
-  type?: string;
-  shop_id?: string;
-  images?: string[];
-  variants?: Variant[];
-};
-
-export type PagedResponse<T> = {
-  data: T[];
-  page?: number;
-  limit?: number;
-  total?: number;
+  description: string;
+  type: "SALE" | "RENT";
+  shop_id: string;
+  variants: Variant[];
+  filter_props?: Array<{
+    filterProp: {
+      id: string;
+      name: string;
+      filter_id: string;
+    };
+  }>;
 };
 
 export type ProductListResponse = {
-  products: Product[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
+  data: Product[];
+  pagination: {
+    total: number;
+    page: number;
+    total_pages: number;
+  };
 };
 
 // CRUD Operations Types
-export type CreateProductPayload = {
+export type CreateProductInShopPayload = {
   name: string;
-  description?: string;
-  type?: string;
-  shop_id: string;
-  images?: string[];
-  variants?: Omit<Variant, 'id' | 'product_id'>[];
+  description: string;
+  type: "SALE" | "RENT";
+  filter_props: string[]; // Array of filter_prop IDs
 };
 
 export type UpdateProductPayload = {
   name?: string;
   description?: string;
-  status?: string;
-  type?: string;
-  images?: string[];
-  variants?: Omit<Variant, 'id' | 'product_id'>[];
+  type?: "SALE" | "RENT";
+  filter_props?: string[]; // Array of filter_prop IDs
 };
 
-export type CreateProductInShopPayload = {
+export type CreateVariantPayload = {
   name: string;
-  description?: string;
-  type?: string;
-  images?: string[];
-  variants?: Omit<Variant, 'id' | 'product_id'>[];
+  type: string;
+  stock: number;
+  price: number;
+  images?: File[]; // Files to upload
 };

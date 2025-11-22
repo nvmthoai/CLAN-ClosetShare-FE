@@ -7,38 +7,32 @@ import type {
 } from "@/models/Product";
 
 export type GetProductsParams = {
-  shopId?: string; // Optional for general product listing
+  shopId?: string;
   page?: number;
   limit?: number;
   search?: string;
-  type?: string;
-  sort?: string;
-  priceMin?: number;
-  priceMax?: number;
-  price_min?: number;
-  price_max?: number;
-  filterPropIds?: string;
+  type?: "SALE" | "RENT";
 };
 
 export const productApi = {
-  // 1. POST /products/shop - Create product in shop
+  // POST /products/shop - Create product in shop
   createProductInShop: (payload: CreateProductInShopPayload) =>
     fetcher.post<Product>("/products/shop", payload),
 
-  // 2. GET /products - Get products with pagination
+  // GET /products - Get products with pagination
   getProducts: (params?: GetProductsParams) =>
     fetcher.get<ProductListResponse>("/products", { params }),
 
-  // 3. GET /products/{productId} - Get single product by ID
+  // GET /products/{productId} - Get single product by ID
   getProductById: (id: string) => fetcher.get<Product>(`/products/${id}`),
 
-  // 4. POST /products/{productId} - Special action on product (duplicate/restore)
-  actionOnProduct: (id: string, action?: string) =>
-    fetcher.post<Product>(`/products/${id}`, { action }),
-
-  // 5. PUT /products/{productId} - Update product
+  // PUT /products/{productId} - Update product
   updateProduct: (id: string, payload: UpdateProductPayload) =>
-    fetcher.put<Product>(`/products/${id}`, payload),
+    fetcher.put<{ message: string; product: Product }>(`/products/${id}`, payload),
+
+  // DELETE /products/{productId} - Delete product
+  deleteProduct: (id: string) =>
+    fetcher.delete<{ message: string }>(`/products/${id}`),
 
   // Convenience methods
   getProductsByShop: (
@@ -48,14 +42,30 @@ export const productApi = {
     fetcher.get<ProductListResponse>("/products", {
       params: { shopId, ...params },
     }),
-  // Create a variant for a product. Some backends expose
-  // POST /products/:productId/variants, others accept POST /products/:productId.
-  // We try the canonical /variants path first and fall back to the product POST.
-  createVariant: async (productId: string, payload: any) => {
-    try {
-      return await fetcher.post(`/products/${productId}/variants`, payload);
-    } catch (err) {
-      return await fetcher.post(`/products/${productId}`, payload);
-    }
-  },
+
+  // POST /products/{productId} - Create variant with FormData (includes images)
+  createVariant: (productId: string, formData: FormData) =>
+    fetcher.post(`/products/${productId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+
+  // PUT /products/{productId}/variants/{variantId} - Update variant
+  updateVariant: (
+    productId: string,
+    variantId: string,
+    formData: FormData
+  ) =>
+    fetcher.put(`/products/${productId}/variants/${variantId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+
+  // DELETE /products/{productId}/variants/{variantId} - Delete variant
+  deleteVariant: (productId: string, variantId: string) =>
+    fetcher.delete<{ message: string }>(
+      `/products/${productId}/variants/${variantId}`
+    ),
 };

@@ -70,13 +70,13 @@ export default function ProductList({ shopId, useMockData = false }: ProductList
     page: currentPage,
     limit: 8,
     search: searchTerm || undefined,
-    type: productType || undefined,
+    type: productType as "SALE" | "RENT" | undefined,
   });
 
   // Use mock data or API data
-  const products = useMockData ? mockProducts : (productsData?.products || mockProducts);
-  const totalPages = useMockData ? 1 : (productsData?.totalPages || 1);
-  const totalProducts = useMockData ? mockProducts.length : (productsData?.total || mockProducts.length);
+  const products = useMockData ? mockProducts : (productsData?.data || mockProducts);
+  const totalPages = useMockData ? 1 : (productsData?.pagination?.total_pages || 1);
+  const totalProducts = useMockData ? mockProducts.length : (productsData?.pagination?.total || mockProducts.length);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (

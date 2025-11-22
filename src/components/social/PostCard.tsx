@@ -68,10 +68,27 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
     };
   }, [post.author, post.author_id, post.user]);
 
+  // Store mutation pending state to avoid dependency issues
+  const [isReactPending, setIsReactPending] = useState(false);
+  // Track if we have a local like state that should override server value
+  const [hasLocalLikeState, setHasLocalLikeState] = useState(false);
+
+  // Reset local state when post changes (new post loaded)
   useEffect(() => {
+    setHasLocalLikeState(false);
     setLiked(!!post.isLiked);
     setLikeCount(post.likes ?? 0);
-  }, [post.id, post.isLiked, post.likes]);
+  }, [post.id]);
+
+  // Only update from post props if we don't have local state
+  // This prevents race condition where refetch overwrites optimistic update
+  useEffect(() => {
+    // Only sync from server if we don't have local state
+    if (!hasLocalLikeState && !isReactPending && post.id) {
+      setLiked(!!post.isLiked);
+      setLikeCount(post.likes ?? 0);
+    }
+  }, [post.isLiked, post.likes, hasLocalLikeState, isReactPending, post.id]);
 
   // Fetch comments when comments section is opened
   const {
@@ -90,31 +107,91 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const hasMoreComments = comments.length < totalComments;
 
   const toggleReactMutation = useMutation({
-    mutationFn: (shouldLike: boolean) =>
-      shouldLike ? postApi.reactPost(post.id) : postApi.removeReact(post.id),
+    mutationFn: async (shouldLike: boolean) => {
+      try {
+        if (shouldLike) {
+          return await postApi.reactPost(post.id);
+        } else {
+          return await postApi.removeReact(post.id);
+        }
+      } catch (error: any) {
+        // Handle 409 Conflict - automatically toggle to opposite action
+        if (error?.response?.status === 409) {
+          // If we tried to react but already reacted, unreact instead
+          if (shouldLike) {
+            const result = await postApi.removeReact(post.id);
+            return { ...result, _wasToggled: true, _actualAction: false };
+          } else {
+            // If we tried to unreact but already unreacted, react instead
+            const result = await postApi.reactPost(post.id);
+            return { ...result, _wasToggled: true, _actualAction: true };
+          }
+        }
+        throw error;
+      }
+    },
     onMutate: async (shouldLike) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ["posts"] });
+      
+      setIsReactPending(true);
+      setHasLocalLikeState(true); // Mark that we have local state - don't let server override
       const previousState = { liked, likeCount };
       const nextLikeCount = Math.max(
         0,
         previousState.likeCount + (shouldLike ? 1 : -1)
       );
 
+      // Optimistic update - update UI immediately
       setLiked(shouldLike);
       setLikeCount(nextLikeCount);
 
-      return { previousState, nextLikeCount };
+      return { previousState, nextLikeCount, intendedLike: shouldLike };
     },
-    onError: (_error, _shouldLike, context) => {
+    onError: (error: any, _shouldLike, context) => {
+      setIsReactPending(false);
+      setHasLocalLikeState(false); // Reset local state on error - allow server to sync
+      // Rollback optimistic update on error
       if (context?.previousState) {
         setLiked(context.previousState.liked);
         setLikeCount(context.previousState.likeCount);
       }
-      toast.error("Không thể cập nhật lượt thích");
+      
+      // Don't show error for 409 conflicts as we handle them automatically
+      if (error?.response?.status !== 409) {
+        toast.error("Không thể cập nhật lượt thích");
+      }
     },
-    onSuccess: (_data, shouldLike, context) => {
-      if (context) {
+    onSuccess: (data: any, shouldLike, context) => {
+      // Check if the action was toggled due to 409 conflict
+      const actualLike = data?._wasToggled ? data._actualAction : shouldLike;
+      
+      // Update state to reflect actual server state
+      if (data?._wasToggled && context) {
+        // Action was toggled due to conflict
+        const actualCount = Math.max(
+          0,
+          context.previousState.likeCount + (actualLike ? 1 : -1)
+        );
+        setLiked(actualLike);
+        setLikeCount(actualCount);
+        // Keep hasLocalLikeState = true to prevent server from overriding
+        onLike?.(post.id, actualLike, actualCount);
+      } else if (context) {
+        // Normal case - state already updated in onMutate
+        // Keep the optimistic update, just confirm it
+        // Keep hasLocalLikeState = true to prevent server from overriding
         onLike?.(post.id, shouldLike, context.nextLikeCount);
       }
+      
+      setIsReactPending(false);
+      
+      // Invalidate and refetch posts query to sync with server
+      // But keep hasLocalLikeState = true so server won't override our state
+      // Only reset it when post.id changes (new post loaded)
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["posts"] });
+      }, 300);
     },
   });
 
@@ -126,9 +203,17 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   // Create comment mutation
   const createCommentMutation = useMutation({
     mutationFn: (payload: CreateCommentPayload) => postApi.createComment(payload),
-    onSuccess: () => {
-      setCommentText("");
-      setReplyText({});
+    onSuccess: (data, variables) => {
+      // Clear the specific reply text that was submitted
+      if (variables.quote_comment_id) {
+        setReplyText((prev) => {
+          const newReplyText = { ...prev };
+          delete newReplyText[variables.quote_comment_id!];
+          return newReplyText;
+        });
+      } else {
+        setCommentText("");
+      }
       setReplyToCommentId(null);
       // Refetch comments
       refetchComments();
@@ -392,89 +477,129 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
                 </div>
               ) : (
                 comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3 group">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
-                      {comment.user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="bg-white rounded-xl p-3 border border-gray-200">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex-1 min-w-0">
-                            <span className="font-semibold text-sm text-gray-900 mr-2">
-                              {comment.user.username}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {formatTimeAgo(comment.createdAt)}
-                            </span>
+                  <div key={comment.id} className="space-y-3">
+                    {/* Parent Comment */}
+                    <div className="flex gap-3 group">
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+                        {comment.user.username.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="bg-white rounded-xl p-3 border border-gray-200">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-sm text-gray-900 mr-2">
+                                {comment.user.username}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {formatTimeAgo(comment.createdAt || comment.created_at || '')}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleReply(comment.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-50 rounded-lg"
+                              title="Trả lời"
+                            >
+                              <Reply className="w-3.5 h-3.5 text-gray-500 hover:text-blue-500" />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => handleReply(comment.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-50 rounded-lg"
-                            title="Trả lời"
-                          >
-                            <Reply className="w-3.5 h-3.5 text-gray-500 hover:text-blue-500" />
-                          </button>
+                          <p 
+                            className="text-sm text-gray-900 leading-relaxed break-words prose prose-sm max-w-none"
+                            dangerouslySetInnerHTML={{ __html: comment.content || comment.text || '' }}
+                          />
+                          {comment.likes > 0 && (
+                            <div className="mt-2 flex items-center gap-1">
+                              <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                              <span className="text-xs text-gray-500">{comment.likes}</span>
+                            </div>
+                          )}
                         </div>
-                        <p 
-                          className="text-sm text-gray-900 leading-relaxed break-words prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: comment.content || comment.text || '' }}
-                        />
-                        {comment.likes > 0 && (
-                          <div className="mt-2 flex items-center gap-1">
-                            <Heart className="w-3 h-3 text-red-500 fill-red-500" />
-                            <span className="text-xs text-gray-500">{comment.likes}</span>
+                        
+                        {/* Reply input */}
+                        {replyToCommentId === comment.id && (
+                          <div className="mt-2 ml-4 pl-3 border-l-2 border-blue-200">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                placeholder={`Trả lời ${comment.user.username}...`}
+                                value={replyText[comment.id] || ""}
+                                onChange={(e) => setReplyText({ ...replyText, [comment.id]: e.target.value })}
+                                className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && replyText[comment.id]?.trim()) {
+                                    createCommentMutation.mutate({
+                                      post_id: post.id,
+                                      content: replyText[comment.id].trim(),
+                                      quote_comment_id: comment.id,
+                                    });
+                                  } else if (e.key === "Escape") {
+                                    handleCancelReply();
+                                  }
+                                }}
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => {
+                                  if (replyText[comment.id]?.trim()) {
+                                    createCommentMutation.mutate({
+                                      post_id: post.id,
+                                      content: replyText[comment.id].trim(),
+                                      quote_comment_id: comment.id,
+                                    });
+                                  }
+                                }}
+                                disabled={!replyText[comment.id]?.trim() || createCommentMutation.isPending}
+                                className="px-3 py-2 text-sm font-medium text-blue-500 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                Đăng
+                              </button>
+                              <button
+                                onClick={handleCancelReply}
+                                className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
+                              >
+                                Hủy
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
-                      
-                      {/* Reply input */}
-                      {replyToCommentId === comment.id && (
-                        <div className="mt-2 ml-4 pl-3 border-l-2 border-blue-200">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              placeholder={`Trả lời ${comment.user.username}...`}
-                              value={replyText[comment.id] || ""}
-                              onChange={(e) => setReplyText({ ...replyText, [comment.id]: e.target.value })}
-                              className="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && replyText[comment.id]?.trim()) {
-                                  createCommentMutation.mutate({
-                                    post_id: post.id,
-                                    content: replyText[comment.id].trim(),
-                                    quote_comment_id: comment.id,
-                                  });
-                                } else if (e.key === "Escape") {
-                                  handleCancelReply();
-                                }
-                              }}
-                              autoFocus
-                            />
-                            <button
-                              onClick={() => {
-                                if (replyText[comment.id]?.trim()) {
-                                  createCommentMutation.mutate({
-                                    post_id: post.id,
-                                    content: replyText[comment.id].trim(),
-                                    quote_comment_id: comment.id,
-                                  });
-                                }
-                              }}
-                              disabled={!replyText[comment.id]?.trim() || createCommentMutation.isPending}
-                              className="px-3 py-2 text-sm font-medium text-blue-500 hover:text-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Đăng
-                            </button>
-                            <button
-                              onClick={handleCancelReply}
-                              className="px-3 py-2 text-sm text-gray-500 hover:text-gray-900"
-                            >
-                              Hủy
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    {/* Replies */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <div className="ml-11 space-y-2">
+                        {comment.replies.map((reply) => (
+                          <div key={reply.id} className="flex gap-3">
+                            <div className="w-6 h-6 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                              {reply.user.username.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <div className="flex-1 min-w-0">
+                                    <span className="font-semibold text-xs text-gray-900 mr-2">
+                                      {reply.user.username}
+                                    </span>
+                                    <span className="text-[10px] text-gray-500">
+                                      {formatTimeAgo(reply.createdAt || reply.created_at || '')}
+                                    </span>
+                                  </div>
+                                </div>
+                                <p 
+                                  className="text-xs text-gray-900 leading-relaxed break-words prose prose-xs max-w-none"
+                                  dangerouslySetInnerHTML={{ __html: reply.content || reply.text || '' }}
+                                />
+                                {reply.likes > 0 && (
+                                  <div className="mt-1.5 flex items-center gap-1">
+                                    <Heart className="w-2.5 h-2.5 text-red-500 fill-red-500" />
+                                    <span className="text-[10px] text-gray-500">{reply.likes}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               )}

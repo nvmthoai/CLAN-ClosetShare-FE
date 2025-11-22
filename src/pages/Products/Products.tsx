@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { shopApi } from "@/apis/shop.api";
 import type { Shop } from "@/models/Shop";
 import { Input } from "@/components/ui/input";
@@ -20,10 +21,20 @@ function useDebouncedValue<T>(value: T, delay = 400) {
 }
 
 export default function Products() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(1);
   const [limit] = useState(100);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const debouncedSearch = useDebouncedValue(search);
+
+  // Update URL when search changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) {
+      params.set("search", search);
+    }
+    setSearchParams(params, { replace: true });
+  }, [search, setSearchParams]);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["shops", page, limit, debouncedSearch],

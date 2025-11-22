@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import type { Product } from "@/models/Product";
+import { productApi } from "@/apis/product.api";
 import { toast } from "react-toastify";
 import {
   Plus,
@@ -13,7 +14,6 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  Copy,
   Eye,
   Package,
   TrendingUp,
@@ -24,257 +24,74 @@ import {
   ChevronDown
 } from "lucide-react";
 
-// Mock data for products
-const mockProducts: Product[] = [
-  {
-    id: "1",
-    name: "Áo sơ mi vintage trắng",
-    description: "Áo sơ mi vintage chất liệu cotton cao cấp, thiết kế cổ điển phù hợp cho mọi dịp.",
-    status: "ACTIVE",
-    type: "Áo sơ mi",
-    shop_id: "1",
-    images: [
-      "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop",
-      "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=400&h=400&fit=crop"
-    ],
-    variants: [
-      {
-        id: "1",
-        product_id: "1",
-        name: "Size M",
-        type: "size",
-        stock: 15,
-        status: "ACTIVE",
-        imgs: ["https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=200&fit=crop"],
-        pricings: [
-          {
-            id: "1",
-            variant_id: "1",
-            price: 250000
-          }
-        ]
-      },
-      {
-        id: "2",
-        product_id: "1",
-        name: "Size L",
-        type: "size",
-        stock: 8,
-        status: "ACTIVE",
-        imgs: ["https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=200&h=200&fit=crop"],
-        pricings: [
-          {
-            id: "2",
-            variant_id: "2",
-            price: 250000
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "2",
-    name: "Quần jean skinny đen",
-    description: "Quần jean skinny chất liệu denim cao cấp, form dáng ôm sát tôn dáng.",
-    status: "ACTIVE",
-    type: "Quần jean",
-    shop_id: "1",
-    images: [
-      "https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&h=400&fit=crop"
-    ],
-    variants: [
-      {
-        id: "3",
-        product_id: "2",
-        name: "Size 28",
-        type: "size",
-        stock: 12,
-        status: "ACTIVE",
-        imgs: ["https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop"],
-        pricings: [
-          {
-            id: "3",
-            variant_id: "3",
-            price: 450000
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "3",
-    name: "Đầm dạ hội đỏ",
-    description: "Đầm dạ hội sang trọng, thiết kế tinh tế phù hợp cho các sự kiện quan trọng.",
-    status: "ACTIVE",
-    type: "Đầm",
-    shop_id: "1",
-    images: [
-      "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=400&h=400&fit=crop"
-    ],
-    variants: [
-      {
-        id: "4",
-        product_id: "3",
-        name: "Size S",
-        type: "size",
-        stock: 5,
-        status: "ACTIVE",
-        imgs: ["https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&h=200&fit=crop"],
-        pricings: [
-          {
-            id: "4",
-            variant_id: "4",
-            price: 850000
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "4",
-    name: "Áo khoác denim xanh",
-    description: "Áo khoác denim phong cách, chất liệu bền đẹp, dễ phối đồ.",
-    status: "ACTIVE",
-    type: "Áo khoác",
-    shop_id: "1",
-    images: [
-      "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&h=400&fit=crop"
-    ],
-    variants: [
-      {
-        id: "5",
-        product_id: "4",
-        name: "Size M",
-        type: "size",
-        stock: 20,
-        status: "ACTIVE",
-        imgs: ["https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=200&h=200&fit=crop"],
-        pricings: [
-          {
-            id: "5",
-            variant_id: "5",
-            price: 650000
-          }
-        ]
-      }
-    ]
-  },
-  {
-    id: "5",
-    name: "Váy maxi hoa",
-    description: "Váy maxi in hoa nhẹ nhàng, phù hợp cho mùa hè và các dịp dạo phố.",
-    status: "DRAFT",
-    type: "Váy",
-    shop_id: "1",
-    images: [
-      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=400&h=400&fit=crop"
-    ],
-    variants: [
-      {
-        id: "6",
-        product_id: "5",
-        name: "Size M",
-        type: "size",
-        stock: 0,
-        status: "INACTIVE",
-        imgs: ["https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=200&h=200&fit=crop"],
-        pricings: [
-          {
-            id: "6",
-            variant_id: "6",
-            price: 350000
-          }
-        ]
-      }
-    ]
-  }
-];
 
 export default function ProductManagement() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") || "");
+  const [typeFilter, setTypeFilter] = useState(searchParams.get("type") || "all");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // Fetch products (using mock data for now)
+  // Update URL when search or filter changes
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    }
+    if (typeFilter && typeFilter !== "all") {
+      params.set("type", typeFilter);
+    }
+    setSearchParams(params, { replace: true });
+  }, [searchTerm, typeFilter, setSearchParams]);
+
+  // Fetch products from API
   const { data: productsData, isLoading, isError } = useQuery({
-    queryKey: ["products", { search: searchTerm, status: statusFilter, type: typeFilter }],
-    queryFn: () => Promise.resolve({ 
-      data: { 
-        products: mockProducts, 
-        total: mockProducts.length, 
-        page: 1, 
-        limit: 10, 
-        totalPages: 1 
-      } 
+    queryKey: ["products", { search: searchTerm, type: typeFilter }],
+    queryFn: () => productApi.getProducts({ 
+      search: searchTerm || undefined,
+      type: typeFilter !== "all" ? (typeFilter as "SALE" | "RENT") : undefined,
+      page: 1,
+      limit: 100,
     }),
     select: (res) => res.data,
-    // Uncomment below when you have real API
-    // queryFn: () => productApi.getProducts({ shopId: "1" }),
-    // select: (res) => res.data,
   });
 
   // Delete product mutation
   const deleteProductMutation = useMutation({
-    mutationFn: (_productId: string) => {
-      // Mock delete - in real app, this would call productApi.deleteProduct(productId)
-      return Promise.resolve({ success: true });
-    },
+    mutationFn: (productId: string) => productApi.deleteProduct(productId),
     onSuccess: () => {
       toast.success("Xóa sản phẩm thành công!");
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setShowDeleteModal(false);
       setSelectedProduct(null);
     },
-    onError: () => {
-      toast.error("Có lỗi xảy ra khi xóa sản phẩm!");
+    onError: (error: any) => {
+      const message = error?.response?.data?.message || "Có lỗi xảy ra khi xóa sản phẩm!";
+      toast.error(message);
     },
   });
 
-  // Duplicate product mutation
-  const duplicateProductMutation = useMutation({
-    mutationFn: (_productId: string) => {
-      // Mock duplicate - in real app, this would call productApi.actionOnProduct(productId, "duplicate")
-      return Promise.resolve({ success: true });
-    },
-    onSuccess: () => {
-      toast.success("Nhân bản sản phẩm thành công!");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-    onError: () => {
-      toast.error("Có lỗi xảy ra khi nhân bản sản phẩm!");
-    },
-  });
+  const products = productsData?.data || [];
+  const totalProducts = productsData?.pagination?.total || 0;
 
-  const products = productsData?.products || [];
-  const totalProducts = productsData?.total || 0;
-
-  // Filter products
+  // Filter products (search is handled by backend, but we can filter by status client-side if needed)
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || product.status === statusFilter;
     const matchesType = typeFilter === "all" || product.type === typeFilter;
-    
-    return matchesSearch && matchesStatus && matchesType;
+    return matchesType;
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Đang bán</Badge>;
-      case "DRAFT":
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Bản nháp</Badge>;
-      case "INACTIVE":
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Tạm dừng</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">{status}</Badge>;
+  const getStatusBadge = (product: Product) => {
+    // Products from backend are always ACTIVE (inactive ones are filtered out)
+    // But we can check if product has variants
+    const hasActiveVariants = product.variants && product.variants.length > 0;
+    if (hasActiveVariants) {
+      return <Badge className="bg-green-100 text-green-800 border-green-200">Đang bán</Badge>;
     }
+    return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Chưa có biến thể</Badge>;
   };
 
   const getTotalStock = (product: Product) => {
@@ -282,9 +99,9 @@ export default function ProductManagement() {
   };
 
   const getMinPrice = (product: Product) => {
-    const prices = product.variants?.flatMap(variant => 
-      variant.pricings?.map(pricing => pricing.price) || []
-    ) || [];
+    const prices = product.variants
+      ?.map(variant => variant.pricing?.price)
+      .filter((price): price is number => price !== undefined && price !== null) || [];
     return prices.length > 0 ? Math.min(...prices) : 0;
   };
 
@@ -294,9 +111,6 @@ export default function ProductManagement() {
     }
   };
 
-  const handleDuplicate = (product: Product) => {
-    duplicateProductMutation.mutate(product.id);
-  };
 
   if (isLoading) {
     return (
@@ -372,7 +186,7 @@ export default function ProductManagement() {
               <div className="ml-4">
                 <p className="text-sm font-semibold text-gray-600">Đang bán</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {products.filter(p => p.status === "ACTIVE").length}
+                  {products.filter(p => p.variants && p.variants.length > 0).length}
                 </p>
               </div>
             </div>
@@ -384,9 +198,9 @@ export default function ProductManagement() {
                 <Star className="w-6 h-6 text-white" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-semibold text-gray-600">Bản nháp</p>
+                <p className="text-sm font-semibold text-gray-600">Chưa có biến thể</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {products.filter(p => p.status === "DRAFT").length}
+                  {products.filter(p => !p.variants || p.variants.length === 0).length}
                 </p>
               </div>
             </div>
@@ -425,30 +239,13 @@ export default function ProductManagement() {
             <div className="flex gap-4">
               <div className="relative">
                 <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="ACTIVE">Đang bán</option>
-                  <option value="DRAFT">Bản nháp</option>
-                  <option value="INACTIVE">Tạm dừng</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-              </div>
-              
-              <div className="relative">
-                <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
                   className="appearance-none bg-white border-2 border-gray-200 rounded-xl px-4 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 >
                   <option value="all">Tất cả loại</option>
-                  <option value="Áo sơ mi">Áo sơ mi</option>
-                  <option value="Quần jean">Quần jean</option>
-                  <option value="Đầm">Đầm</option>
-                  <option value="Áo khoác">Áo khoác</option>
-                  <option value="Váy">Váy</option>
+                  <option value="SALE">Bán</option>
+                  <option value="RENT">Thuê</option>
                 </select>
                 <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
               </div>
@@ -477,7 +274,7 @@ export default function ProductManagement() {
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-bold text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
             <p className="text-gray-600 mb-6">
-              {searchTerm || statusFilter !== "all" || typeFilter !== "all"
+              {searchTerm || typeFilter !== "all"
                 ? "Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
                 : "Bắt đầu bằng cách thêm sản phẩm đầu tiên của bạn"
               }
@@ -502,12 +299,12 @@ export default function ProductManagement() {
                   <>
                     <div className="relative">
                       <img
-                        src={product.images?.[0] || "https://via.placeholder.com/300x300"}
+                        src={product.variants?.[0]?.images?.[0] || "https://via.placeholder.com/300x300"}
                         alt={product.name}
                         className="w-full h-48 object-cover"
                       />
                       <div className="absolute top-2 left-2">
-                        {getStatusBadge(product.status || "DRAFT")}
+                        {getStatusBadge(product)}
                       </div>
                       <div className="absolute top-2 right-2">
                         <div className="relative group">
@@ -525,13 +322,6 @@ export default function ProductManagement() {
                               >
                                 <Edit className="w-3 h-3" />
                                 Chỉnh sửa
-                              </button>
-                              <button
-                                onClick={() => handleDuplicate(product)}
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-blue-50 hover:text-blue-500 flex items-center gap-2 transition-colors rounded-lg mx-1"
-                              >
-                                <Copy className="w-3 h-3" />
-                                Nhân bản
                               </button>
                               <button
                                 onClick={() => navigate(`/products/${product.id}`)}
@@ -561,7 +351,7 @@ export default function ProductManagement() {
                         {product.name}
                       </h3>
                       <p className="text-sm text-gray-500 mb-3 line-clamp-2">
-                        {product.description}
+                        {product.description || "Không có mô tả"}
                       </p>
                       <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
                         <span>Kho: {getTotalStock(product)}</span>
@@ -571,7 +361,7 @@ export default function ProductManagement() {
                       </div>
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="text-xs">
-                          {product.type}
+                          {product.type === "SALE" ? "Bán" : "Thuê"}
                         </Badge>
                         <span className="text-xs text-gray-500">
                           {product.variants?.length || 0} biến thể
@@ -584,22 +374,22 @@ export default function ProductManagement() {
                   <div className="p-4">
                     <div className="flex items-center gap-4">
                       <img
-                        src={product.images?.[0] || "https://via.placeholder.com/300x300"}
+                        src={product.variants?.[0]?.images?.[0] || "https://via.placeholder.com/300x300"}
                         alt={product.name}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-gray-900">{product.name}</h3>
-                          {getStatusBadge(product.status || "DRAFT")}
+                          {getStatusBadge(product)}
                         </div>
                         <p className="text-sm text-gray-500 mb-2 line-clamp-1">
-                          {product.description}
+                          {product.description || "Không có mô tả"}
                         </p>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                           <span>Kho: {getTotalStock(product)}</span>
                           <span>Giá: {getMinPrice(product).toLocaleString('vi-VN')}đ</span>
-                          <span>Loại: {product.type}</span>
+                          <span>Loại: {product.type === "SALE" ? "Bán" : "Thuê"}</span>
                           <span>{product.variants?.length || 0} biến thể</span>
                         </div>
                       </div>
