@@ -19,3 +19,4 @@ declare module 'qrcode.react' {
   export class QRCodeSVG extends Component<QRCodeSVGProps> {}
 }
 
+

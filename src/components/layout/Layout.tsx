@@ -9,6 +9,7 @@ import { getUserId } from "@/lib/user";
 import { toast } from "react-toastify";
 import { isAuthenticated, clearTokens } from "@/lib/token";
 import ChatBot from "@/components/chat/ChatBot";
+import { SubscriptionProvider } from "@/context/subscription";
 import {
   Home,
   Menu,
@@ -22,11 +23,25 @@ import {
   Package,
   LogOut,
   Sparkles,
+  Crown,
 } from "lucide-react";
 
 interface LayoutProps {
   children: ReactNode;
   sidebar?: ReactNode;
+}
+
+interface NormalizedUser {
+  name?: string;
+  email?: string;
+  avatar?: string;
+  avatarUrl?: string;
+  shopCreated?: boolean;
+  subscription_plan_id?: string;
+  subscription_plan_start_date?: string;
+  subscription_plan_end_date?: string;
+  subscription_plan_name?: string;
+  user?: NormalizedUser;
 }
 
 export default function Layout({ children, sidebar }: LayoutProps) {
@@ -58,18 +73,11 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   });
 
   // Normalize the user object from response: backend returns { user: { ... } }
-  const me =
-    (meResp?.data?.user as {
-      name?: string;
-      email?: string;
-      avatar?: string;
-      avatarUrl?: string;
-      shopCreated?: boolean;
-    }) || undefined;
+  const me = (meResp?.data?.user as NormalizedUser) || undefined;
 
   // Fallback: if `me` is not yet available (e.g., query not returned), try reading
   // persisted user data from localStorage so the header can show name/avatar.
-  let persistedUser: any = undefined;
+  let persistedUser: NormalizedUser | undefined = undefined;
   try {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("user_data");
@@ -84,6 +92,56 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   }
 
   const displayUser = me || persistedUser;
+
+  const PREMIER_PLAN_ID = "a331212b-50b9-4e86-96e0-ef235912cae0";
+  const formatSubscriptionDate = (value?: string) =>
+    value
+      ? new Date(value).toLocaleDateString("vi-VN", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+      : undefined;
+
+  const normalizedPlanId =
+    meResp?.data?.subscription_plan_id ||
+    meResp?.data?.user?.subscription_plan_id ||
+    displayUser?.subscription_plan_id ||
+    displayUser?.user?.subscription_plan_id ||
+    null;
+
+  const normalizedStartDate =
+    meResp?.data?.subscription_plan_start_date ||
+    meResp?.data?.user?.subscription_plan_start_date ||
+    displayUser?.subscription_plan_start_date ||
+    null;
+
+  const normalizedEndDate =
+    meResp?.data?.subscription_plan_end_date ||
+    meResp?.data?.user?.subscription_plan_end_date ||
+    displayUser?.subscription_plan_end_date ||
+    null;
+
+  const normalizedPlanName =
+    meResp?.data?.subscription_plan_name ||
+    meResp?.data?.user?.subscription_plan_name ||
+    displayUser?.subscription_plan_name ||
+    (normalizedPlanId === PREMIER_PLAN_ID ? "Premier" : "Miễn phí");
+
+  const isPremier = normalizedPlanId === PREMIER_PLAN_ID;
+  const endsAt = normalizedEndDate ? Date.parse(normalizedEndDate) : null;
+  const now = Date.now();
+  const subscriptionInfo = displayUser
+    ? {
+        planId: normalizedPlanId || "free",
+        planName: normalizedPlanName,
+        startDate: normalizedStartDate || undefined,
+        endDate: normalizedEndDate || undefined,
+        tierLabel: isPremier ? "Plus" : "Miễn phí",
+        isPremier,
+        isActive: isPremier ? (endsAt ? endsAt >= now : true) : true,
+      }
+    : null;
 
   // Optionally fetch shop by user id so we can hide Create Shop immediately when a shop exists.
   const userId = getUserId();
@@ -254,7 +312,8 @@ export default function Layout({ children, sidebar }: LayoutProps) {
   }, [debouncedSearchTerm]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-blue-50/20 to-white">
+    <SubscriptionProvider value={subscriptionInfo}>
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-white via-blue-50/20 to-white">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-blue-500 text-white px-3 py-1 rounded"
@@ -374,30 +433,56 @@ export default function Layout({ children, sidebar }: LayoutProps) {
                 )}
               </div>
             </div>
-
             <div className="relative">
               <button
-                className="flex items-center gap-2 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
+                className="flex items-center gap-3 p-1.5 rounded-full hover:bg-blue-50 transition-colors"
                 onClick={() => setMenuOpen((o) => !o)}
                 aria-haspopup="menu"
                 aria-expanded={menuOpen}
               >
-                <img
-                  src={
-                    displayUser?.avatar ||
-                    displayUser?.avatarUrl ||
-                    (displayUser?.name || displayUser?.email
-                      ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          displayUser?.name || displayUser?.email || "U"
-                        )}`
-                      : "https://ui-avatars.com/api/?name=U")
-                  }
-                  alt={displayUser?.name || "User"}
-                  className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
-                />
-                <span className="hidden sm:block text-sm font-medium text-gray-900 max-w-[140px] truncate">
-                  {displayUser?.name || displayUser?.email || "User"}
+                <div className="relative">
+                  <img
+                    src={
+                      displayUser?.avatar ||
+                      displayUser?.avatarUrl ||
+                      (displayUser?.name || displayUser?.email
+                        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            displayUser?.name || displayUser?.email || "U"
+                          )}`
+                        : "https://ui-avatars.com/api/?name=U")
+                    }
+                    alt={displayUser?.name || "User"}
+                    className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                  />
+                  {subscriptionInfo?.isPremier && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-amber-500 border-2 border-white text-white shadow-sm">
+                      <Crown className="w-3 h-3" />
+                    </span>
+                  )}
+                </div>
+                <div className="hidden sm:flex flex-col items-start text-left leading-tight">
+                  <span className="text-sm font-medium text-gray-900 max-w-[140px] truncate">
+                    {displayUser?.name || displayUser?.email || "User"}
+                  </span>
+            {subscriptionInfo && (
+              <span className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em]">
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${
+                    subscriptionInfo.isPremier
+                      ? "bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white shadow-lg"
+                      : "bg-gray-100 text-gray-600 border border-gray-200"
+                  }`}
+                >
+                  {subscriptionInfo.tierLabel}
                 </span>
+                {subscriptionInfo.endDate && (
+                  <span className="text-[9px] normal-case tracking-normal font-normal text-gray-500">
+                    Hết hạn {formatSubscriptionDate(subscriptionInfo.endDate)}
+                  </span>
+                )}
+              </span>
+            )}
+                </div>
                 <span className="text-xs text-gray-600">▾</span>
               </button>
               {menuOpen && (
@@ -675,5 +760,6 @@ export default function Layout({ children, sidebar }: LayoutProps) {
       {/* Global chat widget (floating). Mount when user is authenticated so it appears across screens. */}
       {hasToken && <ChatBot />}
     </div>
+  </SubscriptionProvider>
   );
 }

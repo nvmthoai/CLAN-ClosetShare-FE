@@ -14,10 +14,21 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { toast } from "react-toastify";
 import { buildAppUrl } from "@/lib/url";
+import { useSubscription } from "@/context/subscription";
+
+const formatDateShort = (value?: string) =>
+  value
+    ? new Date(value).toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+    : "—";
 
 export default function Profile() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const subscription = useSubscription();
   const [viewType, setViewType] = useState("all");
   const [activeTab, setActiveTab] = useState<'profile' | 'outfits'>('profile');
   const [showCreateOutfit, setShowCreateOutfit] = useState(false);
@@ -448,6 +459,56 @@ export default function Profile() {
                   ))}
                 </div>
               </div>
+
+              {subscription && (
+                <div className="px-6 py-6 border-b border-gray-100 bg-white/70">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
+                        Gói đăng ký
+                      </p>
+                      <p className="text-lg font-semibold text-gray-900">
+                        <span
+                          className={`px-3 py-1 rounded-full text-white shadow-lg ${
+                            subscription.isPremier
+                              ? "bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"
+                              : "bg-gray-100 text-gray-600 shadow-none border border-gray-200"
+                          }`}
+                        >
+                          {subscription.tierLabel}
+                        </span>
+                      </p>
+                    </div>
+                    <span
+                      className={`text-[10px] font-semibold uppercase rounded-full px-3 py-1 ${
+                        subscription.isActive
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {subscription.isActive ? "Còn hạn" : "Hết hạn"}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+                    <div>
+                      <p className="text-[10px] uppercase text-gray-400">
+                        Bắt đầu
+                      </p>
+                      <p className="font-medium">
+                        {formatDateShort(subscription.startDate)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase text-gray-400">
+                        Kết thúc
+                      </p>
+                      <p className="font-medium">
+                        {formatDateShort(subscription.endDate)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* My Virtual Closet section */}
               <div className="px-6 py-6">
