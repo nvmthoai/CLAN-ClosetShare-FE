@@ -18,6 +18,25 @@ import type { Post, UpdatePostPayload } from "@/models/Social";
 import { postApi, type CreateCommentPayload } from "@/apis/post.api";
 import { toast } from "react-toastify";
 import { TipTapEditor } from "@/components/ui/tiptap-editor";
+import { getUserId } from "@/lib/user";
+import { getAccessToken } from "@/lib/token";
+import { createPortal } from "react-dom";
+
+// helper to extract message from axios or Error
+function getErrorMessage(err: unknown, fallback = "Có lỗi xảy ra") {
+  if (!err) return fallback;
+  // axios style
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyErr = err as any;
+    if (anyErr?.response?.data?.message) return anyErr.response.data.message;
+  } catch (e) {
+    // ignore parsing errors
+    console.warn('getErrorMessage parse error', e);
+  }
+  if (err instanceof Error) return err.message;
+  return fallback;
+}
 
 interface PostCardProps {
   post: Post;
@@ -33,6 +52,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editTitle, setEditTitle] = useState(post.title);
   const [editContent, setEditContent] = useState(post.content);
   const [editPublished, setEditPublished] = useState(post.published);
@@ -51,7 +71,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
     lastKnownLikedRef.current = initialLiked;
     // Reset hasLocalLikeState on mount to allow sync from server
     setHasLocalLikeState(false);
-  }, []);
+  }, [post.isLiked, post.likes]);
 
   const displayUser = useMemo(() => {
     const fromUser = post.user;
@@ -93,7 +113,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
     lastKnownLikedRef.current = null;
     setLiked(!!post.isLiked);
     setLikeCount(post.likes ?? 0);
-  }, [post.id]);
+  }, [post.id, post.isLiked, post.likes]);
 
   // Sync from server when post.isLiked changes (e.g., after refetch or F5)
   // Only update if we don't have local state (user hasn't clicked like recently)
@@ -137,15 +157,15 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
         } else {
           return await postApi.removeReact(post.id);
         }
-      } catch (error: any) {
+      } catch (error) {
         // Handle 409 Conflict - automatically toggle to opposite action
-        if (error?.response?.status === 409) {
-          // If we tried to react but already reacted, unreact instead
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const anyError = error as any;
+        if (anyError?.response?.status === 409) {
           if (shouldLike) {
             const result = await postApi.removeReact(post.id);
             return { ...result, _wasToggled: true, _actualAction: false };
           } else {
-            // If we tried to unreact but already unreacted, react instead
             const result = await postApi.reactPost(post.id);
             return { ...result, _wasToggled: true, _actualAction: true };
           }
@@ -172,49 +192,33 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
 
       return { previousState, nextLikeCount, intendedLike: shouldLike };
     },
-    onError: (error: any, _shouldLike, context) => {
+    onError: (error: unknown, _shouldLike, context) => {
       setIsReactPending(false);
-      setHasLocalLikeState(false); // Reset local state on error - allow server to sync
-      // Rollback optimistic update on error
+      setHasLocalLikeState(false);
       if (context?.previousState) {
         setLiked(context.previousState.liked);
         setLikeCount(context.previousState.likeCount);
       }
-      
-      // Don't show error for 409 conflicts as we handle them automatically
-      if (error?.response?.status !== 409) {
-        toast.error("Không thể cập nhật lượt thích");
-      }
+      const msg = getErrorMessage(error, "Không thể cập nhật lượt thích");
+      // don't show for 409
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!((error as any)?.response?.status === 409)) toast.error(msg);
     },
-    onSuccess: (data: any, shouldLike, context) => {
-      // Check if the action was toggled due to 409 conflict
-      const actualLike = data?._wasToggled ? data._actualAction : shouldLike;
-      
-      // Update state to reflect actual server state
-      if (data?._wasToggled && context) {
-        // Action was toggled due to conflict
-        const actualCount = Math.max(
-          0,
-          context.previousState.likeCount + (actualLike ? 1 : -1)
-        );
+    onSuccess: (data: unknown, shouldLike, context) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anyData = data as any;
+      const actualLike = anyData?._wasToggled ? anyData._actualAction : shouldLike;
+      if (anyData?._wasToggled && context) {
+        const actualCount = Math.max(0, context.previousState.likeCount + (actualLike ? 1 : -1));
         setLiked(actualLike);
         setLikeCount(actualCount);
         lastKnownLikedRef.current = actualLike;
-        // Keep hasLocalLikeState = true to prevent server from overriding
         onLike?.(post.id, actualLike, actualCount);
       } else if (context) {
-        // Normal case - state already updated in onMutate
-        // Keep the optimistic update, just confirm it
         lastKnownLikedRef.current = shouldLike;
-        // Keep hasLocalLikeState = true to prevent server from overriding
         onLike?.(post.id, shouldLike, context.nextLikeCount);
       }
-      
       setIsReactPending(false);
-      
-      // Invalidate and refetch posts query to sync with server
-      // Don't reset hasLocalLikeState - keep it to preserve the like state
-      // It will only reset when post.id changes (new post loaded)
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["posts"] });
       }, 300);
@@ -317,8 +321,30 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
     }
   }, [showComments]);
 
+  // Delete post mutation - only available to owner
+  const deletePostMutation = useMutation({
+    mutationFn: (token?: string) => postApi.deletePost(post.id, token),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["posts"] });
+    },
+    onError: (error: unknown) => {
+      const msg = getErrorMessage(error, "Không thể xóa bài viết");
+      toast.error(msg);
+    },
+    onSuccess: () => {
+      toast.success("Xóa bài viết thành công");
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["comments", post.id] });
+    },
+  });
+
+  const isOwner = (() => {
+    const uid = getUserId();
+    return !!(uid && (uid === post.author_id || uid === post.user?.id));
+  })();
+
   return (
-    <article className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+    <article className="bg-white border border-gray-200 rounded-2xl overflow-visible shadow-sm hover:shadow-md transition-shadow duration-200">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-3">
@@ -337,18 +363,22 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
           </div>
         </div>
         <div className="relative">
-          <button 
-            onClick={() => setShowMoreMenu(!showMoreMenu)}
+          <button
+            type="button"
+            onClick={() => setShowMoreMenu((v) => !v)}
             className="p-1.5 hover:bg-blue-50 rounded-full transition-colors"
+            aria-expanded={showMoreMenu}
+            aria-label="Open post menu"
           >
             <MoreHorizontal className="w-5 h-5 text-gray-900" />
           </button>
           
           {/* More Menu */}
           {showMoreMenu && (
-            <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-xl py-1 z-10 min-w-[150px] overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl py-1 z-50 min-w-[150px] overflow-hidden">
               {onEdit && (
                 <button
+                  type="button"
                   onClick={() => {
                     setShowEditModal(true);
                     setShowMoreMenu(false);
@@ -359,13 +389,34 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
                   <span>Chỉnh sửa</span>
                 </button>
               )}
-              <button
-                onClick={() => setShowMoreMenu(false)}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2 text-gray-900"
-              >
-                <Trash2 className="w-4 h-4" />
-                <span>Xóa</span>
-              </button>
+
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // open in-app confirm modal instead of native confirm
+                    setShowMoreMenu(false);
+                    setShowDeleteModal(true);
+                  }}
+                  disabled={deletePostMutation.isPending}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2 text-gray-900 disabled:opacity-60"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{deletePostMutation.isPending ? 'Đang xóa...' : 'Xóa'}</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMoreMenu(false);
+                    toast.info("Bạn chỉ có thể xóa bài viết của chính mình");
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors flex items-center gap-2 text-gray-900"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Báo cáo</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -392,6 +443,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
                   onClick={() =>
                     setCurrentImageIndex(Math.max(0, currentImageIndex - 1))
                   }
+                  type="button"
                 />
                 <button
                   className="w-1/2"
@@ -400,6 +452,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
                       Math.min((post.images?.length || 1) - 1, currentImageIndex + 1)
                     )
                   }
+                  type="button"
                 />
               </div>
             </>
@@ -449,6 +502,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
               onClick={handleToggleLike}
               className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110"
               disabled={toggleReactMutation.isPending}
+              type="button"
             >
               <Heart
                 className={cn(
@@ -460,6 +514,7 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
             <button
               onClick={() => setShowComments(!showComments)}
               className="p-0 hover:opacity-70 transition-all duration-200 hover:scale-110"
+              type="button"
             >
               <MessageCircle className={cn(
                 "w-6 h-6 transition-all duration-200",
@@ -712,11 +767,12 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
 
       {/* Edit Modal */}
       {showEditModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+        <PortalModal onClose={handleCancelEdit}>
           <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Chỉnh sửa bài viết</h2>
               <button
+                type="button"
                 onClick={handleCancelEdit}
                 className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg p-1 transition-colors"
               >
@@ -768,12 +824,14 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50/50 rounded-b-2xl">
               <button
+                type="button"
                 onClick={handleCancelEdit}
                 className="px-5 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Hủy
               </button>
               <button
+                type="button"
                 onClick={handleEdit}
                 className="px-6 py-2.5 text-sm font-medium text-white bg-gray-900 rounded-xl hover:bg-blue-500 transition-all duration-200 shadow-lg hover:shadow-blue-200"
               >
@@ -781,8 +839,58 @@ export function PostCard({ post, onLike, onEdit }: PostCardProps) {
               </button>
             </div>
           </div>
-        </div>
+        </PortalModal>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {showDeleteModal && (
+        <PortalModal onClose={() => setShowDeleteModal(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-200">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Xác nhận xóa</h3>
+              <p className="text-sm text-gray-600">Bạn có chắc muốn xóa bài viết này?</p>
+            </div>
+            <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
+              <button type="button" onClick={() => setShowDeleteModal(false)} className="px-4 py-2 text-sm bg-white border rounded-lg">Hủy</button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const token = getAccessToken();
+                  try {
+                    await deletePostMutation.mutateAsync(token ?? undefined);
+                    setShowDeleteModal(false);
+                  } catch {
+                    // error handled in mutation
+                  }
+                }}
+                disabled={deletePostMutation.isPending}
+                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg disabled:opacity-60"
+              >
+                {deletePostMutation.isPending ? 'Đang xóa...' : 'Xóa'}
+              </button>
+            </div>
+          </div>
+        </PortalModal>
       )}
     </article>
+  );
+}
+
+// small Portal Modal to ensure overlay renders at document.body level
+function PortalModal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
+  React.useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  return createPortal(
+    <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 200000 }}>
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md p-4">{children}</div>
+    </div>,
+    document.body
   );
 }

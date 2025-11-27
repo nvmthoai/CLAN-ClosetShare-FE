@@ -52,8 +52,13 @@ export const postApi = {
     fetcher.put<Post>(`/posts/${postId}`, payload),
 
   // DELETE /posts/{postId} - Delete post
-  deletePost: (postId: string) =>
-    fetcher.delete(`/posts/${postId}`),
+  deletePost: (postId: string, token?: string) =>
+    fetcher.delete(
+      `/posts/${postId}`,
+      token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : tokenConfig()
+    ),
 
   // GET /comments/post/{postId} - Get comments for a post
   getComments: (postId: string, params?: { page?: number; limit?: number }) =>
